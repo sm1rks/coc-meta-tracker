@@ -1,10 +1,12 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Trigger the workflow every time you push to the main branch
-  # (This includes when your 'update-meta' Action pushes the new meta.json!)
   push:
     branches: [ main ]
+  workflow_run:
+    workflows: ["Daily Meta Update"]
+    types:
+      - completed
   workflow_dispatch:
 
 # Allow this job to clone the repo and create a page deployment
