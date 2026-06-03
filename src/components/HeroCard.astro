@@ -10,10 +10,12 @@ const { name, avgLevel, equipments, combos = [] } = Astro.props;
 
 // Helper to pick a color based on hero name
 const getHeroColor = (name: string) => {
-  if (name.includes("Barbarian")) return "from-orange-400 to-red-500";
-  if (name.includes("Archer")) return "from-green-400 to-emerald-600";
-  if (name.includes("Warden")) return "from-blue-400 to-cyan-500";
-  if (name.includes("Champion")) return "from-purple-400 to-indigo-500";
+  if (name.includes("Barbarian")) return "from-amber-500 to-red-700";
+  if (name.includes("Archer")) return "from-emerald-500 to-teal-800";
+  if (name.includes("Warden")) return "from-cyan-500 to-blue-700";
+  if (name.includes("Champion")) return "from-fuchsia-600 to-purple-800";
+  if (name.includes("Minion")) return "from-slate-700 to-indigo-800";
+  if (name.includes("Dragon")) return "from-red-700 to-rose-900";
   return "from-yellow-400 to-orange-500";
 };
 
@@ -35,7 +37,6 @@ const heroIcon = `icons/${getHeroIcon(name)}`;
   <div class="px-4 py-4 flex-1 flex flex-col">
     <!-- Top Equipment Section -->
     <div class="space-y-2 flex-1">
-      <h3 class="text-sm font-bold text-gray-500 tracking-wider mb-1">ALL EQUIPMENT</h3>
       <div class="space-y-2">
         {equipments.map((eq: any) => {
           const eqIcon = `icons/${getEqIcon(eq.name)}`;

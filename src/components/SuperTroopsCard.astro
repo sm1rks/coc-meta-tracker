@@ -4,6 +4,8 @@ interface Props {
 }
 
 const { troops } = Astro.props;
+
+const getSuperTroopIcon = (name: string) => `icons/Icon_HV_${name.replace(/\s+/g, '_')}.png`;
 ---
 <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border-4 border-coc-gold/30 flex flex-col h-full">
   <div class="bg-gradient-to-r from-red-500 to-orange-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3">
@@ -13,12 +15,15 @@ const { troops } = Astro.props;
     </div>
   </div>
   
-  <div class="p-3 xl:p-4 flex-1">
-    <div class="space-y-3 xl:space-y-4">
+  <div class="p-0 flex-1 relative min-h-[300px]">
+    <div class="absolute inset-0 overflow-y-auto p-3 xl:p-4 space-y-3 xl:space-y-4 custom-scrollbar">
       {troops.map(troop => (
-        <div class="grid grid-cols-[110px_1fr_40px] xl:grid-cols-[115px_1fr_40px] items-center gap-1 xl:gap-2 group">
-          <div class="font-bold text-[11px] xl:text-xs text-gray-800 leading-tight">
-             {troop.name}
+        <div class="grid grid-cols-[36px_1fr_40px] items-center gap-2 xl:gap-3 group/row">
+          <div class="relative flex justify-center cursor-help group/icon">
+             <img src={getSuperTroopIcon(troop.name)} alt={troop.name} class="w-8 h-8 object-contain drop-shadow-sm transition-transform hover:scale-110" onerror="this.style.display='none'" />
+             <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+               {troop.name}
+             </div>
           </div>
           <div class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden shadow-inner">
             <div 
