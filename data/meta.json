@@ -1,0 +1,2079 @@
+{
+  "lastUpdated": "2026-06-03T21:43:33.963Z",
+  "playersAnalyzed": 200,
+  "heroes": [
+    {
+      "name": "Barbarian King",
+      "usage": 100,
+      "avgLevel": 104.7
+    },
+    {
+      "name": "Archer Queen",
+      "usage": 100,
+      "avgLevel": 104.8
+    },
+    {
+      "name": "Grand Warden",
+      "usage": 100,
+      "avgLevel": 79.9
+    },
+    {
+      "name": "Royal Champion",
+      "usage": 100,
+      "avgLevel": 54.9
+    },
+    {
+      "name": "Minion Prince",
+      "usage": 100,
+      "avgLevel": 94
+    },
+    {
+      "name": "Dragon Duke",
+      "usage": 100,
+      "avgLevel": 24.5
+    }
+  ],
+  "equipments": [
+    {
+      "hero": "Barbarian King",
+      "name": "Barbarian Puppet",
+      "usage": 0
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Rage Vial",
+      "usage": 0
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Earthquake Boots",
+      "usage": 17
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Vampstache",
+      "usage": 0
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Giant Gauntlet",
+      "usage": 22.5
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Spiky Ball",
+      "usage": 77
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Snake Bracelet",
+      "usage": 60.5
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Stick Horse",
+      "usage": 23
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Archer Puppet",
+      "usage": 0
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Invisibility Vial",
+      "usage": 0
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Giant Arrow",
+      "usage": 44.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Healer Puppet",
+      "usage": 0.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Frozen Arrow",
+      "usage": 0.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Magic Mirror",
+      "usage": 56.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Action Figure",
+      "usage": 98
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Eternal Tome",
+      "usage": 92.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Life Gem",
+      "usage": 2.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Rage Gem",
+      "usage": 12
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Healing Tome",
+      "usage": 30.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Fireball",
+      "usage": 4
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Lavaloon Puppet",
+      "usage": 0.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Heroic Torch",
+      "usage": 58
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Royal Gem",
+      "usage": 0
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Seeking Shield",
+      "usage": 61.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Hog Rider Puppet",
+      "usage": 0.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Haste Vial",
+      "usage": 6.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Rocket Spear",
+      "usage": 92.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Electro Boots",
+      "usage": 38
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Frost Flake",
+      "usage": 1
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Henchmen Puppet",
+      "usage": 3.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Orb",
+      "usage": 99
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Metal Pants",
+      "usage": 6
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Noble Iron",
+      "usage": 0.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Crown",
+      "usage": 8.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Meteor Staff",
+      "usage": 82.5
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Fire Heart",
+      "usage": 87.5
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Stun Blaster",
+      "usage": 6
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Flame Blower",
+      "usage": 11.5
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Electro Fangs",
+      "usage": 80
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Rocket Backpack",
+      "usage": 15
+    }
+  ],
+  "combos": [
+    {
+      "hero": "Barbarian King",
+      "name": "Earthquake Boots + Spiky Ball",
+      "usage": 16.5
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Earthquake Boots + Stick Horse",
+      "usage": 0.5
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Giant Gauntlet + Snake Bracelet",
+      "usage": 0.5
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Giant Gauntlet + Stick Horse",
+      "usage": 22
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Snake Bracelet + Spiky Ball",
+      "usage": 60
+    },
+    {
+      "hero": "Barbarian King",
+      "name": "Spiky Ball + Stick Horse",
+      "usage": 0.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Frozen Arrow + Giant Arrow",
+      "usage": 0.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Giant Arrow + Magic Mirror",
+      "usage": 1.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Action Figure + Giant Arrow",
+      "usage": 42.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Action Figure + Healer Puppet",
+      "usage": 0.5
+    },
+    {
+      "hero": "Archer Queen",
+      "name": "Action Figure + Magic Mirror",
+      "usage": 55
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Eternal Tome + Life Gem",
+      "usage": 1
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Eternal Tome + Rage Gem",
+      "usage": 4.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Eternal Tome + Healing Tome",
+      "usage": 30.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Eternal Tome + Lavaloon Puppet",
+      "usage": 0.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Eternal Tome + Heroic Torch",
+      "usage": 56
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Life Gem + Rage Gem",
+      "usage": 1.5
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Fireball + Rage Gem",
+      "usage": 4
+    },
+    {
+      "hero": "Grand Warden",
+      "name": "Heroic Torch + Rage Gem",
+      "usage": 2
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Haste Vial + Seeking Shield",
+      "usage": 1
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Rocket Spear + Seeking Shield",
+      "usage": 60
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Electro Boots + Seeking Shield",
+      "usage": 0.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Hog Rider Puppet + Rocket Spear",
+      "usage": 0.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Electro Boots + Haste Vial",
+      "usage": 5.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Electro Boots + Rocket Spear",
+      "usage": 31.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Frost Flake + Rocket Spear",
+      "usage": 0.5
+    },
+    {
+      "hero": "Royal Champion",
+      "name": "Electro Boots + Frost Flake",
+      "usage": 0.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Orb + Henchmen Puppet",
+      "usage": 3.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Orb + Metal Pants",
+      "usage": 6
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Orb + Noble Iron",
+      "usage": 0.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Crown + Dark Orb",
+      "usage": 7.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Orb + Meteor Staff",
+      "usage": 81.5
+    },
+    {
+      "hero": "Minion Prince",
+      "name": "Dark Crown + Meteor Staff",
+      "usage": 1
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Fire Heart + Stun Blaster",
+      "usage": 5.5
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Electro Fangs + Fire Heart",
+      "usage": 79
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Fire Heart + Rocket Backpack",
+      "usage": 3
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Electro Fangs + Stun Blaster",
+      "usage": 0.5
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Flame Blower + Rocket Backpack",
+      "usage": 11.5
+    },
+    {
+      "hero": "Dragon Duke",
+      "name": "Electro Fangs + Rocket Backpack",
+      "usage": 0.5
+    }
+  ],
+  "superTroops": [
+    {
+      "name": "Super Wall Breaker",
+      "usage": 59
+    },
+    {
+      "name": "Super Bowler",
+      "usage": 52.5
+    },
+    {
+      "name": "Rocket Balloon",
+      "usage": 31
+    },
+    {
+      "name": "Inferno Dragon",
+      "usage": 23
+    },
+    {
+      "name": "Ice Hound",
+      "usage": 4.5
+    },
+    {
+      "name": "Super Barbarian",
+      "usage": 3.5
+    },
+    {
+      "name": "Super Yeti",
+      "usage": 2.5
+    },
+    {
+      "name": "Sneaky Goblin",
+      "usage": 0.5
+    },
+    {
+      "name": "Super Miner",
+      "usage": 0.5
+    },
+    {
+      "name": "Super Dragon",
+      "usage": 0.5
+    }
+  ],
+  "topPlayers": [
+    {
+      "rank": 1,
+      "name": "江上✨nwn",
+      "tag": "#P29V9YQR8",
+      "trophies": 5517,
+      "clanName": "SPARTANS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Oty7-VwCDi410pusbAumKqYgsVovq_LUTYHVVcVYc9k.png"
+    },
+    {
+      "rank": 2,
+      "name": "SPARTACVS",
+      "tag": "#2VVY8QY9L",
+      "trophies": 5418,
+      "clanName": "Persian Gulf",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/UOPJbfzT04I-R6bK3wIKOKfoRzaU6qgVRKj70NEUngc.png"
+    },
+    {
+      "rank": 3,
+      "name": "Conquer waffle",
+      "tag": "#22JC98P9",
+      "trophies": 5414,
+      "clanName": "ラ・ベル・テール~美しき大地~",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/c4ONB793E2BRQg9-SV532vJ-Wn5XupwQKc78ozJvGn0.png"
+    },
+    {
+      "rank": 4,
+      "name": "머거",
+      "tag": "#20YGUV8YU",
+      "trophies": 5412,
+      "clanName": "Granet",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/w9xBMwE7nfzC_oz_hBQ0Wn5WNBj5gBUuTmWXYFuo2zg.png"
+    },
+    {
+      "rank": 5,
+      "name": "⭐️LURPAPRANDO⭐️",
+      "tag": "#2LV0UGYRP",
+      "trophies": 5410,
+      "clanName": "TEAM CUBA",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/xsOlXcbhzbJHSonPD66NLaUh62zl0rXxsznm-LRCj1A.png"
+    },
+    {
+      "rank": 6,
+      "name": "Mad_Max",
+      "tag": "#20PUQ2URY",
+      "trophies": 5392,
+      "clanName": "MidNightHunter2",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5hQEpIG44f1peQM0pzlCOAoCQ54hZj7wqBdx4ubSE0g.png"
+    },
+    {
+      "rank": 7,
+      "name": "SLD⚡️隱潤掏光妳的心❤️",
+      "tag": "#8PPVVVYUY",
+      "trophies": 5390,
+      "clanName": "GTA ESPORTS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/fe0rdlgLj6l7Nfq54gcntV9OqlR_gYhAG2xE7r2VRRI.png"
+    },
+    {
+      "rank": 8,
+      "name": "joro111",
+      "tag": "#222GJPLPL",
+      "trophies": 5383,
+      "clanName": "ВРЕМЕ РАЗДЕЛНО",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/2eX33a6oJhK_SF74w--wwNN5R3nuax1vk06zIWBCHvg.png"
+    },
+    {
+      "rank": 9,
+      "name": "NiMi",
+      "tag": "#LCCJL089G",
+      "trophies": 5381,
+      "clanName": "Angelic Remnant",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/GdSwIBhWukTxNsQBJ-LlKnh0G29yoOCTR7hz0vkmmCE.png"
+    },
+    {
+      "rank": 10,
+      "name": "A⚔️K⚡CİRO MERT⚡",
+      "tag": "#QURYPY8Y0",
+      "trophies": 5365,
+      "clanName": "ARIA KING",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/z2sJomKrm9IINPqSPJZ5qHK-9Pi6ykoXmL20tS3y1yc.png"
+    },
+    {
+      "rank": 11,
+      "name": "Second Mountain",
+      "tag": "#LY2C9LJY",
+      "trophies": 5363,
+      "clanName": "自由",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/nhH8nYWoyGY-r9J7-EygGX1JcFJsG1aGMuCZzRpjLJw.png"
+    },
+    {
+      "rank": 12,
+      "name": "༺།ོ༼ ＡＣＥ ༽།ོ༻",
+      "tag": "#2QUULC0VR",
+      "trophies": 5360,
+      "clanName": "Elite ARABS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JU8DQXPpULZ51Ry8FNOrXUtvXlWl5NbkZ6WZzKCgWwc.png"
+    },
+    {
+      "rank": 13,
+      "name": "PHT Sinigang",
+      "tag": "#RUPJJGR",
+      "trophies": 5354,
+      "clanName": "phantom gang",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-h5RtATqb7CAm_BMXOBDaawbVtpKoRVKPb6gOTUnOcY.png"
+    },
+    {
+      "rank": 14,
+      "name": "C.F Wee",
+      "tag": "#2GUR0CPQY",
+      "trophies": 5350,
+      "clanName": "Cup Up Baby!!!",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/NoDejvj1IWVhIJu5b1mBiD-Gzszmtxu5TKwhQ2bzVT8.png"
+    },
+    {
+      "rank": 15,
+      "name": "ＳＨＡＤＯＷ",
+      "tag": "#LCJ29290P",
+      "trophies": 5349,
+      "clanName": "WRAITH ESPORTS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/xDfjY8UfIdEX3274m5oya0u34B4SdVd9ulgWFJZLc1Q.png"
+    },
+    {
+      "rank": 16,
+      "name": "Huy Dơi",
+      "tag": "#2PJY0JP0Y",
+      "trophies": 5349,
+      "clanName": "Phú Thọ pro",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Cks5-cN9BjLN5mpzJzELRpUVAdBfMqnBKOflk7cOyeI.png"
+    },
+    {
+      "rank": 17,
+      "name": "ℹⓂ️ Corné",
+      "tag": "#YU99JR9LJ",
+      "trophies": 5343,
+      "clanName": "Dr. Bearclaw",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/y5lRFMF4MUNlwIjYRBKDs5MTeVrFdLKsG3mzzvOAV4g.png"
+    },
+    {
+      "rank": 18,
+      "name": "US♣️♣️NHÍM⚡️pro",
+      "tag": "#8Y0P8Y909",
+      "trophies": 5343,
+      "clanName": "VN Bang hội",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/OEIdhe42VA9InoxLY6AcgPgJxLbHPPU5lWcdBuW4KS0.png"
+    },
+    {
+      "rank": 19,
+      "name": "꧁༒ ＴＥＲＬＡＮ ༒꧂",
+      "tag": "#2PQCGP92U",
+      "trophies": 5340,
+      "clanName": "AZERBAYCAN",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/ZTWCqihAsAEtmyertYtLkykt8qq6AxUrneyLivKPOJw.png"
+    },
+    {
+      "rank": 20,
+      "name": "ʜ ᗩ M̸ ᴇ ᗪ シ",
+      "tag": "#UQYJ9RP0",
+      "trophies": 5338,
+      "clanName": "",
+      "clanBadge": ""
+    },
+    {
+      "rank": 21,
+      "name": "5uh5hrsw",
+      "tag": "#8YG0LJRQQ",
+      "trophies": 5338,
+      "clanName": "[X4].!",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/BgaNwyo0PpwDmJ3KGxAAQst1L-vF0CDZftVMuZOeslQ.png"
+    },
+    {
+      "rank": 22,
+      "name": "ATL I KryKry",
+      "tag": "#QCRRL9JP9",
+      "trophies": 5337,
+      "clanName": "AQUILA",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/di2LXjhiCXVYX8PKhz_zXNaxrZ75WHZg2BvSgYm-Xc8.png"
+    },
+    {
+      "rank": 23,
+      "name": "جوكر",
+      "tag": "#PRJPV0V9",
+      "trophies": 5336,
+      "clanName": "القراصنةالسوداء",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/IRTsZB50duLPTFzCE69RLUUyl6FckhqItSXYG7A2xcc.png"
+    },
+    {
+      "rank": 24,
+      "name": "하늘",
+      "tag": "#9RJL8Y0C",
+      "trophies": 5335,
+      "clanName": "한잔하자",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/hxCYLIQKK7x-I15SGimY8DmeA8QJPEcxQhCdKroOqKY.png"
+    },
+    {
+      "rank": 25,
+      "name": "Gió Mùa Hạ ❣️❣️",
+      "tag": "#PVG99UG0Q",
+      "trophies": 5335,
+      "clanName": "VIET NAM 3 MIEN",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/OKRxEogrkCQ1WOnDJf6SL7Pr73HokT3bO8k7pH9ByEo.png"
+    },
+    {
+      "rank": 26,
+      "name": "حـسونہ๛♥️✨",
+      "tag": "#YCPUURJQY",
+      "trophies": 5332,
+      "clanName": "سوريا 22",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/yerqQONH1eRmAqWwLhm6pHdJ6uqwB2k70voBS8A9bEc.png"
+    },
+    {
+      "rank": 27,
+      "name": "Jack",
+      "tag": "#8GU8JVQ9R",
+      "trophies": 5331,
+      "clanName": "The Shire",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/_pRRY4RJHCiiEPuGWeElJDLPxWRDfdG5n7x8j5rB2Dg.png"
+    },
+    {
+      "rank": 28,
+      "name": "Duy Hưng",
+      "tag": "#82J8JRP9V",
+      "trophies": 5325,
+      "clanName": "BANG HOI REBORN",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/aKSvgmB3meSwb6V8VQ418SxHZm9iYpQgxcu7AJYR85U.png"
+    },
+    {
+      "rank": 29,
+      "name": "XF⚡️UMIDBEK",
+      "tag": "#L9VCYRQVP",
+      "trophies": 5324,
+      "clanName": "࿐ོXF✨Never die",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/WF8_0ooJc-BfM3MWqUkLTLFt65E72kw9k7yLHVck-B4.png"
+    },
+    {
+      "rank": 30,
+      "name": "v.trọng",
+      "tag": "#LY2JQVRP",
+      "trophies": 5323,
+      "clanName": "MTV GROUP",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/UHAUrJlU-IfB3yDFgS45fFf8GSfnhA4r4TOiTC7z_pA.png"
+    },
+    {
+      "rank": 31,
+      "name": "Ashtray",
+      "tag": "#QVG8U2ULG",
+      "trophies": 5322,
+      "clanName": "774",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/UiQMHwrBLcMf_-3jGMYWJScUE0WgWSmIuyXMqwjif-A.png"
+    },
+    {
+      "rank": 32,
+      "name": "조유상",
+      "tag": "#LUYGVV0R",
+      "trophies": 5322,
+      "clanName": "필승!",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/2rq67kcE3hTCXKSkJkAQY3kW41cJ9rj7xu_QwvcFo0M.png"
+    },
+    {
+      "rank": 33,
+      "name": "Ryu Kensai",
+      "tag": "#9GRQG2PLL",
+      "trophies": 5321,
+      "clanName": "War Titans",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/2g_80YOPSVvfeU2k27NyY3mHimYXBqBJAnkj-7PDrws.png"
+    },
+    {
+      "rank": 34,
+      "name": "SKY Phoenix",
+      "tag": "#9JJJJ8V02",
+      "trophies": 5319,
+      "clanName": "THE BIG GUNS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/nmy4VMyM18MBcnnViHKTMkEqdNJQUr46o4i62KNrsBE.png"
+    },
+    {
+      "rank": 35,
+      "name": "✰HNW♥Tình♡BG♥✰",
+      "tag": "#PGCLJJ2JQ",
+      "trophies": 5183,
+      "clanName": "❣️Hà Nội❣️War ✨",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/wHDGEWlWDkjJeFJU-vXaDEPaJeg0lG1HdnFoH8XHXC4.png"
+    },
+    {
+      "rank": 36,
+      "name": "男叶",
+      "tag": "#QQYL9YYQQ",
+      "trophies": 5333,
+      "clanName": "最强部落",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/D7hgHvfnkj3GH7GIcPQbferdttPANJ36d8S5TPzNFqg.png"
+    },
+    {
+      "rank": 37,
+      "name": "GOD’S⚡️DIRT",
+      "tag": "#2YVGPYGYP",
+      "trophies": 5322,
+      "clanName": "GOD'S NOT DEAD",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/BG7HGcM0FguGgdrqquxR_bDWGNl0-EGv0cV3pTZplRs.png"
+    },
+    {
+      "rank": 38,
+      "name": "✨Ez☃️KURDIM✨",
+      "tag": "#8PQ0PJ299",
+      "trophies": 5311,
+      "clanName": "Lords of war",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/78beJLHGKP-Rb7WLx1zEKwtI-2Joj1XnTfNnDRegp24.png"
+    },
+    {
+      "rank": 39,
+      "name": "FBT⚔️Zerø",
+      "tag": "#2Y2GCCPC2",
+      "trophies": 5311,
+      "clanName": "Filipino CHAMPS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/FFCLxvPr0rs9oRuUDfUaNPXTcwdBFHfnw83jfbQocP0.png"
+    },
+    {
+      "rank": 40,
+      "name": "Dr.Derpy",
+      "tag": "#29RY0QCJR",
+      "trophies": 5204,
+      "clanName": "The Forsaken",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/o_bZQFqytS2ZOeUH0Z8kNwnFp9MC9a9w_eKoD4sF0xc.png"
+    },
+    {
+      "rank": 41,
+      "name": "kyle",
+      "tag": "#YC8U2Y9UY",
+      "trophies": 5310,
+      "clanName": "백의",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5BZID5CDhwx42E3Xz5XtA5y3HA__AZcIIRvT6JJECmg.png"
+    },
+    {
+      "rank": 42,
+      "name": "The Bygone Days",
+      "tag": "#2V89PPJCY",
+      "trophies": 5250,
+      "clanName": "最强部落",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/D7hgHvfnkj3GH7GIcPQbferdttPANJ36d8S5TPzNFqg.png"
+    },
+    {
+      "rank": 43,
+      "name": "LV99.HiếuGaKu",
+      "tag": "#QPGYYJJV2",
+      "trophies": 5161,
+      "clanName": "hắc long war",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/pu9lzZY-1IsPu932vJ9fF7aGI2xWDDE84tPwtSnw5J8.png"
+    },
+    {
+      "rank": 44,
+      "name": "ÜzümlüKek",
+      "tag": "#90Y98UQ2R",
+      "trophies": 5307,
+      "clanName": "LEKESİZLER",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Vs8xvX7nE4iaiTMS6CXF3ti_5uRCTLaPQG4PbmONZnE.png"
+    },
+    {
+      "rank": 45,
+      "name": "sad 234",
+      "tag": "#GURQY2V",
+      "trophies": 5305,
+      "clanName": "Redrum",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/wXldxrXER85ee-e2XuciwB5KbpNVh3rUiuVY7P60c8Q.png"
+    },
+    {
+      "rank": 46,
+      "name": "Rhapsody",
+      "tag": "#2L08PLJ28",
+      "trophies": 5304,
+      "clanName": "METEOR DARK",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/XVbJ6Ss7Gm0BwvfiSEWi-FvCJCsSW2QFn3hGiED6860.png"
+    },
+    {
+      "rank": 47,
+      "name": "Bốn mùa hoa nở",
+      "tag": "#80PJG2RQ8",
+      "trophies": 5302,
+      "clanName": "Dark Sky",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/ntwcSs7vW4JvE392nCAV0Uz8UMkR1h-cLIXYIgrQY08.png"
+    },
+    {
+      "rank": 48,
+      "name": "와 샤 햄",
+      "tag": "#PVL9YYL",
+      "trophies": 5301,
+      "clanName": "백의",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5BZID5CDhwx42E3Xz5XtA5y3HA__AZcIIRvT6JJECmg.png"
+    },
+    {
+      "rank": 49,
+      "name": "GAKU♣️Rula",
+      "tag": "#2QQVPPLUV",
+      "trophies": 5365,
+      "clanName": "MAD",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/sPhShKcTJnYygitHvGhs30HK1mk9URPfqdH_sHu_hQE.png"
+    },
+    {
+      "rank": 50,
+      "name": "The Weeknd",
+      "tag": "#YQ2JRQCR",
+      "trophies": 5089,
+      "clanName": "Торпеда",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/nzNLvzvBFHv5j_9wz7mSqmPt2DzYw1-_kb1t0iAW5sk.png"
+    },
+    {
+      "rank": 51,
+      "name": "ASD⚡️Abu Saud",
+      "tag": "#QY9UVJUP9",
+      "trophies": 4867,
+      "clanName": "Alpha Pack",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/NgrGBAkJT03law1oJhPi-k5HWYKc3UNq9WqHDXOxxho.png"
+    },
+    {
+      "rank": 52,
+      "name": "SSDD™️⚡️Hazzard",
+      "tag": "#89CJJ8CUU",
+      "trophies": 5299,
+      "clanName": "SSDD™️",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/24KBeg0OzQyQeYiq5oVi8gaYVgF8ZYho5Go5YMFDbyU.png"
+    },
+    {
+      "rank": 53,
+      "name": "sayed⚡️anwar",
+      "tag": "#20GCV28UY",
+      "trophies": 5298,
+      "clanName": "AFG Force",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/TshA1kYR_8QfTrOvl04EHusbwaBVMWSjs-pHncZOVNU.png"
+    },
+    {
+      "rank": 54,
+      "name": "CE YueTa",
+      "tag": "#28CYPUJGU",
+      "trophies": 5297,
+      "clanName": "隨人顧性命",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/N7lbsgy0kHJPnPI_Ggamtex17dDEe0_ml_1lDPGPl_8.png"
+    },
+    {
+      "rank": 55,
+      "name": "DeathMaster",
+      "tag": "#98G0V9LCY",
+      "trophies": 5296,
+      "clanName": "Korea rep.",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/PmFaZazo8bNhr0pFzPn70xjUrMjgnXgBxCnvpQJMcyU.png"
+    },
+    {
+      "rank": 56,
+      "name": "Mighty Mike",
+      "tag": "#9JYYUQL9",
+      "trophies": 5296,
+      "clanName": "Silent army",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/sk2ztNFLA0I6Ux9I8QOyO6unaC4-UuHvu6LVAYsiEJw.png"
+    },
+    {
+      "rank": 57,
+      "name": "BDAC❤️ENGR.UMAR",
+      "tag": "#8RQ2UYUGL",
+      "trophies": 5296,
+      "clanName": "BDAC 2.0",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/vjoWLjuHv9UJTcm0BTzUhkyfyMT0IVZIW0ZHEm_ZNT4.png"
+    },
+    {
+      "rank": 58,
+      "name": "柱❌⚒️Patrick⚒️❌",
+      "tag": "#PUVC92UPY",
+      "trophies": 5295,
+      "clanName": "Fridaybigtym.ph",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/U85mD3-jQ-kPCHnTwdxV28GHFgtrASy9J9gm5WcOinY.png"
+    },
+    {
+      "rank": 59,
+      "name": "BS Cthulhu",
+      "tag": "#22C8QYJRQ",
+      "trophies": 5294,
+      "clanName": "BD Fighters",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/X2y4NHf-TTkj0V6LjUzlautRlOG9n5gdyRCjEwnl_7Q.png"
+    },
+    {
+      "rank": 60,
+      "name": "τογοτα◎、",
+      "tag": "#C8L9UU2P",
+      "trophies": 5294,
+      "clanName": "今晚打老虎2",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Y-0RkEyhCZ82UugIr1_KhIrInBbv7UNo87bSHUF92fo.png"
+    },
+    {
+      "rank": 61,
+      "name": "Lok'C",
+      "tag": "#Q02QP8YPV",
+      "trophies": 5293,
+      "clanName": "Nouvelle ère",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/hM7nO-oLnhRp-x9mDyobvm1qTS-R33naJMNk6AgKlZQ.png"
+    },
+    {
+      "rank": 62,
+      "name": "소집사⚡️",
+      "tag": "#GVLYURL2C",
+      "trophies": 5293,
+      "clanName": "Refresh",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/iwZZwNd0F7DN8a83Kqkl9ejQ-xQNA1YdrBynXC3r4Vc.png"
+    },
+    {
+      "rank": 63,
+      "name": "GOD’S⚡️BENJA✌️",
+      "tag": "#2URUVVV9",
+      "trophies": 5125,
+      "clanName": "",
+      "clanBadge": ""
+    },
+    {
+      "rank": 64,
+      "name": "AE Blueagle",
+      "tag": "#8VGC20QCJ",
+      "trophies": 5211,
+      "clanName": "SAVIRA",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Z1VqRX2jmJb2_A8ozF92GfRH3YEy_6DSRKG4YtasMOA.png"
+    },
+    {
+      "rank": 65,
+      "name": "Manatsu ♛ ᴹᵃˣ",
+      "tag": "#YLQCJRPL",
+      "trophies": 5035,
+      "clanName": "SUDANESE",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/a75TNNsrdsgDF8HBMpz3dOgEqshx1JV6Y7qHoWAU-qs.png"
+    },
+    {
+      "rank": 66,
+      "name": "MK-Cola",
+      "tag": "#89RLPP28",
+      "trophies": 4848,
+      "clanName": "Master Kingz",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/7y6tHLOly4TwnmPnemfS-ya4DQ9Qgtd9ZQzAnFJEXL4.png"
+    },
+    {
+      "rank": 67,
+      "name": "احمد جمال",
+      "tag": "#9CC8QQGR9",
+      "trophies": 5287,
+      "clanName": "The Dragons",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/VfeonF6zifUTzr3QW_rM3KFzw6bPKoxjDzYmwek1EtM.png"
+    },
+    {
+      "rank": 68,
+      "name": "제갈량급전략",
+      "tag": "#GVUP02QJ",
+      "trophies": 5234,
+      "clanName": "Granet",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/w9xBMwE7nfzC_oz_hBQ0Wn5WNBj5gBUuTmWXYFuo2zg.png"
+    },
+    {
+      "rank": 69,
+      "name": "Jay",
+      "tag": "#G0RPPJJ9L",
+      "trophies": 0,
+      "clanName": "Smoking Noobs",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/I5BYhEHDmcHgFXDg9NrzwS1g3uWWgdb_bObzVLQBkOE.png"
+    },
+    {
+      "rank": 70,
+      "name": "四牌",
+      "tag": "#8LQCUQ2YP",
+      "trophies": 5286,
+      "clanName": "老司机训练营",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5SJxQ5Yu37PF8Sk-7SQ5LyCTVnqFzJTbsY2WZSPj7CQ.png"
+    },
+    {
+      "rank": 71,
+      "name": "SPICY",
+      "tag": "#89LCVCLQJ",
+      "trophies": 5286,
+      "clanName": "摘星伴月归",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/9cYT0J5E--WoHr2deDSV3b6d89kBQjyn62VPndXb6nY.png"
+    },
+    {
+      "rank": 72,
+      "name": "STKR ⚡️✰ RYDER",
+      "tag": "#8JLRVPRQP",
+      "trophies": 5286,
+      "clanName": "HBD STKR PAUL",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/aIqH8JUUM0lDBRDcnw0wHe1YqOLvaFWVXPhlo7Q6R_Y.png"
+    },
+    {
+      "rank": 73,
+      "name": "nMe",
+      "tag": "#GJL0R9RP",
+      "trophies": 5286,
+      "clanName": "DeGrassi",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/K5vtumg6eZn16m11YyUAoOrz4qbP47KPMmAHDsEm4Po.png"
+    },
+    {
+      "rank": 74,
+      "name": "ᴼᴘ⚡️ᴍɪʀᴄʜɪᴋ",
+      "tag": "#J8YJ8Q22",
+      "trophies": 5286,
+      "clanName": "ОПАНЬКИ",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/MWhrGkqvtVw26CSCW3tPrg83tHn0ibfWKCqMNP40BRA.png"
+    },
+    {
+      "rank": 75,
+      "name": "ᵁᴺᴿ⚝ YͥV̇EͣSͫ",
+      "tag": "#PV9988PV8",
+      "trophies": 4955,
+      "clanName": "ᵁᴺᴿ⚝Family☪",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/_NHtK0ovyD0aJj2FwWBAl_HYVBxyvQ0YkWP_NAhlFvw.png"
+    },
+    {
+      "rank": 76,
+      "name": "༒☬•ΞℓiTΞ•༒☬",
+      "tag": "#289GCUR28",
+      "trophies": 5285,
+      "clanName": "TRAINING DAY",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/CmCyA7ccA5VbzbMhtdpJvOWupWduzc9EH7Ousn1OZDU.png"
+    },
+    {
+      "rank": 77,
+      "name": "Vapido",
+      "tag": "#8GYYQPL8",
+      "trophies": 5285,
+      "clanName": "Firstzone CWL",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/dynGz2f3M8CoVJUphiUwtrNHQLs-2GOfLscAl5YQN3k.png"
+    },
+    {
+      "rank": 78,
+      "name": "SHOPPER",
+      "tag": "#G828RRCJ2",
+      "trophies": 5285,
+      "clanName": "AMADEUS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/vWYBIfINwnSJk06P-FK2BbgqdQD6nkRoSmi6Kn4prLE.png"
+    },
+    {
+      "rank": 79,
+      "name": "童话✨卡皮",
+      "tag": "#GLGU22QJV",
+      "trophies": 5285,
+      "clanName": "Star Wars",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/wYNmMSTnrwDUQAsknCJ0mRGCbzN4vOKDB4SS_NXOD78.png"
+    },
+    {
+      "rank": 80,
+      "name": "Elite⚡️Nisar",
+      "tag": "#UGVV002R",
+      "trophies": 5030,
+      "clanName": "Dark Knight",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/w9xBMwE7nfzC_oz_hBQ0Wn5WNBj5gBUuTmWXYFuo2zg.png"
+    },
+    {
+      "rank": 81,
+      "name": "『HAK』PUANGBOSS亗",
+      "tag": "#2J9YJPC2Q",
+      "trophies": 5282,
+      "clanName": "Scorpion Black",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/KVD5iJQMXNNLi8k-ofkMqofHg7IWDpT8c_x1d0nCKg0.png"
+    },
+    {
+      "rank": 82,
+      "name": "CreaTive✍️...",
+      "tag": "#YJRYCV9P8",
+      "trophies": 5282,
+      "clanName": "EMPERIYA GQKDEP",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/a486rtd8W8XHSNdE60CWW5-tmvMrh3KzI4kl5k-4xE8.png"
+    },
+    {
+      "rank": 83,
+      "name": "♠️ GURI ♠️",
+      "tag": "#28JRGPPPU",
+      "trophies": 5281,
+      "clanName": "The Attacker",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/50zy-nt4ylw3ukRuizH8soL9th0YAsZOPgqtVBuW8Lw.png"
+    },
+    {
+      "rank": 84,
+      "name": "비타",
+      "tag": "#QJP8VPJ8Y",
+      "trophies": 5242,
+      "clanName": "Granet",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/w9xBMwE7nfzC_oz_hBQ0Wn5WNBj5gBUuTmWXYFuo2zg.png"
+    },
+    {
+      "rank": 85,
+      "name": "ᴵ ᴬᴹ ⚡Hafız",
+      "tag": "#888GVGLJV",
+      "trophies": 5159,
+      "clanName": "DİFFERENCE",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/vU41onUVN9jp__vB4R40-6YqQrSiOE5eimmNrJjHAf4.png"
+    },
+    {
+      "rank": 86,
+      "name": "L A K S H ☠️⚡",
+      "tag": "#Y9JCCCY2R",
+      "trophies": 5309,
+      "clanName": "Crowned YT",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JmFsB19l-sFep0vBGZO246K_GyKQH5eTjYf9sZKfpe8.png"
+    },
+    {
+      "rank": 87,
+      "name": "ᵀᶠ✨FAIZI",
+      "tag": "#YJ0J2UCYG",
+      "trophies": 5278,
+      "clanName": "GreenEternity™️",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/nW2rLRUimyoYcTmqYb4Di-Pj9BxJSTfY1-9mRGGhEHo.png"
+    },
+    {
+      "rank": 88,
+      "name": "empress❤️lec",
+      "tag": "#9LJY8QVL0",
+      "trophies": 5277,
+      "clanName": "SCP基金会",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/A68gEZnkHK0Wk3-h7M2aAPwRexaBQrgtF_xulUnBKWg.png"
+    },
+    {
+      "rank": 89,
+      "name": "PRIYANSHU",
+      "tag": "#PV2GJRG8R",
+      "trophies": 5277,
+      "clanName": "Dorehami",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-W7s5ZOnyYYNYy2CFPMt3_vnFGy5f1rXVx8l7ZTmErg.png"
+    },
+    {
+      "rank": 90,
+      "name": "༄落羽星辰༄",
+      "tag": "#2VLPG08UQ",
+      "trophies": 5276,
+      "clanName": "一一军团",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/m772uGmnBUU4HX-s-ZNIhFc8UP6JlkeDUT5OTSjNVh4.png"
+    },
+    {
+      "rank": 91,
+      "name": "TovAxi",
+      "tag": "#9Y99UPLPU",
+      "trophies": 5276,
+      "clanName": "Dorehami",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-W7s5ZOnyYYNYy2CFPMt3_vnFGy5f1rXVx8l7ZTmErg.png"
+    },
+    {
+      "rank": 92,
+      "name": "❤️Văn❤️Hùng♥️",
+      "tag": "#29UY9J8RU",
+      "trophies": 5276,
+      "clanName": "Việt Nam War",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/O8miV74uiBCEsN3VciXhfOe8lWRrIDo_dsBaEJJjJ2Q.png"
+    },
+    {
+      "rank": 93,
+      "name": "kazu",
+      "tag": "#P9UULGY9Y",
+      "trophies": 5275,
+      "clanName": "JAM",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/EbUVRxkNAi6akBpX4WDsMW9bpLgguSzAPP3y8lMGo5U.png"
+    },
+    {
+      "rank": 94,
+      "name": "∆k$π∆!",
+      "tag": "#PGRR0GG0V",
+      "trophies": 5275,
+      "clanName": "kerala",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/MOIArWUkqkAWvBynO158a5ts7wAtRZjN2GOFwoqmYPU.png"
+    },
+    {
+      "rank": 95,
+      "name": "Ｎ ＡＩＦ",
+      "tag": "#89UVL9GV",
+      "trophies": 5061,
+      "clanName": "Fairouz..",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/gDwgqh31bpEei7VCczaEat_QSG1OSCgnzg-Zz1xQPAU.png"
+    },
+    {
+      "rank": 96,
+      "name": "Chase$ the Ace",
+      "tag": "#8JUGQPGV",
+      "trophies": 5274,
+      "clanName": "Dr. Bearclaw",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/y5lRFMF4MUNlwIjYRBKDs5MTeVrFdLKsG3mzzvOAV4g.png"
+    },
+    {
+      "rank": 97,
+      "name": "被的✨Stone ★",
+      "tag": "#GYL8RR9C",
+      "trophies": 5100,
+      "clanName": "Dr. Bearclaw",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/y5lRFMF4MUNlwIjYRBKDs5MTeVrFdLKsG3mzzvOAV4g.png"
+    },
+    {
+      "rank": 98,
+      "name": "DiAbLO",
+      "tag": "#8JV0QJ2QG",
+      "trophies": 5273,
+      "clanName": "The Elite",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/gnodriQr7_tCzr4ygw26ZS2GYntJ3mmxFJJPK97Uguk.png"
+    },
+    {
+      "rank": 99,
+      "name": "Hayun",
+      "tag": "#P0Y0Q9G9J",
+      "trophies": 5273,
+      "clanName": "Granet",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/w9xBMwE7nfzC_oz_hBQ0Wn5WNBj5gBUuTmWXYFuo2zg.png"
+    },
+    {
+      "rank": 100,
+      "name": "ʍɛɢǟ աǟʀʀɨօʀ",
+      "tag": "#9QGPRLG9L",
+      "trophies": 5273,
+      "clanName": "ARAB CHAMPIONS™",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/AL5Ct0gXYlg2GL7-QbrdW4bRl93PO8pLM2d70G9_AKw.png"
+    },
+    {
+      "rank": 101,
+      "name": "猪宝宝✨",
+      "tag": "#YLLLULRCC",
+      "trophies": 5272,
+      "clanName": "DragonHunters™",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/KCRfagEOkCkv4yu10iuDj3DR-AyhKPzMq5ZTNf5Xdh0.png"
+    },
+    {
+      "rank": 102,
+      "name": "♠️NH-JACOB♠️",
+      "tag": "#J900LV0R",
+      "trophies": 5055,
+      "clanName": "NIGHT-HAWKS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/aQlOER7NObJbFsibGZ7-dRIUQDThvX1g5EwH6RoBJGY.png"
+    },
+    {
+      "rank": 103,
+      "name": "Z U L F I K A R",
+      "tag": "#L2YJ989J",
+      "trophies": 5271,
+      "clanName": "17район",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/IzwPpb9PtzRA3cOyrGB71pjJ4bKo9Ud5onMSLgMN_bw.png"
+    },
+    {
+      "rank": 104,
+      "name": "자연인",
+      "tag": "#VQUJ0GRC",
+      "trophies": 5271,
+      "clanName": "천만송이",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/MM7u6IQxLyninyEFl25fcS2gEywLMitjK4jLqj2x9Ug.png"
+    },
+    {
+      "rank": 105,
+      "name": "PRADA",
+      "tag": "#RY2RLUR8",
+      "trophies": 5216,
+      "clanName": "천만송이",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/MM7u6IQxLyninyEFl25fcS2gEywLMitjK4jLqj2x9Ug.png"
+    },
+    {
+      "rank": 106,
+      "name": "Robert",
+      "tag": "#2YG8CRQLJ",
+      "trophies": 5157,
+      "clanName": "WaR DinaStY",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/oEXbtGGdrZAT-QPQYjz-TDyvZbPVUF16qcOVHN3Ml4s.png"
+    },
+    {
+      "rank": 107,
+      "name": "2L4S Aghoz",
+      "tag": "#2JG88LQGR",
+      "trophies": 5339,
+      "clanName": "2Late4Stop",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/hb-iXKGXyCiIcNEnuX1GSzqrDco4Lr_iEPY1vdVAeIo.png"
+    },
+    {
+      "rank": 108,
+      "name": "FalscherErlöser",
+      "tag": "#LJPCRGPPG",
+      "trophies": 5270,
+      "clanName": "Firstzone",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/jBL_NmmHArnQVSCJD1fdevzdn5SI4cAMq-h2WbWtTq4.png"
+    },
+    {
+      "rank": 109,
+      "name": "⚔️NW♠️YORT⚔️",
+      "tag": "#PQPQ80U2C",
+      "trophies": 5169,
+      "clanName": "New World",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/doJ8o2lsMo8S1bjvj0Y_iDPKZvJNF1uudiaiZZYj5wM.png"
+    },
+    {
+      "rank": 110,
+      "name": "LUX Koekie",
+      "tag": "#RRR2889",
+      "trophies": 5090,
+      "clanName": "LuxA Esports",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/44SbRTSkOVW2GFukQxUA1J58L7NP7v85xA2rTfi-oHc.png"
+    },
+    {
+      "rank": 111,
+      "name": "ExL Million",
+      "tag": "#L8JPL8VQ",
+      "trophies": 5073,
+      "clanName": "Knight Hunter",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/zBbv1yKRmuT9maCbZnaxDz32DxjL9_COxpBQByj2sCw.png"
+    },
+    {
+      "rank": 112,
+      "name": "The Catalyst",
+      "tag": "#8VC8GY020",
+      "trophies": 5268,
+      "clanName": "『Savage Stars』™",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/oAhniYHi_89o094boMN6KElxw1IIMyxxo88U6ogWavA.png"
+    },
+    {
+      "rank": 113,
+      "name": "Dante",
+      "tag": "#22P0LQRGC",
+      "trophies": 5249,
+      "clanName": "The Last of Us",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/hmGHhsMy0dvlb6gHWTf7NxG1CMtywIxxGpoSftrsG6E.png"
+    },
+    {
+      "rank": 114,
+      "name": "Coach Barti",
+      "tag": "#G29QVL89Y",
+      "trophies": 5267,
+      "clanName": "NowaEra",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Xb_YP9t8akW3yCqwg7ViqTJ3z4S2QY9oHImXeU8lEe0.png"
+    },
+    {
+      "rank": 115,
+      "name": "STRN shade",
+      "tag": "#QCJL892R",
+      "trophies": 5267,
+      "clanName": "Project AriX",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/4kIi68QIyftnXNNy3P5mADHYbZZTzf5lsBfRTgUDLN8.png"
+    },
+    {
+      "rank": 116,
+      "name": "baz",
+      "tag": "#982U00GGG",
+      "trophies": 5063,
+      "clanName": "✨KURDISTAN✨™",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/mmTGiHKfXJhUnekBBDkhmS1g_dyXqkDJoCdtUo0uZ_g.png"
+    },
+    {
+      "rank": 117,
+      "name": "[2nd] Fauchi",
+      "tag": "#P8JQRJY00",
+      "trophies": 5265,
+      "clanName": "2nd eSport",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/FSxWEPiv6HTEf3hFixYsiEjwiJZchao5HHlcag4XZvo.png"
+    },
+    {
+      "rank": 118,
+      "name": "⚒️",
+      "tag": "#QJLQYLV2Y",
+      "trophies": 5265,
+      "clanName": "嘻哈Boss屠龙协会╭(╯ε╰",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JXALlTqRUg5U3b1pi4jF_KO6s8-mSiOqQuzx4EK5AQE.png"
+    },
+    {
+      "rank": 119,
+      "name": "jAycee",
+      "tag": "#Y0UL8RVL2",
+      "trophies": 5106,
+      "clanName": "PINA@LUCKY",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/1bheGiyfJRhqIiwh72SrvOrun7IsnUGc18xPrNVVNHI.png"
+    },
+    {
+      "rank": 120,
+      "name": "derechtepascal",
+      "tag": "#C800UPYV",
+      "trophies": 5264,
+      "clanName": "SpYroX X Lio",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-oqOIY73JWAhHJpwnh_R_OOmxSJ0o54MkHsiH7C6IE8.png"
+    },
+    {
+      "rank": 121,
+      "name": "D͜͡NT★Vikgod",
+      "tag": "#2YR2J989G",
+      "trophies": 5264,
+      "clanName": "The Degenerates",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/wTTRpSvrDQo6CZkdjcRXJ15eDtOrIXuCMv1cPeLgeOA.png"
+    },
+    {
+      "rank": 122,
+      "name": "Il Sicario",
+      "tag": "#8GP8GJ222",
+      "trophies": 5264,
+      "clanName": "Blood Brothers",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/38O0L51301i-UDFC23bXKo7yH4rri8e7MYbJ_U4KgR4.png"
+    },
+    {
+      "rank": 123,
+      "name": "『E3』Ahmedh25 .",
+      "tag": "#L80P8PVCP",
+      "trophies": 5110,
+      "clanName": "Elite ARABS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JU8DQXPpULZ51Ry8FNOrXUtvXlWl5NbkZ6WZzKCgWwc.png"
+    },
+    {
+      "rank": 124,
+      "name": "NC♥︎HUNTER",
+      "tag": "#2CLYJC09C",
+      "trophies": 5262,
+      "clanName": "NEW CLAN",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/LkHUsP8xpxDl5xoe4R0m_53UcJiJSnar6gFgsVepe0s.png"
+    },
+    {
+      "rank": 125,
+      "name": "KATHIR",
+      "tag": "#8U2L80GG2",
+      "trophies": 5262,
+      "clanName": "Dragons justice",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/xxPPhzU2JFrl_CdIlWByA3IIr1rG7EykncK79M1GpL4.png"
+    },
+    {
+      "rank": 126,
+      "name": "seatrus",
+      "tag": "#L9YUQGPUJ",
+      "trophies": 5321,
+      "clanName": "LEKESİZLER 2",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/7EFc-YnSmwOR4GXgOX5jlYzIHJwTsV2rP_Zyp6sK84M.png"
+    },
+    {
+      "rank": 127,
+      "name": "STKR ⚡️✰Patrick",
+      "tag": "#L8JQ088R9",
+      "trophies": 5261,
+      "clanName": "HBD STKR PAUL",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/aIqH8JUUM0lDBRDcnw0wHe1YqOLvaFWVXPhlo7Q6R_Y.png"
+    },
+    {
+      "rank": 128,
+      "name": "zolo",
+      "tag": "#2VVP8GY9C",
+      "trophies": 5261,
+      "clanName": "Team Chú Hề",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/KCRfagEOkCkv4yu10iuDj3DR-AyhKPzMq5ZTNf5Xdh0.png"
+    },
+    {
+      "rank": 129,
+      "name": "Nosferatu",
+      "tag": "#G28CC8PQ2",
+      "trophies": 5261,
+      "clanName": "Buenagente clan",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/3OtSrFVr887u84p5sCEW-a2kAwOvNtOg4s5ATIQsVXM.png"
+    },
+    {
+      "rank": 130,
+      "name": "✨INDIAN❤️AJMAL✨",
+      "tag": "#P2Y9QCLVL",
+      "trophies": 5260,
+      "clanName": "Pune Esports",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/zDV98PDxL1BBUIRZhURBFsoupKernpQhBr4Pvsb59uM.png"
+    },
+    {
+      "rank": 131,
+      "name": "2L4S Ilan⚡️",
+      "tag": "#LUYV9UCPR",
+      "trophies": 5260,
+      "clanName": "2Sad4You",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/ZTWCqihAsAEtmyertYtLkykt8qq6AxUrneyLivKPOJw.png"
+    },
+    {
+      "rank": 132,
+      "name": "wwwwwwwwwwwwwww",
+      "tag": "#Q8PJJLYY",
+      "trophies": 5260,
+      "clanName": "幕府",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5hdKWN9-WLmMVHox-MmfLejux9idTndG_OLil_eaTIA.png"
+    },
+    {
+      "rank": 133,
+      "name": "Ｂａｑｗ",
+      "tag": "#898L22JJJ",
+      "trophies": 5259,
+      "clanName": "17район",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/IzwPpb9PtzRA3cOyrGB71pjJ4bKo9Ud5onMSLgMN_bw.png"
+    },
+    {
+      "rank": 134,
+      "name": "KINGKAOS252",
+      "tag": "#J2JJVCU0",
+      "trophies": 5341,
+      "clanName": "Crim E-Sports",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/pqIyYQpoWC5t8r_gyMR1TaAplpzhYS6pfxQGz-wP4FQ.png"
+    },
+    {
+      "rank": 135,
+      "name": "PFT❤Punisher83⚡",
+      "tag": "#828UQ9YPY",
+      "trophies": 5258,
+      "clanName": "PerfecTeam",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/OxmEUDStFUFQp3MkgXcG5L4IKeFJv-jot8283QeutNY.png"
+    },
+    {
+      "rank": 136,
+      "name": "♛Nσ☆ɱҽɾƈყ™ⅠᏉ★",
+      "tag": "#PR8LG8G9",
+      "trophies": 5258,
+      "clanName": "Confusion CWL",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/51JeAHRhoxQN7mUYP7r30RqCJFtPJR_J4DpJD_jr4xU.png"
+    },
+    {
+      "rank": 137,
+      "name": "⚡ ａ ｎ ｄ ｒ ｅ ｙ ⚡",
+      "tag": "#2G9PRP9PU",
+      "trophies": 5258,
+      "clanName": "Dorehami",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-W7s5ZOnyYYNYy2CFPMt3_vnFGy5f1rXVx8l7ZTmErg.png"
+    },
+    {
+      "rank": 138,
+      "name": "Beyond waffle",
+      "tag": "#2V9QLUCPV",
+      "trophies": 5258,
+      "clanName": "OceanDrop✣希望の雫✣",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/6YJIL3fyew5orYpyLvJs0rwBPrnOdBvEUfB1Tr742AQ.png"
+    },
+    {
+      "rank": 139,
+      "name": "Only Veภom",
+      "tag": "#Y908CCUYJ",
+      "trophies": 5258,
+      "clanName": "Unlucky Pros",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-YCmkUsCFylMY2_1u7_NJgkNNrWu9cq4zXHMEkST_S8.png"
+    },
+    {
+      "rank": 140,
+      "name": "Maximus",
+      "tag": "#2GVP9LY98",
+      "trophies": 1028,
+      "clanName": "ops_771",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/oaygM0AU0VupNHITpoIcnWW9a6YMG-houO7GUmuYGlg.png"
+    },
+    {
+      "rank": 141,
+      "name": "SULEMAN⚡️LP",
+      "tag": "#Y0YLPJ8JR",
+      "trophies": 5072,
+      "clanName": "The Wolf Pack",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/cUmGkcIoL17zV0J0u4jP-CxwgNkQZxlYEKBF_Qwtwhg.png"
+    },
+    {
+      "rank": 142,
+      "name": "FTA Karn",
+      "tag": "#GRJVCPYGV",
+      "trophies": 5256,
+      "clanName": "From The Ashes",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/I8we-LqZafK7py1EUYSDZTiq-OEyeD05mEobDJJ6ytI.png"
+    },
+    {
+      "rank": 143,
+      "name": "BS Liendenftw",
+      "tag": "#LULCPJUQ",
+      "trophies": 5256,
+      "clanName": "Ballensnijers",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/_Bxn5nQxF6xt8CHGbAfF1ZbZE0DVuzH4maJzdEt_H4w.png"
+    },
+    {
+      "rank": 144,
+      "name": "尋真✨",
+      "tag": "#L98U09GRY",
+      "trophies": 5256,
+      "clanName": "Genius Teens",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/XSAwkJxMU_eVL7Gxdjn1Dr9IPIwSTp0Xcv9BIFMXqs0.png"
+    },
+    {
+      "rank": 145,
+      "name": "xtheprophecy",
+      "tag": "#LUC00CP8",
+      "trophies": 5255,
+      "clanName": "Quebec Zombies",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/tU0036BHnB_mE-Twrhv-GstcHrOU5Bxut09vIrPz26Y.png"
+    },
+    {
+      "rank": 146,
+      "name": "I ONE ☠️ Snowシ",
+      "tag": "#2LGQLR2LQ",
+      "trophies": 5255,
+      "clanName": "UAE",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/tCqjMgGXtDP_E--7q8qSIgFEQ38rKCnI7sIo1EjdGQo.png"
+    },
+    {
+      "rank": 147,
+      "name": "⚓ Henry ⚓",
+      "tag": "#28CRJ0UV0",
+      "trophies": 5255,
+      "clanName": "Los pitufos",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/HkSzku-CR9geWXkZbFOcl5uskdDe6Cwc0fnqCETCT24.png"
+    },
+    {
+      "rank": 148,
+      "name": "✿ˢᵐᵃˡˡSiputメ⁹⁹",
+      "tag": "#2PG89GPQU",
+      "trophies": 5254,
+      "clanName": "clan terkuat",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/fjDeGMBF9Z4Vu2A9VF7jge9EIgcCBwGSWPi1liPbZrA.png"
+    },
+    {
+      "rank": 149,
+      "name": "亗 ᴏɴʟʏ—͟͟͞͞ᴀᴄʜᴜ",
+      "tag": "#PCPYQUYPP",
+      "trophies": 0,
+      "clanName": "FUN POINT",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/kos4KFS-437YQD0UM4Ntam30gFjRKnbBMyX5FP17Nfk.png"
+    },
+    {
+      "rank": 150,
+      "name": "ChrystalsMan",
+      "tag": "#8YQCJ9VG8",
+      "trophies": 1095,
+      "clanName": "Lords of War",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/km63hRwQSuaxxs-uMzUu-4YmjW3t-Ztnvk4B7nAXbwc.png"
+    },
+    {
+      "rank": 151,
+      "name": "getbentlmao",
+      "tag": "#YPV0U9P22",
+      "trophies": 4939,
+      "clanName": "P7 x FTB",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/_D-DoPDbzt6hws_wj5qK_gFzJLha1uyocHWpTPiYH9g.png"
+    },
+    {
+      "rank": 152,
+      "name": "SPACY",
+      "tag": "#L2RQGPJQU",
+      "trophies": 5253,
+      "clanName": "TheHive",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/xBMP1pY94boHD8Lxs2pFk6Y0Qxfc6Vt-6xvAnKnuZPQ.png"
+    },
+    {
+      "rank": 153,
+      "name": "Fin [Rohan]",
+      "tag": "#UQVL28Q",
+      "trophies": 5253,
+      "clanName": "A Few Good Men",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Zb3HK4L9II4k65XV2gX5UGTAADxtjwGMZkR7SLQVYmw.png"
+    },
+    {
+      "rank": 154,
+      "name": "Ry",
+      "tag": "#2YJVCYUYG",
+      "trophies": 5253,
+      "clanName": "Carrier Endingシ",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Az2KTu1Fo-2eOl6555nLAbcJvV_x3iW-TjJVM8vqt0s.png"
+    },
+    {
+      "rank": 155,
+      "name": "여우",
+      "tag": "#YJG9CGP2C",
+      "trophies": 5253,
+      "clanName": "peace is 비폭력",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/8QykAscPIKzKIcn3jTDNpxEdXJaY47DjaLWC3sPO0lA.png"
+    },
+    {
+      "rank": 156,
+      "name": "ALi",
+      "tag": "#29RQG9Q82",
+      "trophies": 5253,
+      "clanName": "الظلام",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/hh2JbRLOpcjO84Rw9nq1BvH4SmHD5bu-hz8Hfag-1Lw.png"
+    },
+    {
+      "rank": 157,
+      "name": "Shen.mz",
+      "tag": "#P0Q2VQPRL",
+      "trophies": 5252,
+      "clanName": "Team 灭世",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Pk-_B-p92a0HOnFzcrTSMaYikBo82uNH8Qs9Tnkx7ao.png"
+    },
+    {
+      "rank": 158,
+      "name": "enes king",
+      "tag": "#YVJYRV2L",
+      "trophies": 5252,
+      "clanName": "{~IYI~}",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/6If3o4hpoFhJGI6qk4Sllq0PzQfe0l-cNSfy_I5uRxU.png"
+    },
+    {
+      "rank": 159,
+      "name": "US☀️☀️NHÍM⚡️pro",
+      "tag": "#C8LY0J09",
+      "trophies": 5252,
+      "clanName": "SAIGON NO.1",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/O5VMLnwzBxzlm3aqlUvKyH_yHczJY0FzOUg3JO6NFDU.png"
+    },
+    {
+      "rank": 160,
+      "name": "✝Saufkapitän✝",
+      "tag": "#PLCU8YYG9",
+      "trophies": 5251,
+      "clanName": "FruchtLabor II",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/N2lfIkp_xToTH7VUla2Ref1JpYIJ02N1ctOZiOmD-Ik.png"
+    },
+    {
+      "rank": 161,
+      "name": "stear",
+      "tag": "#YGYUGYQ0J",
+      "trophies": 5251,
+      "clanName": "股市咖啡手",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/L6MXybXrQ2kSE2n9ZKj8vo-p62ne7SzVsFfFrybtSeo.png"
+    },
+    {
+      "rank": 162,
+      "name": "Unendlich",
+      "tag": "#8UP0U0JC2",
+      "trophies": 5250,
+      "clanName": "Confusion",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Ay31MiU7WynH3Rec2hS1CXrwwYOrIMmsa1rpEH__l8Q.png"
+    },
+    {
+      "rank": 163,
+      "name": "VV Cory2",
+      "tag": "#8PV2CPQ2C",
+      "trophies": 5250,
+      "clanName": "DK Vikings",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/QKLDFaKoFsExvoZk5UBYyh3BObntRVhPtlY97Uora4U.png"
+    },
+    {
+      "rank": 164,
+      "name": "Bismoy",
+      "tag": "#2PLG2PJPR",
+      "trophies": 5250,
+      "clanName": "●⊙ FURLTOPIA ⊙●",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/X7vXMV9qzfKNSGBJ7c8iZTniivEEkHHD0VuWSA-qXzU.png"
+    },
+    {
+      "rank": 165,
+      "name": "EZ⚡ImPassy⚡",
+      "tag": "#PJY0028J8",
+      "trophies": 5144,
+      "clanName": "GhostDivision",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Zhmt9LAjJVTz3taFNLJV1t6uor8ADoLEgQ7njgJ-F24.png"
+    },
+    {
+      "rank": 166,
+      "name": "WŚÃ ⚡️ ĆHĨLẼ",
+      "tag": "#8LCG9R9Q8",
+      "trophies": 5249,
+      "clanName": "## ##",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/aTstkwl1jfMTS19QSvVmImJCGBITyNUnKmh2y9aP-54.png"
+    },
+    {
+      "rank": 167,
+      "name": "YJlTuMeuT X",
+      "tag": "#JUUU9QYG",
+      "trophies": 5249,
+      "clanName": "Golden X",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/ruG3DXy069cYV5a-VFqwEJLclIp3WxTkQtViVsthTYc.png"
+    },
+    {
+      "rank": 168,
+      "name": "INT-EL ANIMAL",
+      "tag": "#LLJPQ2Y2P",
+      "trophies": 5249,
+      "clanName": "the INTOCABLES",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/kQsSIX2gZMQMAbNl7MbwTmm1TR5-E6zEacJOH1YKfkE.png"
+    },
+    {
+      "rank": 169,
+      "name": "OMA⭕GARNET⭕",
+      "tag": "#2RRLQ2Q2",
+      "trophies": 5249,
+      "clanName": "0NE M∆N ∆RMY.PH",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/9gu7ZfUljm0fX4EftXljEz2w3cvSqH68XTvkKSjjtqk.png"
+    },
+    {
+      "rank": 170,
+      "name": "AE5'New",
+      "tag": "#82QQP809J",
+      "trophies": 5249,
+      "clanName": "Sweet Dream",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5FOhX27k7_PtfiSeuxNDLeSFjhwWd2vwSxpoiRw2jy8.png"
+    },
+    {
+      "rank": 171,
+      "name": "Mr.Lee",
+      "tag": "#2JRJYJRVL",
+      "trophies": 5129,
+      "clanName": "게이머",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5EWeE1-wCDSz2Qq5dGPSnKh0txf6KIbxscA7yOAtVi4.png"
+    },
+    {
+      "rank": 172,
+      "name": "Kepin",
+      "tag": "#2VCPLGRGP",
+      "trophies": 5248,
+      "clanName": "DERMAWAN",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/yCGHM04rgnVjQeZ6Xr0ZFeVv_FVvmJSnGzi1HxG6Zmw.png"
+    },
+    {
+      "rank": 173,
+      "name": "[Arix] Neo",
+      "tag": "#8YC9LL0C",
+      "trophies": 5248,
+      "clanName": "Phoenix Reborn",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/dkVSMg8m9hgPQPBDjg8maSyeAfb2-E1FMPC6JASKuds.png"
+    },
+    {
+      "rank": 174,
+      "name": "라바하운드",
+      "tag": "#28CC8Q888",
+      "trophies": 5248,
+      "clanName": "해양제5공화국",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/KCRfagEOkCkv4yu10iuDj3DR-AyhKPzMq5ZTNf5Xdh0.png"
+    },
+    {
+      "rank": 175,
+      "name": "killer✨",
+      "tag": "#9VQJPCLL0",
+      "trophies": 5247,
+      "clanName": "13район",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/06LAH2kgWAjRka_oSCuD4cxzCI_vOm9Zt6DoxcnzznU.png"
+    },
+    {
+      "rank": 176,
+      "name": "特小凤",
+      "tag": "#QRJVJJLRU",
+      "trophies": 5176,
+      "clanName": "NAA～涅磐",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/_ftxS7YYcpSC9iMBW16KSoCK6LaZSbhyxhpzttSxi-M.png"
+    },
+    {
+      "rank": 177,
+      "name": "K¡Ng H£¥D€R",
+      "tag": "#PLYRVU2J",
+      "trophies": 4780,
+      "clanName": "NB TEAM",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/NH0wyWUfW64JMA-0PPwSkA1ziwlxTloYoLErYyBh2Us.png"
+    },
+    {
+      "rank": 178,
+      "name": "Shrwan",
+      "tag": "#8PULUURCV",
+      "trophies": 5245,
+      "clanName": "Frost™️",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/ucuR2qXG012cjObwheT8e7ScJI1KBhGxchKlgKmfUxI.png"
+    },
+    {
+      "rank": 179,
+      "name": "SURYA",
+      "tag": "#L9Q9G8RJJ",
+      "trophies": 5091,
+      "clanName": "Aura Infinite",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/3slk6MSKV8yWZ9HOtREcivQ_0lmuyH65vB8btFK1D4o.png"
+    },
+    {
+      "rank": 180,
+      "name": "Lv.99✨X_Demon_X",
+      "tag": "#2CJ0J29L",
+      "trophies": 5244,
+      "clanName": "Great Coalition",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/5gW0BBXSS1IKZ7yRcK_rfnmfsi6UCPBTPBk_rWMdbdI.png"
+    },
+    {
+      "rank": 181,
+      "name": "ＡＧＧＲＥＳＳ１ＶＥ 王",
+      "tag": "#2CCCLQ2P",
+      "trophies": 5244,
+      "clanName": "ＴＡＪＩＫＩＳＴＡＮ™️",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/4nEmHBGk3O1U3tE89ngg5urNHE9SMwNFumq3csflKf4.png"
+    },
+    {
+      "rank": 182,
+      "name": "®Quá Đớn Đau®",
+      "tag": "#89RGRJPVR",
+      "trophies": 5244,
+      "clanName": "binh yen",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JOapVr4Py4aD4eGg45V8ZLGxSBNV58eWOhDJ99vbeis.png"
+    },
+    {
+      "rank": 183,
+      "name": "Xoài❤️Kem",
+      "tag": "#QV0CRVG02",
+      "trophies": 5244,
+      "clanName": "AE Ba Miền",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Z8Z1Er0uyqqaTAyDqsIh21SoIfs9WWFvmUgw8vH8jcw.png"
+    },
+    {
+      "rank": 184,
+      "name": "KRONOS",
+      "tag": "#RV20JJU9",
+      "trophies": 5243,
+      "clanName": "DEATH HUNTERS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/VqhMk5BY-S8mApbTO8mvJwO-RBubKJJvoVmf3_rspM0.png"
+    },
+    {
+      "rank": 185,
+      "name": "4UN HogPusher",
+      "tag": "#U9YQVLC8",
+      "trophies": 411,
+      "clanName": "SILENT ARMY",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JFa1IuLBLouFewsrCvNElXG-olH93CUS8OQ0DGoHqac.png"
+    },
+    {
+      "rank": 186,
+      "name": "KinnThePotato",
+      "tag": "#LCGU0L229",
+      "trophies": 5211,
+      "clanName": "侏羅紀樂園",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/6MTYdhEAsMRNuZwrnwd407lNux8oTejHFTQs4fTQvGE.png"
+    },
+    {
+      "rank": 187,
+      "name": "나다",
+      "tag": "#R8GCCGQQ",
+      "trophies": 5242,
+      "clanName": "Clan",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/retUjVUFBieC438d_ryHRNCPftnko2tz-9JeOkJt-0o.png"
+    },
+    {
+      "rank": 188,
+      "name": "꧁༺ɴɢʜɪêᴍᴅᴢ༻꧂",
+      "tag": "#P9PQ98R2L",
+      "trophies": 5242,
+      "clanName": "Quân Khu 2",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/8bEpV2xTp5lIoRonYzhAZ8Iw0SpnJC6IDjV8dmP1gfo.png"
+    },
+    {
+      "rank": 189,
+      "name": "다솜파파",
+      "tag": "#8PGRC8L8",
+      "trophies": 5164,
+      "clanName": "1%",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/DjQp33947uvdrzZ00JKI4cp1UdxvKR9dac9Lecrbo34.png"
+    },
+    {
+      "rank": 190,
+      "name": "BT⚡️Azzurro",
+      "tag": "#29UUCJ0Y0",
+      "trophies": 5191,
+      "clanName": "BRAVE TÜRK",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/l_6CtPlbGDPhu4BoX58KabjafLaIkgJ_nphDbfjjZXM.png"
+    },
+    {
+      "rank": 191,
+      "name": "RLVR",
+      "tag": "#GCPJVR8L",
+      "trophies": 5241,
+      "clanName": "3N",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/-NlCOXNS60GUaRWW72TeG9quvEI2ukc9edcgt2yejns.png"
+    },
+    {
+      "rank": 192,
+      "name": "shivaay verma",
+      "tag": "#9PU09CLYJ",
+      "trophies": 5241,
+      "clanName": "●⊙ FURLTOPIA ⊙●",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/X7vXMV9qzfKNSGBJ7c8iZTniivEEkHHD0VuWSA-qXzU.png"
+    },
+    {
+      "rank": 193,
+      "name": "Porous",
+      "tag": "#G9L208GJ",
+      "trophies": 5241,
+      "clanName": "king khan...",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/G5b0vJhlTJ2eI6sWvcOMPJZbHrSMfOV2W1uEdakXT7M.png"
+    },
+    {
+      "rank": 194,
+      "name": "Prawak",
+      "tag": "#L2RUCL2P9",
+      "trophies": 5240,
+      "clanName": "Polscy Banici",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/XcKYX073fdjh2Uhx5PTWkcnI0wTY19modXJDn1flD2Y.png"
+    },
+    {
+      "rank": 195,
+      "name": "파밍하는사람",
+      "tag": "#Q8PPL0UYL",
+      "trophies": 5240,
+      "clanName": "AMADEUS",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/vWYBIfINwnSJk06P-FK2BbgqdQD6nkRoSmi6Kn4prLE.png"
+    },
+    {
+      "rank": 196,
+      "name": "cartman",
+      "tag": "#8LJ2298P8",
+      "trophies": 5239,
+      "clanName": "ОТПУСК",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/Si54izsut9_JhuL9UPeru-8mwxZvosFRr0aFu9nwCFw.png"
+    },
+    {
+      "rank": 197,
+      "name": "ＡＧＯＮＩＳＴ☠︎",
+      "tag": "#GYCL09Q08",
+      "trophies": 5134,
+      "clanName": "БГ ВОИНИ",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/f9vHoDnVp-Qe6ZahiERCOjw9U3JXcEJP1CqNREjQaNw.png"
+    },
+    {
+      "rank": 198,
+      "name": "☠️☆IP☆MAYUR⚡",
+      "tag": "#9GCP0VQ8V",
+      "trophies": 166,
+      "clanName": "JURISPRUDENCE",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/qZvw0-uSSJEZEuoDbEPHFl6a0tbyqZqnBU7iP3CniB0.png"
+    },
+    {
+      "rank": 199,
+      "name": "전사",
+      "tag": "#LPPPQPRJ8",
+      "trophies": 4689,
+      "clanName": "la familia",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/slmzZEeO4aSmma3ONC676eN1UgWL2ouIfg6dgYglOJk.png"
+    },
+    {
+      "rank": 200,
+      "name": "Aeolos",
+      "tag": "#QRQVCC8JU",
+      "trophies": 5238,
+      "clanName": "残月孤狼",
+      "clanBadge": "https://api-assets.clashofclans.com/badges/70/JVsxXIqRtpYiwlC0t65-YkshvMr6GgW0vs7WKiqTKh4.png"
+    }
+  ]
+}
