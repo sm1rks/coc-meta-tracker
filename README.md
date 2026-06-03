@@ -1,6 +1,6 @@
 # 👑 Clash of Clans: Top 200 Global Meta Tracker
 
-An automated, open-source, and fully autonomous esports dashboard that tracks exactly what the top 200 best Clash of Clans players in the world are using. 
+An automated, open-source, and fully autonomous dashboard that tracks exactly what the top 200 Clash of Clans players in the world are using. 
 
 Built with **Astro**, **Tailwind CSS**, and the **Official Clash of Clans API**.
 
