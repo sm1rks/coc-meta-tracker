@@ -14,18 +14,35 @@ if (!API_KEY) {
 const dir = path.join(process.cwd(), 'data');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-async function fetchWithRetry(url: string, retries = 3) {
+async function fetchWithRetry(url: string, retries = 5) {
   for (let i = 0; i < retries; i++) {
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${API_KEY}` } });
-    if (res.status === 429) {
-      console.log("Rate limited. Waiting...");
-      await new Promise(r => setTimeout(r, 2000));
-      continue;
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${API_KEY}` } });
+      
+      if (res.status === 429) {
+        console.log("Rate limited. Waiting...");
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+      
+      if (!res.ok) {
+        // If it's a 403 (Forbidden) or 404 (Not Found), it's a hard fail
+        if (res.status === 403 || res.status === 404) {
+          throw new Error(`API Error: ${res.status} ${await res.text()}`);
+        }
+        
+        // For 520 or any other server error, log and let the retry loop handle it
+        console.log(`Received ${res.status}. Retrying (${i + 1}/${retries})...`);
+        await new Promise(r => setTimeout(r, 3000)); // Wait 3 seconds before retry
+        continue;
+      }
+      
+      return await res.json();
+    } catch (e: any) {
+      if (i === retries - 1) throw e;
+      console.log(`Network error: ${e.message}. Retrying (${i + 1}/${retries})...`);
+      await new Promise(r => setTimeout(r, 3000));
     }
-    if (!res.ok) {
-      throw new Error(`API Error: ${res.status} ${await res.text()}`);
-    }
-    return res.json();
   }
   throw new Error(`Failed to fetch ${url} after ${retries} retries`);
 }
