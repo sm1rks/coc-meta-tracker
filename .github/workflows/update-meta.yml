@@ -1,10 +1,7 @@
 name: Daily Meta Update
 
 on:
-  schedule:
-    # Runs at 04:55 UTC every day (5 minutes before League Day resets)
-    - cron: '55 4 * * *'
-  workflow_dispatch: # Allows you to trigger it manually from the Actions tab
+  workflow_dispatch: # Triggered externally by cron-job.org at 04:55 UTC
 
 jobs:
   update-meta:
