@@ -20,10 +20,12 @@ interface Props {
 
 const { armies } = Astro.props;
 
-const getHeroIcon = (name: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_Hero_${name.replace(/\s+/g, '')}.png`;
-const getEqIcon = (str: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_Equipment_${str.replace(/\s+/g, '')}.${str === 'Monolith Arrow' ? 'webp' : 'png'}`;
-const getPetIcon = (name: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_Hero_Pets_${name.replace(/\s+/g, '_')}.png`;
-const getSuperTroopIcon = (name: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_${name.replace(/\s+/g, '_')}.png`;
+const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+
+const getHeroIcon = (name: string) => `${basePath}icons/Icon_HV_Hero_${name.replace(/\s+/g, '')}.png`;
+const getEqIcon = (str: string) => `${basePath}icons/Icon_HV_Equipment_${str.replace(/\s+/g, '')}.${str === 'Monolith Arrow' ? 'webp' : 'png'}`;
+const getPetIcon = (name: string) => `${basePath}icons/Icon_HV_Hero_Pets_${name.replace(/\s+/g, '_')}.png`;
+const getSuperTroopIcon = (name: string) => `${basePath}icons/Icon_HV_${name.replace(/\s+/g, '_')}.png`;
 ---
 <div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden lg:col-span-4">
   <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3 shrink-0">
