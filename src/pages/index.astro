@@ -50,6 +50,9 @@ const getHeroCombos = (heroName: string) => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Clash Meta Tracker - Legends</title>
   </head>
   <body class="min-h-screen bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] relative">
@@ -114,6 +117,31 @@ const getHeroCombos = (heroName: string) => {
         const d = new Date(timestamp);
         updatedEl.textContent = `Updated: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
       }
+
+      // Auto-refresh logic: When the user switches back to this tab, check if there's a newer version
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState === "visible" && timestamp) {
+          try {
+            // Fetch the page HTML bypassing the cache
+            const res = await fetch(window.location.href, { cache: "no-store" });
+            const text = await res.text();
+            
+            // Extract the timestamp from the fetched HTML
+            const match = text.match(/data-timestamp="([^"]+)"/);
+            if (match && match[1]) {
+              const fetchedTime = new Date(match[1]).getTime();
+              const currentTime = new Date(timestamp).getTime();
+              
+              // If the server has a newer timestamp than our current page, auto-reload!
+              if (fetchedTime > currentTime) {
+                window.location.reload();
+              }
+            }
+          } catch (e) {
+            console.error("Failed to check for updates", e);
+          }
+        }
+      });
     </script>
   </body>
 </html>
