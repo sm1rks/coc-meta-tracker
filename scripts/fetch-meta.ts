@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
+import { EquipmentMap, HeroMap } from '../src/data/equipmentMap.js';
+import { TroopMap, SpellMap, PetMap } from '../src/data/UnitMap.js';
 
 const API_KEY = process.env.COC_API_KEY;
 const BASE_URL = 'https://cocproxy.royaleapi.dev/v1';
@@ -61,15 +63,30 @@ async function fetchMeta() {
 
     const KNOWN_EQUIPMENT: Record<string, string[]> = {
       "Barbarian King": ["Barbarian Puppet", "Rage Vial", "Earthquake Boots", "Vampstache", "Giant Gauntlet", "Spiky Ball", "Snake Bracelet", "Stick Horse"],
-      "Archer Queen": ["Archer Puppet", "Invisibility Vial", "Giant Arrow", "Healer Puppet", "Frozen Arrow", "Magic Mirror", "Action Figure"],
+      "Archer Queen": ["Archer Puppet", "Invisibility Vial", "Giant Arrow", "Healer Puppet", "Frozen Arrow", "Magic Mirror", "Action Figure", "Monolith Arrow"],
       "Grand Warden": ["Eternal Tome", "Life Gem", "Rage Gem", "Healing Tome", "Fireball", "Lavaloon Puppet", "Heroic Torch"],
       "Royal Champion": ["Royal Gem", "Seeking Shield", "Hog Rider Puppet", "Haste Vial", "Rocket Spear", "Electro Boots", "Frost Flake"],
       "Minion Prince": ["Henchmen Puppet", "Dark Orb", "Metal Pants", "Noble Iron", "Dark Crown", "Meteor Staff"],
       "Dragon Duke": ["Fire Heart", "Stun Blaster", "Flame Blower", "Electro Fangs", "Rocket Backpack"]
     };
 
+    type HeroArmyStat = {
+      count: number;
+      equipments: Record<string, number>;
+      pets: Record<string, number>;
+    };
+    type ArmyStat = {
+      count: number;
+      battlesCount: number;
+      playerTags: Set<string>;
+      heroes: Record<string, HeroArmyStat>;
+      troopTotals: Record<string, number>;
+    };
+
     const stats = {
       playersAnalyzed: 0,
+      attacksAnalyzed: 0,
+      armies: {} as Record<string, ArmyStat>,
       heroes: {} as Record<string, { count: number, totalLevel: number }>,
       equipments: {} as Record<string, Record<string, number>>, // hero -> equipment -> count
       combos: {} as Record<string, Record<string, number>>, // hero -> combo -> count
@@ -93,18 +110,25 @@ async function fetchMeta() {
     }
 
     // To respect rate limits, fetch in small batches sequentially
-    const batchSize = 10;
+    const batchSize = 5; // Reduced batch size for 2 requests per player
     for (let i = 0; i < playerTags.length; i += batchSize) {
       const batch = playerTags.slice(i, i + batchSize);
       process.stdout.write(`Fetching batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(playerTags.length/batchSize)}... `);
       
-      const promises = batch.map((tag: string) => fetchWithRetry(`${BASE_URL}/players/${encodeURIComponent(tag)}`));
-      const players = await Promise.all(promises);
+      const promises = batch.map(async (tag: string) => {
+        const pTag = encodeURIComponent(tag);
+        const [player, battlelog] = await Promise.all([
+          fetchWithRetry(`${BASE_URL}/players/${pTag}`),
+          fetchWithRetry(`${BASE_URL}/players/${pTag}/battlelog`)
+        ]);
+        return { player, battlelog };
+      });
+      
+      const results = await Promise.all(promises);
 
-      for (const player of players) {
+      for (const { player, battlelog } of results) {
         stats.playersAnalyzed++;
         
-        // Track Top Players Real Badges
         stats.topPlayersList.push({
           rank: topPlayersMap.get(player.tag) || 0,
           name: player.name,
@@ -114,36 +138,219 @@ async function fetchMeta() {
           clanBadge: player.clan && player.clan.badgeUrls ? player.clan.badgeUrls.small : ''
         });
 
-        // Track Super Troops
+        // Track Super Troops from Profile (we can still track them this way as they are active for the player)
         const activeSuperTroops = (player.troops || []).filter((t: any) => t.superTroopIsActive);
         for (const st of activeSuperTroops) {
           stats.superTroops[st.name] = (stats.superTroops[st.name] || 0) + 1;
         }
 
-        const homeHeroes = (player.heroes || []).filter((h: any) => h.village === 'home' && h.equipment && h.equipment.length > 0);
-        
-        for (const hero of homeHeroes) {
-          // Initialize stats if not exist
-          if (!stats.heroes[hero.name]) {
-            stats.heroes[hero.name] = { count: 0, totalLevel: 0 };
-            stats.equipments[hero.name] = {};
-            stats.combos[hero.name] = {};
+        // Parse Battlelog for Equipment
+        if (battlelog && battlelog.items) {
+          const rankedAttacks = battlelog.items.filter((b: any) => b.attack === true && b.battleType === 'ranked');
+          
+          const playerArmies: Record<string, number> = {};
+          const playerHeroData: Record<string, any[]> = {};
+
+          for (const attack of rankedAttacks) {
+            if (!attack.armyShareCode) continue;
+
+            stats.attacksAnalyzed++;
+
+            const heroesDeployed = new Set<string>();
+            const equipNames = new Set<string>();
+            const attackHeroes: { hero: string, combo: string | null, pet: string | null }[] = [];
+
+            // Extract heroes section: starts with 'h', ends with 'd' or 'u' or 's' or end of string
+            const hMatch = attack.armyShareCode.match(/h([^\-dsu]+(?:-[^\-dsu]+)*)/);
+            if (hMatch) {
+              const heroesStr = hMatch[1];
+              // Each hero is separated by '-'
+              const heroesList = heroesStr.split('-');
+              for (const heroStr of heroesList) {
+                // heroStr looks like "0p11e10_51" or "0e10_51"
+                const idMatch = heroStr.match(/^(\d+)/);
+                const pMatch = heroStr.match(/p(\d+)/);
+                const eMatch = heroStr.match(/e(\d+)(?:_(\d+))?/);
+                
+                if (idMatch && eMatch) {
+                  const heroId = parseInt(idMatch[1]);
+                  const eq1 = parseInt(eMatch[1]);
+                  const eq2 = eMatch[2] ? parseInt(eMatch[2]) : null;
+                  const petId = pMatch ? parseInt(pMatch[1]) : null;
+
+                  const heroName = HeroMap[heroId];
+                  if (!heroName) continue;
+                  
+                  const petName = petId !== null ? PetMap[petId] : null;
+                  if (petId !== null && !petName) {
+                    console.log(`Unmapped Pet ID found: ${petId}`);
+                  }
+
+                  heroesDeployed.add(heroName);
+
+                  const eq1Name = EquipmentMap[eq1];
+                  const eq2Name = eq2 ? EquipmentMap[eq2] : null;
+
+                  if (eq1Name) equipNames.add(eq1Name);
+                  if (eq2Name) equipNames.add(eq2Name);
+
+                  if (!stats.heroes[heroName]) {
+                    stats.heroes[heroName] = { count: 0, totalLevel: 0 };
+                    stats.equipments[heroName] = {};
+                    stats.combos[heroName] = {};
+                  }
+
+                  stats.heroes[heroName].count++;
+                  stats.heroes[heroName].totalLevel += 1; // Assuming max for simplicity if not looking up
+
+                  const eqNames = [];
+                  if (eq1Name) {
+                    stats.equipments[heroName][eq1Name] = (stats.equipments[heroName][eq1Name] || 0) + 1;
+                    eqNames.push(eq1Name);
+                  }
+                  if (eq2Name) {
+                    stats.equipments[heroName][eq2Name] = (stats.equipments[heroName][eq2Name] || 0) + 1;
+                    eqNames.push(eq2Name);
+                  }
+
+                  let comboName = null;
+                  if (eqNames.length >= 2) {
+                    comboName = eqNames.sort().join(' + ');
+                    stats.combos[heroName][comboName] = (stats.combos[heroName][comboName] || 0) + 1;
+                  }
+
+                  attackHeroes.push({ hero: heroName, combo: comboName, pet: petName });
+                }
+              }
+            }
+
+            // --- TROOPS & SPELLS ---
+            const troopCounts: Record<string, number> = {};
+            const spellCounts: Record<string, number> = {};
+            
+            const uMatch = attack.armyShareCode.match(/u([^\-ds]+(?:-[^\-ds]+)*)/);
+            if (uMatch) {
+              const unitParts = uMatch[1].split('-');
+              for (const p of unitParts) {
+                const parts = p.split('x');
+                if (parts.length === 2) {
+                  const count = parseInt(parts[0]);
+                  const id = parseInt(parts[1]);
+                  const tName = TroopMap[id];
+                  if (tName) troopCounts[tName] = (troopCounts[tName] || 0) + count;
+                }
+              }
+            }
+            
+            const sMatch = attack.armyShareCode.match(/s([^\-du]+(?:-[^\-du]+)*)/);
+            if (sMatch) {
+              const spellParts = sMatch[1].split('-');
+              for (const p of spellParts) {
+                const parts = p.split('x');
+                if (parts.length === 2) {
+                  const count = parseInt(parts[0]);
+                  const id = parseInt(parts[1]);
+                  const sName = SpellMap[id];
+                  if (sName) spellCounts[sName] = (spellCounts[sName] || 0) + count;
+                }
+              }
+            }
+
+            // --- DYNAMIC CLASSIFICATION ---
+            // Filter out common support/funnel troops to find the core army identity
+            const SUPPORT_TROOPS = new Set([
+              "Barbarian", "Archer", "Goblin", "Giant", "Wall Breaker", "Balloon",
+              "Wizard", "Minion", "Hog Rider", "Valkyrie", "Sneaky Goblin",
+              "Super Wall Breaker", "Headhunter", "Ice Golem", "Baby Dragon",
+              "Raged Barbarian", "Sneaky Archer", "Beta Minion", "Boxer Giant",
+              "Bomber", "Power P.E.K.K.A", "Cannon Cart", "Drop Ship",
+              "Wall Wrecker", "Battle Blimp", "Stone Slammer", "Hog Glider",
+              "Siege Barracks", "Log Launcher", "Flame Flinger", "Battle Drill",
+              "Super Barbarian", "Super Archer", "Super Giant", "Rocket Balloon", "Inferno Dragon", "Healer",
+            ]);
+
+            const coreTroops = Object.entries(troopCounts)
+              .filter(([name]) => !SUPPORT_TROOPS.has(name))
+              .sort((a, b) => b[1] - a[1]);
+
+            let armyType: string;
+            if (coreTroops.length === 0) {
+              // Pure support/funnel army — use top deployed troop
+              const topSupport = Object.entries(troopCounts).sort((a, b) => b[1] - a[1])[0];
+              armyType = topSupport ? topSupport[0] : "Unknown";
+            } else if (coreTroops.length === 1 || coreTroops[0][1] >= coreTroops[1]?.[1] * 2) {
+              // One dominant core troop
+              armyType = coreTroops[0][0];
+            } else {
+              // Two roughly equal core troops — combine them alphabetically for consistency
+              const top2 = [coreTroops[0][0], coreTroops[1][0]].sort();
+              armyType = `${top2[0]} & ${top2[1]}`;
+            }
+
+            // Build prefixes (go at the front of the army name)
+            const prefixes: string[] = [];
+
+            // Charge detection: 4+ invis spells + Spirit Fox on RC or Duke
+            const invisSpells = spellCounts["Invisibility Spell"] || 0;
+            if (invisSpells >= 4) {
+              const rcWithFox = attackHeroes.find(h => h.hero === "Royal Champion" && h.pet === "Spirit Fox");
+              const dukeWithFox = attackHeroes.find(h => h.hero === "Dragon Duke" && h.pet === "Spirit Fox");
+              if (rcWithFox) prefixes.push("Royal Champion Charge");
+              else if (dukeWithFox) prefixes.push("Dragon Duke Charge");
+            }
+
+            // Flame Blower prefix (Dragon Duke equipment)
+            const dukeHero = attackHeroes.find(h => h.hero === "Dragon Duke");
+            if (dukeHero && equipNames.has("Flame Blower")) prefixes.push("Flame Blower");
+
+            // Fireball prefix
+            if (equipNames.has("Fireball")) prefixes.push("Fireball");
+
+            if (prefixes.length > 0) {
+              armyType = `${prefixes.join(" ")} ${armyType}`;
+            }
+
+            playerArmies[armyType] = (playerArmies[armyType] || 0) + 1;
+            if (!playerHeroData[armyType]) playerHeroData[armyType] = [];
+            playerHeroData[armyType].push({ heroes: attackHeroes, troopCounts });
           }
 
-          stats.heroes[hero.name].count++;
-          stats.heroes[hero.name].totalLevel += hero.level;
-
-          const equipments = hero.equipment || [];
-          const eqNames = equipments.map((eq: any) => eq.name).sort();
-
-          for (const eqName of eqNames) {
-            stats.equipments[hero.name][eqName] = (stats.equipments[hero.name][eqName] || 0) + 1;
+          let mainArmyType = null;
+          let maxCount = 0;
+          for (const [aType, count] of Object.entries(playerArmies)) {
+            if (count > maxCount) {
+              maxCount = count;
+              mainArmyType = aType;
+            }
           }
 
-          if (eqNames.length >= 2) {
-            // Usually 2 equipments are active
-            const comboName = eqNames.join(' + ');
-            stats.combos[hero.name][comboName] = (stats.combos[hero.name][comboName] || 0) + 1;
+          if (mainArmyType) {
+            if (!stats.armies[mainArmyType]) {
+              stats.armies[mainArmyType] = { count: 0, battlesCount: 0, playerTags: new Set(), heroes: {}, troopTotals: {} };
+            }
+            stats.armies[mainArmyType].count++;
+            stats.armies[mainArmyType].battlesCount += maxCount;
+            stats.armies[mainArmyType].playerTags.add(player.tag);
+
+            for (const { heroes: attackHeroes, troopCounts: attackTroops } of playerHeroData[mainArmyType]) {
+              // Track heroes
+              for (const h of attackHeroes) {
+                if (!stats.armies[mainArmyType].heroes[h.hero]) {
+                  stats.armies[mainArmyType].heroes[h.hero] = { count: 0, equipments: {}, pets: {} };
+                }
+                stats.armies[mainArmyType].heroes[h.hero].count++;
+                if (h.combo) {
+                  stats.armies[mainArmyType].heroes[h.hero].equipments[h.combo] = (stats.armies[mainArmyType].heroes[h.hero].equipments[h.combo] || 0) + 1;
+                }
+                if (h.pet) {
+                  stats.armies[mainArmyType].heroes[h.hero].pets[h.pet] = (stats.armies[mainArmyType].heroes[h.hero].pets[h.pet] || 0) + 1;
+                }
+              }
+              // Track all troops by total count
+              for (const [tName, tCount] of Object.entries(attackTroops)) {
+                stats.armies[mainArmyType].troopTotals[tName] = (stats.armies[mainArmyType].troopTotals[tName] || 0) + tCount;
+              }
+            }
           }
         }
       }
@@ -157,9 +364,45 @@ async function fetchMeta() {
     stats.topPlayersList.sort((a, b) => a.rank - b.rank);
 
     // Format output
+    const formattedArmies = [];
+    for (const [armyName, armyStat] of Object.entries(stats.armies)) {
+      const topHeroes = Object.entries(armyStat.heroes)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 4)
+        .map(([hName, hStat]) => {
+           const topEq = Object.entries(hStat.equipments).sort((a,b) => b[1] - a[1])[0]?.[0] || null;
+           const topPet = Object.entries(hStat.pets).sort((a,b) => b[1] - a[1])[0]?.[0] || null;
+           return { name: hName, equipment: topEq, pet: topPet };
+        });
+      // Top 2 super troops used in this army (all super troops, including non-"Super " named ones)
+      const ALL_SUPER_TROOPS = new Set([
+        "Super Barbarian", "Super Archer", "Super Wall Breaker", "Super Giant",
+        "Sneaky Goblin", "Rocket Balloon", "Super Wizard", "Inferno Dragon",
+        "Super Minion", "Super Valkyrie", "Super Bowler", "Ice Hound",
+        "Super Dragon", "Super Witch", "Super Yeti", "Super Miner", "Super Hog Rider",
+      ]);
+      const topSecondaryTroops = Object.entries(armyStat.troopTotals)
+        .filter(([name]) => ALL_SUPER_TROOPS.has(name))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([name]) => name);
+      formattedArmies.push({
+        name: armyName,
+        usage: stats.playersAnalyzed ? (armyStat.count / stats.playersAnalyzed) * 100 : 0,
+        count: armyStat.count,
+        battlesCount: armyStat.battlesCount,
+        playerCount: armyStat.playerTags.size,
+        topHeroes,
+        topSecondaryTroops
+      });
+    }
+    formattedArmies.sort((a, b) => b.usage - a.usage);
+
     const outputData = {
       lastUpdated: new Date().toISOString(),
       playersAnalyzed: stats.playersAnalyzed,
+      attacksAnalyzed: stats.attacksAnalyzed,
+      armies: formattedArmies,
       heroes: [] as any[],
       equipments: [] as any[],
       combos: [] as any[],
@@ -167,7 +410,7 @@ async function fetchMeta() {
       topPlayers: stats.topPlayersList
     };
 
-    // Process Super Troops
+    // Process Super Troops (still based on playersAnalyzed since it's profile data)
     for (const [stName, count] of Object.entries(stats.superTroops)) {
       const usagePct = stats.playersAnalyzed ? (count / stats.playersAnalyzed) * 100 : 0;
       if (usagePct > 0) {
@@ -180,16 +423,20 @@ async function fetchMeta() {
     // Sort super troops highest to lowest
     outputData.superTroops.sort((a, b) => b.usage - a.usage);
 
-    // Only include main heroes (to avoid pets cluttering if we don't have their icons yet, but we can include them and their icons will just 404/hide)
+    // Only include main heroes
     for (const [heroName, heroStat] of Object.entries(stats.heroes)) {
-      const usagePct = stats.playersAnalyzed ? (heroStat.count / stats.playersAnalyzed) * 100 : 0;
+      // For heroes, denominator is stats.attacksAnalyzed. 
+      // If a hero is not in an attack, they weren't used.
+      const usagePct = stats.attacksAnalyzed ? (heroStat.count / stats.attacksAnalyzed) * 100 : 0;
+      // Note: avgLevel is rough here because we assumed 1.
       const avgLevel = heroStat.count ? heroStat.totalLevel / heroStat.count : 0;
       outputData.heroes.push({ name: heroName, usage: parseFloat(usagePct.toFixed(1)), avgLevel: parseFloat(avgLevel.toFixed(1)) });
 
       // Equipments
       const heroEquips = stats.equipments[heroName] || {};
       for (const [eqName, count] of Object.entries(heroEquips)) {
-        const eqUsage = stats.playersAnalyzed ? (count / stats.playersAnalyzed) * 100 : 0;
+        // Equipment usage is out of the number of attacks the hero was used in!
+        const eqUsage = heroStat.count ? (count / heroStat.count) * 100 : 0;
         outputData.equipments.push({
           hero: heroName,
           name: eqName,
@@ -201,7 +448,7 @@ async function fetchMeta() {
       const heroCombos = stats.combos[heroName] || {};
       for (const [comboName, count] of Object.entries(heroCombos)) {
         if (count > 0) {
-          const comboUsage = stats.playersAnalyzed ? (count / stats.playersAnalyzed) * 100 : 0;
+          const comboUsage = heroStat.count ? (count / heroStat.count) * 100 : 0;
           outputData.combos.push({
             hero: heroName,
             name: comboName,

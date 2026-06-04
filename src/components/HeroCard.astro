@@ -1,12 +1,12 @@
 ---
 interface Props {
   name: string;
-  avgLevel: number;
+  usage: number;
   equipments: { name: string; usage: number }[];
   combos?: { name: string; usage: number }[];
 }
 
-const { name, avgLevel, equipments, combos = [] } = Astro.props;
+const { name, usage, equipments, combos = [] } = Astro.props;
 
 // Helper to pick a color based on hero name
 const getHeroColor = (name: string) => {
@@ -22,15 +22,15 @@ const getHeroColor = (name: string) => {
 const gradient = getHeroColor(name);
 
 const getHeroIcon = (str: string) => `Icon_HV_Hero_${str.replace(/\s+/g, '')}.png`;
-const getEqIcon = (str: string) => `Icon_HV_Equipment_${str.replace(/\s+/g, '')}.png`;
-const heroIcon = `icons/${getHeroIcon(name)}`;
+const getEqIcon = (str: string) => `Icon_HV_Equipment_${str.replace(/\s+/g, '')}.${str === 'Monolith Arrow' ? 'webp' : 'png'}`;
+const heroIcon = `${import.meta.env.BASE_URL}icons/${getHeroIcon(name)}`;
 ---
-<div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border-4 border-coc-gold/30 transform transition-transform hover:scale-[1.02] h-full flex flex-col">
+<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] transform transition-transform hover:scale-[1.02] h-full flex flex-col overflow-hidden">
   <div class={`bg-gradient-to-r ${gradient} p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3`}>
     <img src={heroIcon} alt={name} class="w-12 h-12 drop-shadow-lg object-contain shrink-0" onerror="this.style.display='none'" />
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{name}</h2>
-      <div class="text-white/90 font-bold text-xs mt-0.5">Avg Level: {avgLevel.toFixed(1)}</div>
+      <div class="text-white/90 font-bold text-xs mt-0.5">Usage: {usage.toFixed(1)}%</div>
     </div>
   </div>
   
@@ -39,7 +39,7 @@ const heroIcon = `icons/${getHeroIcon(name)}`;
     <div class="space-y-2 flex-1">
       <div class="space-y-2">
         {equipments.map((eq: any) => {
-          const eqIcon = `icons/${getEqIcon(eq.name)}`;
+          const eqIcon = `${import.meta.env.BASE_URL}icons/${getEqIcon(eq.name)}`;
           return (
             <div class="flex items-center justify-between group/row relative gap-3">
               <div class="flex items-center gap-3">
@@ -80,7 +80,7 @@ const heroIcon = `icons/${getHeroIcon(name)}`;
                   {parts.map((part, idx) => (
                     <>
                       <div class="relative w-6 h-6 cursor-help group/icon">
-                         <img src={`icons/${getEqIcon(part)}`} alt={part} class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'" />
+                         <img src={`${import.meta.env.BASE_URL}icons/${getEqIcon(part)}`} alt={part} class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'" />
                          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                           {part}
                         </div>

@@ -1,0 +1,109 @@
+---
+interface HeroStat {
+  name: string;
+  equipment: string | null;
+  pet: string | null;
+}
+
+interface Props {
+  armies: { 
+    name: string; 
+    usage: number;
+    count?: number;
+    battlesCount?: number;
+    playerCount?: number;
+    topHeroes?: HeroStat[];
+    topSuperTroops?: string[];
+    topSecondaryTroops?: string[];
+  }[];
+}
+
+const { armies } = Astro.props;
+
+const getHeroIcon = (name: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_Hero_${name.replace(/\s+/g, '')}.png`;
+const getEqIcon = (str: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_Equipment_${str.replace(/\s+/g, '')}.${str === 'Monolith Arrow' ? 'webp' : 'png'}`;
+const getPetIcon = (name: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_Hero_Pets_${name.replace(/\s+/g, '_')}.png`;
+const getSuperTroopIcon = (name: string) => `${import.meta.env.BASE_URL}icons/Icon_HV_${name.replace(/\s+/g, '_')}.png`;
+---
+<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden lg:col-span-4">
+  <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3 shrink-0">
+    <div class="bg-black/20 text-white rounded-lg p-2 shadow-inner inline-block transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center">⚔️</div>
+    <div class="min-w-0">
+      <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">Top Army Types</h2>
+    </div>
+  </div>
+  
+  <div class="p-0 flex-1 relative min-h-[300px]">
+    <div class="absolute inset-0 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
+      {armies.map((army, idx) => (
+        <div class="flex flex-col group/row relative gap-2 bg-white/40 p-3 rounded-lg border border-[#c4a481]">
+          
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-6 h-6 flex items-center justify-center font-black text-[#603813] opacity-50">#{idx + 1}</div>
+              <div>
+                <div class="font-black text-[#4a2e0f] text-lg sm:text-xl leading-tight uppercase tracking-wide drop-shadow-sm">
+                  {army.name}
+                </div>
+                {army.count !== undefined && army.playerCount !== undefined && army.battlesCount !== undefined && (
+                  <div class="text-[#603813]/70 text-xs font-bold uppercase tracking-widest mt-0.5">
+                    {army.battlesCount} Battles • {army.playerCount} Players
+                  </div>
+                )}
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-grow justify-end min-w-0 max-w-[200px]">
+              <div class="flex-1 h-4 bg-[#603813]/10 rounded-full overflow-hidden shadow-inner min-w-[40px] border border-[#603813]/20">
+                <div 
+                  class="h-full bg-gradient-to-r from-red-600 to-amber-500 rounded-full transition-all duration-1000 shadow-sm"
+                  style={`width: ${army.usage}%`}
+                ></div>
+              </div>
+              <div class="text-sm font-black text-[#603813] w-14 text-right flex-shrink-0">{army.usage.toFixed(1)}%</div>
+            </div>
+          </div>
+
+          {(army.topHeroes && army.topHeroes.length > 0 || army.topSuperTroops && army.topSuperTroops.length > 0) && (
+            <div class="mt-2 pt-3 border-t-2 border-[#c4a481]/30 flex flex-wrap gap-4 items-center">
+              {army.topHeroes && army.topHeroes.map(hero => {
+                 const eqList = hero.equipment ? hero.equipment.split(' + ') : [];
+                 return (
+                   <div class="flex items-center gap-1.5 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
+                     <div class="relative group">
+                       <img src={getHeroIcon(hero.name)} alt={hero.name} class="w-10 h-10 object-contain drop-shadow-md" title={hero.name} onerror="this.style.display='none'"/>
+                     </div>
+                     
+                     {hero.pet && (
+                       <div class="relative group ml-1">
+                         <img src={getPetIcon(hero.pet)} alt={hero.pet} class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" title={hero.pet} onerror="this.style.display='none'"/>
+                       </div>
+                     )}
+
+                     {eqList.length > 0 && (
+                       <div class="flex items-center ml-1 gap-1">
+                         {eqList.map(eq => (
+                           <div class="relative group">
+                             <img src={getEqIcon(eq)} alt={eq} class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" title={eq} onerror="this.style.display='none'"/>
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                 );
+              })}
+
+              {(army.topSecondaryTroops ?? army.topSuperTroops ?? []).length > 0 && (
+                <div class="flex items-center gap-2 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm ml-auto">
+                  {(army.topSecondaryTroops ?? army.topSuperTroops ?? []).map(troop => (
+                    <img src={getSuperTroopIcon(troop)} alt={troop} class="w-10 h-10 object-contain drop-shadow-md" title={troop} onerror="this.style.display='none'"/>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+      {armies.length === 0 && <div class="text-[#603813]/60 text-sm italic text-center py-4 font-bold">No army data found.</div>}
+    </div>
+  </div>
+</div>

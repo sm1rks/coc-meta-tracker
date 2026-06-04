@@ -4,6 +4,7 @@ import path from 'path';
 import HeroCard from '../components/HeroCard.astro';
 import SuperTroopsCard from '../components/SuperTroopsCard.astro';
 import TopPlayersCard from '../components/TopPlayersCard.astro';
+import ArmyTypesCard from '../components/ArmyTypesCard.astro';
 import '../styles/global.css';
 
 // Read data during SSR
@@ -79,7 +80,11 @@ const getHeroCombos = (heroName: string) => {
         <div class="bg-black/40 backdrop-blur-md px-8 py-4 rounded-3xl border border-white/10 text-center shadow-inner">
           <div class="text-coc-gold font-black text-4xl leading-none">{playersAnalyzed}</div>
           <div class="text-white/70 text-xs font-bold uppercase tracking-widest mt-1">Players Analyzed</div>
-          <div class="text-white/40 text-[10px] mt-2 font-mono" id="lastUpdated" data-timestamp={metaData?.lastUpdated || ''}>Updated: {lastUpdated}</div>
+          
+          <div class="text-coc-gold font-black text-2xl leading-none mt-4">{metaData?.attacksAnalyzed || 0}</div>
+          <div class="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">Attacks Analyzed</div>
+
+          <div class="text-white/40 text-[10px] mt-3 font-mono" id="lastUpdated" data-timestamp={metaData?.lastUpdated || ''}>Updated: {lastUpdated}</div>
         </div>
       </div>
     </header>
@@ -96,7 +101,7 @@ const getHeroCombos = (heroName: string) => {
           {heroes.map((hero: any) => (
             <HeroCard 
               name={hero.name} 
-              avgLevel={hero.avgLevel} 
+              usage={hero.usage} 
               equipments={getHeroEquipments(hero.name)} 
               combos={getHeroCombos(hero.name)}
             />
@@ -106,6 +111,11 @@ const getHeroCombos = (heroName: string) => {
           )}
           {metaData.topPlayers && metaData.topPlayers.length > 0 && (
             <TopPlayersCard players={metaData.topPlayers} />
+          )}
+          {metaData.armies && metaData.armies.length > 0 && (
+            <ArmyTypesCard 
+              armies={metaData.armies.filter((a: any) => a.usage >= 1).slice(0, 10)} 
+            />
           )}
         </div>
       </div>
