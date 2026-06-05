@@ -1,0 +1,26 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Top200Table from '../components/Top200Table.astro';
+import { getMetaData } from '../utils/dataUtils';
+
+const metaData = getMetaData();
+
+const topPlayers = metaData?.topPlayers || [];
+
+let lastUpdated = '';
+if (metaData?.lastUpdated) {
+  lastUpdated = metaData.lastUpdated;
+}
+---
+
+<Layout 
+  title="Top 200 Players - Clash Tracker" 
+  playersAnalyzed={metaData?.playersAnalyzed || 0}
+  attacksAnalyzed={metaData?.attacksAnalyzed || 0}
+  lastUpdated={lastUpdated}
+>
+
+  <div class="grid grid-cols-1 gap-6">
+    {topPlayers.length > 0 && <Top200Table players={topPlayers} />}
+  </div>
+</Layout>

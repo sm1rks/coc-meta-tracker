@@ -1,0 +1,75 @@
+---
+interface Props {
+  machines: {
+    name: string;
+    usage: number;
+  }[];
+}
+
+const { machines } = Astro.props;
+import { getSiegeMachineIcon } from '../utils/iconUtils';
+---
+<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full relative z-0 hover:z-10">
+  <div class="bg-gradient-to-r from-orange-500 to-red-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3 shrink-0">
+    <div class="bg-black/20 text-white rounded-lg p-2 shadow-inner inline-block transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center">🏹</div>
+    <div class="min-w-0">
+      <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">Siege Machines</h2>
+    </div>
+  </div>
+  
+  <div class="p-0 flex-1 relative min-h-[300px]">
+    <div class="px-4 py-4 space-y-2">
+      {machines.map(machine => {
+        return (
+          <div class="flex items-center justify-between group/row relative gap-3">
+            <div class="flex items-center gap-3">
+              <div class="relative w-8 h-8 flex-shrink-0 cursor-help group/icon">
+                <div class="w-full h-full rounded-lg overflow-hidden border-2 border-coc-gold/40 shadow-sm bg-gradient-to-b from-gray-100 to-gray-200 transition-transform group-hover/icon:scale-105">
+                  <img 
+                    src={getSiegeMachineIcon(machine.name)} 
+                    alt={machine.name}
+                    title={machine.name}
+                    loading="lazy"
+                    decoding="async"
+                    class="w-full h-full object-cover transform scale-110"
+                    onerror="this.style.display='none'"
+                  />
+                </div>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
+                  {machine.name}
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end min-w-0">
+              <div class="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner min-w-[40px]">
+                <div 
+                  class="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-1000 shadow-sm"
+                  style={`width: ${machine.usage}%`}
+                ></div>
+              </div>
+              <div class="text-xs sm:text-sm font-bold text-orange-700 w-8 sm:w-10 text-right flex-shrink-0">{machine.usage}%</div>
+            </div>
+          </div>
+        );
+      })}
+      {machines.length === 0 && <div class="text-gray-400 text-sm italic">No active siege machines found.</div>}
+    </div>
+  </div>
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+</style>

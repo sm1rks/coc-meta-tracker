@@ -104,3 +104,14 @@ export const PetMap: Record<number, string> = {
   "16": "Sneezy",
   "17": "Greedy Raven"
 };
+
+export const ALL_SIEGE_MACHINES = new Set([
+  "Wall Wrecker", "Battle Blimp", "Stone Slammer", "Siege Barracks",
+  "Log Launcher", "Flame Flinger", "Battle Drill", "Sky Wagon", "Troop Launcher"
+]);
+
+export const ALL_SUPER_TROOPS = new Set([
+  "Super Barbarian", "Super Archer", "Super Giant", "Sneaky Goblin", "Super Wall Breaker",
+  "Rocket Balloon", "Ice Hound", "Super Witch", "Inferno Dragon", "Super Minion",
+  "Super Valkyrie", "Super Bowler", "Super Dragon", "Super Miner", "Super Hog Rider", "Super Yeti"
+]);

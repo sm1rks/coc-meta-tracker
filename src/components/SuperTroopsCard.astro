@@ -5,10 +5,9 @@ interface Props {
 
 const { troops } = Astro.props;
 
-const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
-const getSuperTroopIcon = (name: string) => `${basePath}icons/Icon_HV_${name.replace(/\s+/g, '_')}.png`;
+import { getSuperTroopIcon, basePath } from '../utils/iconUtils';
 ---
-<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden">
+<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full relative z-0 hover:z-10">
   <div class="bg-gradient-to-r from-red-500 to-orange-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3">
     <img src={`${basePath}icons/Icon_HV_Super_Troops.png`} alt="Super Troops" class="w-12 h-12 object-contain drop-shadow-lg shrink-0" onerror="this.style.display='none'" />
     <div class="min-w-0">
@@ -17,13 +16,13 @@ const getSuperTroopIcon = (name: string) => `${basePath}icons/Icon_HV_${name.rep
   </div>
   
   <div class="p-0 flex-1 relative min-h-[300px]">
-    <div class="absolute inset-0 overflow-y-auto px-4 py-4 space-y-2 custom-scrollbar">
+    <div class="px-4 py-4 space-y-2">
       {troops.map(troop => (
         <div class="flex items-center justify-between group/row relative gap-3">
           <div class="flex items-center gap-3">
             <div class="relative w-8 h-8 flex-shrink-0 cursor-help group/icon">
               <div class="w-full h-full rounded-lg overflow-hidden border-2 border-coc-gold/40 shadow-sm bg-gradient-to-b from-gray-100 to-gray-200 transition-transform group-hover/icon:scale-105">
-                <img src={getSuperTroopIcon(troop.name)} alt={troop.name} class="w-full h-full object-cover transform scale-110" onerror="this.style.display='none'" />
+                <img src={getSuperTroopIcon(troop.name)} alt={troop.name} title={troop.name} loading="lazy" decoding="async" class="w-full h-full object-cover transform scale-110" onerror="this.style.display='none'" />
               </div>
               <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
                 {troop.name}

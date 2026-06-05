@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
 import { EquipmentMap, HeroMap } from '../src/data/equipmentMap.js';
-import { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } from '../src/data/UnitMap.js';
+import { TroopMap, SpellMap, PetMap } from '../src/data/UnitMap.js';
 
 const API_KEY = process.env.COC_API_KEY;
 const BASE_URL = 'https://cocproxy.royaleapi.dev/v1';
@@ -83,8 +83,6 @@ async function fetchMeta() {
       troopTotals: Record<string, number>;
     };
 
-
-
     const stats = {
       playersAnalyzed: 0,
       attacksAnalyzed: 0,
@@ -94,7 +92,6 @@ async function fetchMeta() {
       combos: {} as Record<string, Record<string, number>>, // hero -> combo -> count
       pets: {} as Record<string, Record<string, number>>, // hero -> pet -> count
       superTroops: {} as Record<string, number>,
-      siegeMachines: {} as Record<string, number>,
       topPlayersList: [] as any[]
     };
 
@@ -133,6 +130,17 @@ async function fetchMeta() {
 
       for (const { player, battlelog } of results) {
         stats.playersAnalyzed++;
+        
+        stats.topPlayersList.push({
+          rank: topPlayersMap.get(player.tag) || 0,
+          name: player.name,
+          tag: player.tag,
+          trophies: player.trophies,
+          clanName: player.clan ? player.clan.name : '',
+          clanBadge: player.clan && player.clan.badgeUrls ? player.clan.badgeUrls.small : ''
+        });
+
+        // Track Super Troops from Profile (we can still track them this way as they are active for the player)
         const activeSuperTroops = (player.troops || []).filter((t: any) => t.superTroopIsActive);
         for (const st of activeSuperTroops) {
           stats.superTroops[st.name] = (stats.superTroops[st.name] || 0) + 1;
@@ -225,10 +233,8 @@ async function fetchMeta() {
             }
 
             // --- TROOPS & SPELLS ---
-            const mainTroopCounts: Record<string, number> = {};
-            const ccTroopCounts: Record<string, number> = {};
-            const mainSpellCounts: Record<string, number> = {};
-            const ccSpellCounts: Record<string, number> = {};
+            const troopCounts: Record<string, number> = {};
+            const spellCounts: Record<string, number> = {};
             
             const parseUnits = (regex: RegExp, map: Record<number, string>, counts: Record<string, number>) => {
               const match = attack.armyShareCode.match(regex);
@@ -247,24 +253,12 @@ async function fetchMeta() {
             };
 
             // u = troops, i = clan castle troops (includes siege machine)
-            parseUnits(/u([0-9x\-]+)/, TroopMap, mainTroopCounts);
-            parseUnits(/i([0-9x\-]+)/, TroopMap, ccTroopCounts);
+            parseUnits(/u([0-9x\-]+)/, TroopMap, troopCounts);
+            parseUnits(/i([0-9x\-]+)/, TroopMap, troopCounts);
 
             // s = spells, d = clan castle spells
-            parseUnits(/s([0-9x\-]+)/, SpellMap, mainSpellCounts);
-            parseUnits(/d([0-9x\-]+)/, SpellMap, ccSpellCounts);
-
-            const allTroopCounts = { ...mainTroopCounts };
-            for (const [k, v] of Object.entries(ccTroopCounts)) allTroopCounts[k] = (allTroopCounts[k] || 0) + v;
-            
-            const allSpellCounts = { ...mainSpellCounts };
-            for (const [k, v] of Object.entries(ccSpellCounts)) allSpellCounts[k] = (allSpellCounts[k] || 0) + v;
-
-            // Track global siege machine usage
-            const deployedSiegeMachines = Object.entries(allTroopCounts).filter(([name]) => ALL_SIEGE_MACHINES.has(name));
-            for (const [smName, count] of deployedSiegeMachines) {
-              stats.siegeMachines[smName] = (stats.siegeMachines[smName] || 0) + 1;
-            }
+            parseUnits(/s([0-9x\-]+)/, SpellMap, spellCounts);
+            parseUnits(/d([0-9x\-]+)/, SpellMap, spellCounts);
 
             // --- DYNAMIC CLASSIFICATION ---
             // Filter out common support/funnel troops to find the core army identity
@@ -276,18 +270,17 @@ async function fetchMeta() {
               "Bomber", "Power P.E.K.K.A", "Cannon Cart", "Drop Ship",
               "Wall Wrecker", "Battle Blimp", "Stone Slammer", "Hog Glider",
               "Siege Barracks", "Log Launcher", "Flame Flinger", "Battle Drill",
-              "Sky Wagon", "Troop Launcher",
               "Super Barbarian", "Super Archer", "Super Giant", "Rocket Balloon", "Inferno Dragon", "Healer",
             ]);
 
-            const coreTroops = Object.entries(allTroopCounts)
+            const coreTroops = Object.entries(troopCounts)
               .filter(([name]) => !SUPPORT_TROOPS.has(name))
               .sort((a, b) => b[1] - a[1]);
 
             let armyType: string;
             if (coreTroops.length === 0) {
               // Pure support/funnel army — use top deployed troop
-              const topSupport = Object.entries(allTroopCounts).sort((a, b) => b[1] - a[1])[0];
+              const topSupport = Object.entries(troopCounts).sort((a, b) => b[1] - a[1])[0];
               armyType = topSupport ? topSupport[0] : "Unknown";
             } else if (coreTroops.length === 1 || coreTroops[0][1] >= coreTroops[1]?.[1] * 2) {
               // One dominant core troop
@@ -305,7 +298,7 @@ async function fetchMeta() {
             const prefixes: string[] = [];
 
             // Charge detection: 4+ invis spells + Spirit Fox on RC or Duke
-            const invisSpells = allSpellCounts["Invisibility Spell"] || 0;
+            const invisSpells = spellCounts["Invisibility Spell"] || 0;
             if (invisSpells >= 4) {
               const rcWithFox = attackHeroes.find(h => h.hero === "Royal Champion" && h.pet === "Spirit Fox");
               const dukeWithFox = attackHeroes.find(h => h.hero === "Dragon Duke" && h.pet === "Spirit Fox");
@@ -321,7 +314,7 @@ async function fetchMeta() {
             if (equipNames.has("Fireball")) prefixes.push("Fireball");
 
             // Rocket Backpack prefix
-            const eqSpells = allSpellCounts["Earthquake Spell"] || 0;
+            const eqSpells = spellCounts["Earthquake Spell"] || 0;
             if (equipNames.has("Giant Arrow") && equipNames.has("Rocket Backpack") && eqSpells >= 3) {
               prefixes.push("Rocket Backpack");
             }
@@ -332,7 +325,7 @@ async function fetchMeta() {
 
             playerArmies[armyType] = (playerArmies[armyType] || 0) + 1;
             if (!playerHeroData[armyType]) playerHeroData[armyType] = [];
-            playerHeroData[armyType].push({ heroes: attackHeroes, troopCounts: allTroopCounts, mainTroopCounts, spellCounts: allSpellCounts, shareCode: attack.armyShareCode });
+            playerHeroData[armyType].push({ heroes: attackHeroes, troopCounts });
           }
 
           let mainArmyType = null;
@@ -343,40 +336,6 @@ async function fetchMeta() {
               mainArmyType = aType;
             }
           }
-
-          let bestAttack = mainArmyType ? playerHeroData[mainArmyType][0] : null;
-          let bestSiegeMachine = null;
-          let bestSuperTroops = [];
-          if (bestAttack) {
-
-
-            bestSiegeMachine = Object.entries(bestAttack.troopCounts)
-              .filter(([name]) => ALL_SIEGE_MACHINES.has(name))
-              .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-            bestSuperTroops = Object.keys(bestAttack.mainTroopCounts || bestAttack.troopCounts)
-              .filter(name => ALL_SUPER_TROOPS.has(name))
-              .sort((a, b) => (bestAttack.mainTroopCounts || bestAttack.troopCounts)[b] - (bestAttack.mainTroopCounts || bestAttack.troopCounts)[a])
-              .slice(0, 2);
-          }
-
-          let armyLink = "";
-          if (bestAttack && bestAttack.shareCode) {
-            armyLink = `https://link.clashofclans.com/en?action=CopyArmy&army=${bestAttack.shareCode}`;
-          }
-
-          stats.topPlayersList.push({
-            rank: topPlayersMap.get(player.tag) || 0,
-            name: player.name,
-            tag: player.tag,
-            trophies: player.trophies,
-            clanName: player.clan ? player.clan.name : '',
-            clanBadge: player.clan && player.clan.badgeUrls ? player.clan.badgeUrls.small : '',
-            armyType: mainArmyType || "Unknown",
-            heroes: bestAttack ? bestAttack.heroes : [],
-            siegeMachine: bestSiegeMachine,
-            superTroops: bestSuperTroops,
-            armyLink: armyLink
-          });
 
           if (mainArmyType) {
             if (!stats.armies[mainArmyType]) {
@@ -441,6 +400,10 @@ async function fetchMeta() {
         .slice(0, 2)
         .map(([name]) => name);
 
+      const ALL_SIEGE_MACHINES = new Set([
+        "Wall Wrecker", "Battle Blimp", "Stone Slammer", "Siege Barracks",
+        "Log Launcher", "Flame Flinger", "Battle Drill", "Sky Wagon"
+      ]);
       const topSiegeMachine = Object.entries(armyStat.troopTotals)
         .filter(([name]) => ALL_SIEGE_MACHINES.has(name))
         .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
@@ -482,19 +445,6 @@ async function fetchMeta() {
     }
     // Sort super troops highest to lowest
     outputData.superTroops.sort((a, b) => b.usage - a.usage);
-
-    // Process Siege Machines globally
-    outputData.siegeMachines = [];
-    for (const [smName, count] of Object.entries(stats.siegeMachines)) {
-      const usagePct = stats.attacksAnalyzed ? (count / stats.attacksAnalyzed) * 100 : 0;
-      if (usagePct > 0) {
-        outputData.siegeMachines.push({
-          name: smName,
-          usage: parseFloat(usagePct.toFixed(1))
-        });
-      }
-    }
-    outputData.siegeMachines.sort((a: any, b: any) => b.usage - a.usage);
 
     // Only include main heroes
     for (const [heroName, heroStat] of Object.entries(stats.heroes)) {
