@@ -52,7 +52,13 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
 <script>
   document.addEventListener('astro:page-load', () => {
     const playersList = document.getElementById('players-list');
-    if (!playersList) return; // Ensure this only runs on the Top 200 page
+    if (!playersList) {
+      // Clear any 'display: none' styles that Astro's View Transitions (morphdom) 
+      // might have accidentally preserved when navigating away from the Top 200 page.
+      const strayRows = Array.from(document.querySelectorAll('.player-row')) as HTMLElement[];
+      strayRows.forEach(row => row.style.display = '');
+      return; 
+    }
 
     const searchInput = document.getElementById('player-search') as HTMLInputElement;
     const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
