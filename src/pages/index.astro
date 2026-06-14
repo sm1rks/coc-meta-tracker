@@ -4,17 +4,18 @@ import HeroCard from '../components/HeroCard.astro';
 import SuperTroopsCard from '../components/SuperTroopsCard.astro';
 import SiegeMachinesCard from '../components/SiegeMachinesCard.astro';
 import { getMetaData } from '../utils/dataUtils';
+import type { MetaData } from '../types';
 
-const metaData = getMetaData();
+const metaData = getMetaData() as MetaData;
 
-const heroes = [...(metaData?.heroes || [])].sort((a: any, b: any) => b.usage - a.usage);
+const heroes = [...(metaData?.heroes || [])].sort((a, b) => b.usage - a.usage);
 const equipments = metaData?.equipments || [];
 const combos = metaData?.combos || [];
 const pets = metaData?.pets || [];
 
-const getHeroEquipments = (heroName: string) => equipments.filter((eq: any) => eq.hero === heroName).sort((a: any, b: any) => b.usage - a.usage);
-const getHeroCombos = (heroName: string) => combos.filter((c: any) => c.hero === heroName).sort((a: any, b: any) => b.usage - a.usage);
-const getHeroPets = (heroName: string) => pets.filter((p: any) => p.hero === heroName).sort((a: any, b: any) => b.usage - a.usage);
+const getHeroEquipments = (heroName: string) => equipments.filter(eq => eq.hero === heroName).sort((a, b) => b.usage - a.usage);
+const getHeroCombos = (heroName: string) => combos.filter(c => c.hero === heroName).sort((a, b) => b.usage - a.usage);
+const getHeroPets = (heroName: string) => pets.filter(p => p.hero === heroName).sort((a, b) => b.usage - a.usage);
 
 const superTroops = metaData?.superTroops || [];
 const siegeMachines = metaData?.siegeMachines || [];

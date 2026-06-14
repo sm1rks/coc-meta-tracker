@@ -2,8 +2,9 @@
 import Layout from '../layouts/Layout.astro';
 import Top200Table from '../components/Top200Table.astro';
 import { getMetaData } from '../utils/dataUtils';
+import type { MetaData } from '../types';
 
-const metaData = getMetaData();
+const metaData = getMetaData() as MetaData;
 
 const topPlayers = metaData?.topPlayers || [];
 

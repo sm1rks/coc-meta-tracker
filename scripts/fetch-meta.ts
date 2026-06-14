@@ -17,6 +17,7 @@ const dir = path.join(process.cwd(), 'data');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
 async function fetchWithRetry(url: string, retries = 5) {
+
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url, { headers: { Authorization: `Bearer ${API_KEY}` } });
@@ -39,7 +40,8 @@ async function fetchWithRetry(url: string, retries = 5) {
         continue;
       }
       
-      return await res.json();
+      const data = await res.json();
+      return data;
     } catch (e: any) {
       if (i === retries - 1) throw e;
       console.log(`Network error: ${e.message}. Retrying (${i + 1}/${retries})...`);
@@ -114,27 +116,54 @@ async function fetchMeta() {
       }
     }
 
-    // To respect rate limits, fetch in small batches sequentially
-    const batchSize = 20; // Reduced batch size for 2 requests per player
-    for (let i = 0; i < playerTags.length; i += batchSize) {
-      const batch = playerTags.slice(i, i + batchSize);
-      process.stdout.write(`Fetching batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(playerTags.length/batchSize)}... `);
-      
-      const promises = batch.map(async (tag: string) => {
-        const pTag = encodeURIComponent(tag);
-        const [player, battlelog] = await Promise.all([
-          fetchWithRetry(`${BASE_URL}/players/${pTag}`),
-          fetchWithRetry(`${BASE_URL}/players/${pTag}/battlelog`)
-        ]);
-        return { player, battlelog };
-      });
-      
-      const results = await Promise.all(promises);
+    // Sliding window concurrency pool
+    const CONCURRENCY = 3;
+    let activePromises = 0;
+    let index = 0;
+    const results: any[] = [];
+    
+    console.log(`Fetching profiles and battlelogs for ${playerTags.length} players with concurrency ${CONCURRENCY}...`);
 
-      for (const { player, battlelog } of results) {
-        stats.playersAnalyzed++;
-        const activeSuperTroops = (player.troops || []).filter((t: any) => t.superTroopIsActive);
-        for (const st of activeSuperTroops) {
+    await new Promise<void>((resolve, reject) => {
+      const runNext = async () => {
+        if (index >= playerTags.length) {
+          if (activePromises === 0) resolve();
+          return;
+        }
+
+        const tag = playerTags[index++];
+        activePromises++;
+        
+        try {
+          const pTag = encodeURIComponent(tag);
+          const [player, battlelog] = await Promise.all([
+            fetchWithRetry(`${BASE_URL}/players/${pTag}`),
+            fetchWithRetry(`${BASE_URL}/players/${pTag}/battlelog`)
+          ]);
+          results.push({ player, battlelog });
+          
+          if (results.length % 20 === 0) {
+             process.stdout.write(`\rProgress: ${results.length}/${playerTags.length}`);
+          }
+        } catch (err) {
+          reject(err);
+        } finally {
+          activePromises--;
+          runNext();
+        }
+      };
+
+      for (let i = 0; i < CONCURRENCY && i < playerTags.length; i++) {
+        runNext();
+      }
+    });
+
+    console.log(`\nAll ${playerTags.length} players fetched successfully. Processing...`);
+
+    for (const { player, battlelog } of results) {
+      stats.playersAnalyzed++;
+      const activeSuperTroops = (player.troops || []).filter((t: any) => t.superTroopIsActive);
+      for (const st of activeSuperTroops) {
           stats.superTroops[st.name] = (stats.superTroops[st.name] || 0) + 1;
         }
 
@@ -154,8 +183,8 @@ async function fetchMeta() {
             const equipNames = new Set<string>();
             const attackHeroes: { hero: string, combo: string | null, pet: string | null }[] = [];
 
-            // Extract heroes section: starts with 'h', ends with 'd' or 'u' or 's' or end of string
-            const hMatch = attack.armyShareCode.match(/h([^\-dsu]+(?:-[^\-dsu]+)*)/);
+            // Extract heroes section: starts with 'h', ends with 'd' or 'u' or 's' or 'i' or end of string
+            const hMatch = attack.armyShareCode.match(/h([^\-dsui]+(?:-[^\-dsui]+)*)/);
             if (hMatch) {
               const heroesStr = hMatch[1];
               // Each hero is separated by '-'
@@ -313,6 +342,12 @@ async function fetchMeta() {
               else if (dukeWithFox) prefixes.push("Dragon Duke Charge");
             }
 
+            // Queen Charge detection: Monolith Arrow on Archer Queen
+            const aqHero = attackHeroes.find(h => h.hero === "Archer Queen");
+            if (aqHero && equipNames.has("Monolith Arrow")) {
+              prefixes.push("Queen Charge");
+            }
+
             // Flame Blower prefix (Dragon Duke equipment)
             const dukeHero = attackHeroes.find(h => h.hero === "Dragon Duke");
             if (dukeHero && equipNames.has("Flame Blower")) prefixes.push("Flame Blower");
@@ -344,7 +379,24 @@ async function fetchMeta() {
             }
           }
 
-          let bestAttack = mainArmyType ? playerHeroData[mainArmyType][0] : null;
+          let bestAttack = null;
+          if (mainArmyType && playerHeroData[mainArmyType].length > 0) {
+            const attacks = playerHeroData[mainArmyType];
+            bestAttack = { ...attacks[0], troopCounts: {}, mainTroopCounts: {} };
+            
+            // The API's armyShareCode in battlelogs only includes DEPLOYED troops.
+            // To reconstruct the player's full trained army (including troops they didn't deploy in some attacks),
+            // we take the maximum count of each troop deployed across all their attacks with this army type.
+            for (const attack of attacks) {
+              for (const [troop, count] of Object.entries(attack.troopCounts as Record<string, number>)) {
+                bestAttack.troopCounts[troop] = Math.max(bestAttack.troopCounts[troop] || 0, count);
+              }
+              for (const [troop, count] of Object.entries(attack.mainTroopCounts as Record<string, number>)) {
+                bestAttack.mainTroopCounts[troop] = Math.max(bestAttack.mainTroopCounts[troop] || 0, count);
+              }
+            }
+          }
+
           let bestSiegeMachine = null;
           let bestSuperTroops = [];
           if (bestAttack) {
@@ -409,10 +461,8 @@ async function fetchMeta() {
         }
       }
       
-      console.log("Done");
-      // Small delay between batches to avoid rate limit
-      await new Promise(r => setTimeout(r, 200));
-    }
+      // We no longer delay because of concurrency control, but we must close out the loop
+      // Wait, there is no loop, all results are processed at once now!
 
     // Sort top players
     stats.topPlayersList.sort((a, b) => a.rank - b.rank);
@@ -542,7 +592,7 @@ async function fetchMeta() {
       }
     }
 
-    fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(outputData, null, 2));
+    fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(outputData));
     console.log("Successfully wrote data/meta.json with REAL data!");
 
   } catch (err) {
