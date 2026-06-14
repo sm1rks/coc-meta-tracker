@@ -64,43 +64,28 @@ const trophiesValueClasses = theme === 'blue'
     </div>
     <div class="flex items-center gap-2 mt-1.5 flex-wrap">
       {player.siegeMachine && (
-        <div class="relative group/icon cursor-help w-6 h-6 rounded bg-orange-100 border border-orange-200 shadow-sm">
-          <div class="w-full h-full overflow-hidden rounded">
-            <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-contain scale-110" onerror="this.style.display='none'" />
-          </div>
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{player.siegeMachine}</div>
+        <div class="cursor-help w-6 h-6 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
+          <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-contain scale-110" onerror="this.style.display='none'" />
         </div>
       )}
       {player.superTroops && player.superTroops.map(t => (
-        <div class="relative group/icon cursor-help w-6 h-6 rounded bg-gray-100 border border-gray-200 shadow-sm">
-          <div class="w-full h-full overflow-hidden rounded">
-            <img src={getSuperTroopIcon(t)} alt={t} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-          </div>
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{t}</div>
+        <div class="cursor-help w-6 h-6 rounded bg-gray-100 border border-gray-200 shadow-sm overflow-hidden" data-tooltip={t}>
+          <img src={getSuperTroopIcon(t)} alt={t} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
         </div>
       ))}
       {player.heroes && player.heroes.map(h => (
-        <div class="flex items-center bg-white rounded border border-gray-200 shadow-sm h-6">
-          <div class="relative group/icon cursor-help w-6 h-6 bg-gradient-to-b from-gray-100 to-gray-300 shrink-0 rounded-l">
-            <div class="w-full h-full overflow-hidden rounded-l">
-              <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover scale-110 ${h.hero === 'Grand Warden' ? 'object-top' : ''}`} onerror="this.style.display='none'" />
-            </div>
-            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{h.hero}</div>
+        <div class="flex items-center bg-white rounded border border-gray-200 shadow-sm h-6 overflow-hidden">
+          <div class="cursor-help w-6 h-6 bg-gradient-to-b from-gray-100 to-gray-300 shrink-0" data-tooltip={h.hero}>
+            <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover scale-110 ${h.hero === 'Grand Warden' ? 'object-top' : ''}`} onerror="this.style.display='none'" />
           </div>
           {h.pet && (
-            <div class="relative group/icon cursor-help w-5 h-5 bg-gradient-to-b from-purple-50 to-purple-200 shrink-0 border-l border-gray-200">
-              <div class="w-full h-full overflow-hidden">
-                <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-              </div>
-              <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{h.pet}</div>
+            <div class="cursor-help w-5 h-5 bg-gradient-to-b from-purple-50 to-purple-200 shrink-0 border-l border-gray-200" data-tooltip={h.pet}>
+              <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
             </div>
           )}
-          {h.combo && h.combo.split(' + ').map((eq, idx, arr) => (
-            <div class={`relative group/icon cursor-help w-5 h-5 bg-gradient-to-b from-amber-50 to-amber-100 shrink-0 border-l border-gray-200 ${!h.pet && idx === arr.length - 1 ? 'rounded-r' : ''}`}>
-              <div class={`w-full h-full overflow-hidden ${!h.pet && idx === arr.length - 1 ? 'rounded-r' : ''}`}>
-                <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-              </div>
-              <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{eq}</div>
+          {h.combo && h.combo.split(' + ').map((eq) => (
+            <div class="cursor-help w-5 h-5 bg-gradient-to-b from-amber-50 to-amber-100 shrink-0 border-l border-gray-200" data-tooltip={eq}>
+              <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
             </div>
           ))}
         </div>

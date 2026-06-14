@@ -44,11 +44,8 @@ const heroIcon = getHeroIcon(name);
             <div class="flex items-center justify-between group/row relative gap-3">
               <div class="flex items-center gap-3">
                 <!-- Icon with Tooltip -->
-                <div class="relative w-8 h-8 flex-shrink-0 cursor-help group/icon">
+                <div class="w-8 h-8 flex-shrink-0 cursor-help" data-tooltip={eq.name}>
                   <img src={eqIcon} alt={eq.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow" onerror="this.style.display='none'" />
-                  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                    {eq.name}
-                  </div>
                 </div>
               </div>
               <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end min-w-0">
@@ -79,11 +76,8 @@ const heroIcon = getHeroIcon(name);
                 <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200 shadow-sm">
                   {parts.map((part, idx) => (
                     <>
-                      <div class="relative w-6 h-6 cursor-help group/icon">
+                      <div class="w-6 h-6 cursor-help" data-tooltip={part}>
                          <img src={getEqIcon(part)} alt={part} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'" />
-                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                          {part}
-                        </div>
                       </div>
                       {idx < parts.length - 1 && <span class="text-xs font-black text-gray-400">+</span>}
                     </>
@@ -113,11 +107,8 @@ const heroIcon = getHeroIcon(name);
           {pets.slice(0, 3).map(pet => (
             <div class="flex items-center justify-between group/row relative gap-3">
               <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200 shadow-sm">
-                <div class="relative w-6 h-6 cursor-help group/icon">
+                <div class="w-6 h-6 cursor-help" data-tooltip={pet.name}>
                   <img src={getPetIcon(pet.name)} alt={pet.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'" />
-                  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                    {pet.name}
-                  </div>
                 </div>
               </div>
               <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end pl-1 sm:pl-3 min-w-0">

@@ -23,21 +23,15 @@ import { getSiegeMachineIcon } from '../utils/iconUtils';
         return (
           <div class="flex items-center justify-between group/row relative gap-3">
             <div class="flex items-center gap-3">
-              <div class="relative w-8 h-8 flex-shrink-0 cursor-help group/icon">
-                <div class="w-full h-full rounded-lg overflow-hidden border-2 border-coc-gold/40 shadow-sm bg-gradient-to-b from-gray-100 to-gray-200 transition-transform group-hover/icon:scale-105">
-                  <img 
-                    src={getSiegeMachineIcon(machine.name)} 
-                    alt={machine.name}
-                    title={machine.name}
-                    loading="lazy"
-                    decoding="async"
-                    class="w-full h-full object-cover transform scale-110"
-                    onerror="this.style.display='none'"
-                  />
-                </div>
-                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                  {machine.name}
-                </div>
+              <div class="w-8 h-8 flex-shrink-0 cursor-help rounded-lg overflow-hidden border-2 border-coc-gold/40 shadow-sm bg-gradient-to-b from-gray-100 to-gray-200" data-tooltip={machine.name}>
+                <img 
+                  src={getSiegeMachineIcon(machine.name)} 
+                  alt={machine.name}
+                  loading="lazy"
+                  decoding="async"
+                  class="w-full h-full object-cover transform scale-110"
+                  onerror="this.style.display='none'"
+                />
               </div>
             </div>
             

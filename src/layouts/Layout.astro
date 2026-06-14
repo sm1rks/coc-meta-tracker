@@ -27,6 +27,9 @@ const navLinks = [
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
     <title>{title}</title>
     <ClientRouter />
   </head>
@@ -101,6 +104,9 @@ const navLinks = [
       <slot />
     </main>
 
+    <!-- Shared Global Tooltip Element -->
+    <div id="global-tooltip" class="fixed hidden bg-black/85 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full opacity-0"></div>
+
     <script>
       document.addEventListener('astro:page-load', () => {
         const updatedEl = document.getElementById('layoutLastUpdated');
@@ -116,11 +122,11 @@ const navLinks = [
         const currentTimestamp = currentUpdatedEl?.getAttribute('data-timestamp');
         if (document.visibilityState === "visible" && currentTimestamp) {
           try {
-            const res = await fetch(window.location.href, { cache: "no-store" });
-            const text = await res.text();
-            const match = text.match(/data-timestamp="([^"]+)"/);
-            if (match && match[1]) {
-              const fetchedTime = new Date(match[1]).getTime();
+            const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+            const res = await fetch(`${base}/last-updated.json`, { cache: "no-store" });
+            const data = await res.json();
+            if (data && data.lastUpdated) {
+              const fetchedTime = new Date(data.lastUpdated).getTime();
               const currentTime = new Date(currentTimestamp).getTime();
               if (fetchedTime > currentTime) {
                 window.location.reload();
@@ -130,6 +136,37 @@ const navLinks = [
             console.error("Failed to check for updates", e);
           }
         }
+      });
+
+      // Global event delegation listener for data-tooltip
+      document.addEventListener('mouseover', (e) => {
+        const target = (e.target as HTMLElement).closest('[data-tooltip]');
+        if (!target) return;
+        
+        const tooltipText = target.getAttribute('data-tooltip');
+        if (!tooltipText) return;
+        
+        const tooltip = document.getElementById('global-tooltip');
+        if (!tooltip) return;
+        
+        tooltip.textContent = tooltipText;
+        tooltip.style.display = 'block';
+        
+        // Force reflow
+        tooltip.offsetHeight;
+        tooltip.style.opacity = '1';
+        
+        const rect = target.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+        tooltip.style.top = `${rect.top - 8}px`; // 8px above the target
+        
+        const leaveHandler = () => {
+          tooltip.style.opacity = '0';
+          tooltip.style.display = 'none';
+          target.removeEventListener('mouseleave', leaveHandler);
+        };
+        
+        target.addEventListener('mouseleave', leaveHandler);
       });
     </script>
   </body>

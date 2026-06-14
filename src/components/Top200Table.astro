@@ -43,6 +43,7 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
             <PlayerRow player={player} theme="blue" />
           ))}
           {players.length === 0 && <div class="text-gray-400 text-sm italic p-4 text-center">No players found.</div>}
+          <div id="search-no-results" class="text-gray-500 font-bold text-sm italic p-6 text-center hidden">No matching players found.</div>
         </div>
       </div>
     </div>
@@ -65,6 +66,7 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
     const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
     const pageInfo = document.getElementById('page-info');
     const rows = Array.from(playersList.querySelectorAll('.player-row')) as HTMLElement[];
+    const noResultsEl = document.getElementById('search-no-results');
     
     let currentPage = 1;
     const itemsPerPage = 20;
@@ -79,15 +81,23 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
       if (prevBtn) prevBtn.disabled = currentPage === 1;
       if (nextBtn) nextBtn.disabled = currentPage === totalPages;
 
+      if (noResultsEl) {
+        if (filteredRows.length === 0) {
+          noResultsEl.classList.remove('hidden');
+        } else {
+          noResultsEl.classList.add('hidden');
+        }
+      }
+
       const startIdx = (currentPage - 1) * itemsPerPage;
       const endIdx = startIdx + itemsPerPage;
 
       // Hide all first
       rows.forEach(row => row.style.display = 'none');
 
-      // Show only filtered and paginated
+      // Show only filtered and paginated using flex
       filteredRows.slice(startIdx, endIdx).forEach(row => {
-        row.style.display = '';
+        row.style.display = 'flex';
       });
       
       // Update URL query params
@@ -148,6 +158,9 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
 </script>
 
 <style>
+  #players-list .player-row:nth-child(n+21) {
+    display: none;
+  }
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
   }

@@ -14,52 +14,86 @@ async function run() {
   }
 
   const files = fs.readdirSync(iconsDir);
-  const pngFiles = files.filter(f => f.toLowerCase().endsWith('.png'));
-
-  console.log(`Found ${pngFiles.length} PNG files in ${iconsDir}. Starting conversion to WebP...\n`);
+  console.log(`Scanning ${files.length} files in ${iconsDir}...`);
 
   let totalOriginalSize = 0;
   let totalNewSize = 0;
+  let processedCount = 0;
 
-  for (const file of pngFiles) {
-    const pngPath = path.join(iconsDir, file);
-    const webpFilename = file.substring(0, file.length - 4) + '.webp';
-    const webpPath = path.join(iconsDir, webpFilename);
+  for (const file of files) {
+    const filePath = path.join(iconsDir, file);
+    const ext = file.toLowerCase();
 
-    try {
-      const origStats = fs.statSync(pngPath);
-      totalOriginalSize += origStats.size;
+    if (ext.endsWith('.png')) {
+      const webpFilename = file.substring(0, file.length - 4) + '.webp';
+      const webpPath = path.join(iconsDir, webpFilename);
 
-      // Convert to WebP using sharp with quality: 80
-      await sharp(pngPath)
-        .webp({ quality: 80 })
-        .toFile(webpPath);
+      try {
+        const origStats = fs.statSync(filePath);
+        totalOriginalSize += origStats.size;
 
-      const newStats = fs.statSync(webpPath);
-      totalNewSize += newStats.size;
+        // Convert PNG to WebP with resize and quality 80
+        await sharp(filePath)
+          .resize(128, 128, { fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toFile(webpPath);
 
-      const savings = origStats.size - newStats.size;
-      const savingsPct = ((savings / origStats.size) * 100).toFixed(1);
+        const newStats = fs.statSync(webpPath);
+        totalNewSize += newStats.size;
+        processedCount++;
 
-      console.log(`Converted: ${file} -> ${webpFilename} (${(origStats.size / 1024).toFixed(1)} KB -> ${(newStats.size / 1024).toFixed(1)} KB, -${savingsPct}%)`);
+        console.log(`Converted & Resized: ${file} -> ${webpFilename} (${(origStats.size / 1024).toFixed(1)} KB -> ${(newStats.size / 1024).toFixed(1)} KB, -${(((origStats.size - newStats.size) / origStats.size) * 100).toFixed(1)}%)`);
 
-      // Delete the original PNG file after successful conversion
-      fs.unlinkSync(pngPath);
-    } catch (err) {
-      console.error(`Failed to convert ${file}:`, err);
+        // Delete the original PNG file
+        fs.unlinkSync(filePath);
+      } catch (err) {
+        console.error(`Failed to convert ${file}:`, err);
+      }
+    } else if (ext.endsWith('.webp')) {
+      try {
+        const origStats = fs.statSync(filePath);
+        const metadata = await sharp(filePath).metadata();
+
+        // Only resize if dimensions are larger than 128px
+        if ((metadata.width && metadata.width > 128) || (metadata.height && metadata.height > 128)) {
+          totalOriginalSize += origStats.size;
+          const tempPath = filePath + '.tmp';
+
+          await sharp(filePath)
+            .resize(128, 128, { fit: 'inside', withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toFile(tempPath);
+
+          // Swap file
+          fs.unlinkSync(filePath);
+          fs.renameSync(tempPath, filePath);
+
+          const newStats = fs.statSync(filePath);
+          totalNewSize += newStats.size;
+          processedCount++;
+
+          console.log(`Resized: ${file} (${metadata.width}x${metadata.height}) (${(origStats.size / 1024).toFixed(1)} KB -> ${(newStats.size / 1024).toFixed(1)} KB, -${(((origStats.size - newStats.size) / origStats.size) * 100).toFixed(1)}%)`);
+        }
+      } catch (err) {
+        console.error(`Failed to resize ${file}:`, err);
+      }
     }
   }
 
-  const totalSavings = totalOriginalSize - totalNewSize;
-  const totalSavingsPct = ((totalSavings / totalOriginalSize) * 100).toFixed(1);
-
-  console.log(`\nConversion completed!`);
-  console.log(`Total original size: ${(totalOriginalSize / (1024 * 1024)).toFixed(2)} MB`);
-  console.log(`Total WebP size: ${(totalNewSize / (1024 * 1024)).toFixed(2)} MB`);
-  console.log(`Total size savings: ${(totalSavings / (1024 * 1024)).toFixed(2)} MB (-${totalSavingsPct}%)`);
+  if (processedCount > 0) {
+    const totalSavings = totalOriginalSize - totalNewSize;
+    const totalSavingsPct = ((totalSavings / totalOriginalSize) * 100).toFixed(1);
+    console.log(`\nImage optimization completed!`);
+    console.log(`Optimized ${processedCount} images.`);
+    console.log(`Total original size of optimized files: ${(totalOriginalSize / (1024 * 1024)).toFixed(2)} MB`);
+    console.log(`Total optimized size: ${(totalNewSize / (1024 * 1024)).toFixed(2)} MB`);
+    console.log(`Total size savings: ${(totalSavings / (1024 * 1024)).toFixed(2)} MB (-${totalSavingsPct}%)`);
+  } else {
+    console.log('\nNo images needed optimization.');
+  }
 }
 
 run().catch(err => {
-  console.error('Fatal error during conversion:', err);
+  console.error('Fatal error during optimization:', err);
   process.exit(1);
 });

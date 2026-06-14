@@ -68,24 +68,21 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
                    const eqList = hero.equipment ? hero.equipment.split(' + ') : [];
                    return (
                      <div class="flex items-center gap-1.5 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
-                       <div class="relative group/icon cursor-help">
+                       <div class="cursor-help overflow-hidden" data-tooltip={hero.name}>
                          <img src={getHeroIcon(hero.name)} alt={hero.name} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
-                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{hero.name}</div>
                        </div>
                        
                        {hero.pet && (
-                         <div class="relative group/icon cursor-help ml-1">
+                         <div class="cursor-help ml-1 overflow-hidden" data-tooltip={hero.pet}>
                            <img src={getPetIcon(hero.pet)} alt={hero.pet} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror="this.style.display='none'"/>
-                           <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{hero.pet}</div>
                          </div>
                        )}
 
                        {eqList.length > 0 && (
                          <div class="flex items-center ml-1 gap-1">
                            {eqList.map(eq => (
-                             <div class="relative group/icon cursor-help">
+                             <div class="cursor-help overflow-hidden" data-tooltip={eq}>
                                <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror="this.style.display='none'"/>
-                               <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{eq}</div>
                              </div>
                            ))}
                          </div>
@@ -97,15 +94,13 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
                 {( (army.topSecondaryTroops ?? army.topSuperTroops ?? []).length > 0 || army.topSiegeMachine ) && (
                   <div class="flex items-center gap-2 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
                     {army.topSiegeMachine && (
-                      <div class="relative group/icon cursor-help pr-2 border-r-2 border-[#603813]/10">
+                      <div class="cursor-help pr-2 border-r-2 border-[#603813]/10 overflow-hidden" data-tooltip={army.topSiegeMachine}>
                         <img src={getSiegeMachineIcon(army.topSiegeMachine)} alt={army.topSiegeMachine} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
-                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{army.topSiegeMachine}</div>
                       </div>
                     )}
                     {(army.topSecondaryTroops ?? army.topSuperTroops ?? []).map(troop => (
-                      <div class="relative group/icon cursor-help">
+                      <div class="cursor-help overflow-hidden" data-tooltip={troop}>
                         <img src={getSuperTroopIcon(troop)} alt={troop} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
-                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover/icon:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">{troop}</div>
                       </div>
                     ))}
                   </div>

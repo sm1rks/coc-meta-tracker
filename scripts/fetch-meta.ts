@@ -610,6 +610,11 @@ async function fetchMeta() {
     fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(outputData));
     console.log("Successfully wrote data/meta.json with REAL data!");
 
+    // Write tiny last-updated.json to public/ for the client-side auto-refresh check
+    const lastUpdatedPath = path.join(process.cwd(), 'public', 'last-updated.json');
+    fs.writeFileSync(lastUpdatedPath, JSON.stringify({ lastUpdated: outputData.lastUpdated }));
+    console.log("Successfully wrote public/last-updated.json!");
+
   } catch (err) {
     console.error("Failed to fetch data:", err);
     process.exit(1);
