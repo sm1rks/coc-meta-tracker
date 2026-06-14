@@ -160,6 +160,8 @@ async function fetchMeta() {
 
     console.log(`\nAll ${playerTags.length} players fetched successfully. Processing...`);
 
+    const globalArmyBattlesCount: Record<string, number> = {};
+
     for (const { player, battlelog } of results) {
       stats.playersAnalyzed++;
       const activeSuperTroops = (player.troops || []).filter((t: any) => t.superTroopIsActive);
@@ -373,6 +375,7 @@ async function fetchMeta() {
           let mainArmyType = null;
           let maxCount = 0;
           for (const [aType, count] of Object.entries(playerArmies)) {
+            globalArmyBattlesCount[aType] = (globalArmyBattlesCount[aType] || 0) + count;
             if (count > maxCount) {
               maxCount = count;
               mainArmyType = aType;
@@ -382,7 +385,20 @@ async function fetchMeta() {
           let bestAttack = null;
           if (mainArmyType && playerHeroData[mainArmyType].length > 0) {
             const attacks = playerHeroData[mainArmyType];
-            bestAttack = { ...attacks[0], troopCounts: {}, mainTroopCounts: {} };
+            
+            let maxScore = -1;
+            let bestSourceAttack = attacks[0];
+            for (const attack of attacks) {
+              let score = 0;
+              for (const count of Object.values(attack.troopCounts)) score += (count as number);
+              for (const count of Object.values(attack.spellCounts)) score += (count as number);
+              if (score > maxScore) {
+                maxScore = score;
+                bestSourceAttack = attack;
+              }
+            }
+
+            bestAttack = { ...attacks[0], troopCounts: {}, mainTroopCounts: {}, shareCode: bestSourceAttack.shareCode };
             
             // The API's armyShareCode in battlelogs only includes DEPLOYED troops.
             // To reconstruct the player's full trained army (including troops they didn't deploy in some attacks),
@@ -435,7 +451,6 @@ async function fetchMeta() {
               stats.armies[mainArmyType] = { count: 0, battlesCount: 0, playerTags: new Set(), heroes: {}, troopTotals: {} };
             }
             stats.armies[mainArmyType].count++;
-            stats.armies[mainArmyType].battlesCount += maxCount;
             stats.armies[mainArmyType].playerTags.add(player.tag);
 
             for (const { heroes: attackHeroes, troopCounts: attackTroops } of playerHeroData[mainArmyType]) {
@@ -498,7 +513,7 @@ async function fetchMeta() {
         name: armyName,
         usage: stats.playersAnalyzed ? (armyStat.count / stats.playersAnalyzed) * 100 : 0,
         count: armyStat.count,
-        battlesCount: armyStat.battlesCount,
+        battlesCount: globalArmyBattlesCount[armyName] || 0,
         playerCount: armyStat.playerTags.size,
         topHeroes,
         topSecondaryTroops,
