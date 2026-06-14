@@ -102,22 +102,26 @@ const navLinks = [
     </main>
 
     <script>
-      const updatedEl = document.getElementById('layoutLastUpdated');
-      const timestamp = updatedEl?.getAttribute('data-timestamp');
-      if (timestamp) {
-        const d = new Date(timestamp);
-        updatedEl.textContent = `Updated:\n${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
-      }
+      document.addEventListener('astro:page-load', () => {
+        const updatedEl = document.getElementById('layoutLastUpdated');
+        const timestamp = updatedEl?.getAttribute('data-timestamp');
+        if (timestamp && updatedEl) {
+          const d = new Date(timestamp);
+          updatedEl.textContent = `Updated:\n${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+        }
+      });
 
       document.addEventListener("visibilitychange", async () => {
-        if (document.visibilityState === "visible" && timestamp) {
+        const currentUpdatedEl = document.getElementById('layoutLastUpdated');
+        const currentTimestamp = currentUpdatedEl?.getAttribute('data-timestamp');
+        if (document.visibilityState === "visible" && currentTimestamp) {
           try {
             const res = await fetch(window.location.href, { cache: "no-store" });
             const text = await res.text();
             const match = text.match(/data-timestamp="([^"]+)"/);
             if (match && match[1]) {
               const fetchedTime = new Date(match[1]).getTime();
-              const currentTime = new Date(timestamp).getTime();
+              const currentTime = new Date(currentTimestamp).getTime();
               if (fetchedTime > currentTime) {
                 window.location.reload();
               }

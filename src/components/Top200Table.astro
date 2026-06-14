@@ -38,7 +38,7 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineI
           <div class="w-24 text-right pr-4">Trophies</div>
         </div>
         
-        <div class="space-y-2">
+        <div id="players-list" class="space-y-2">
           {players.map(player => (
             <PlayerRow player={player} theme="blue" />
           ))}
