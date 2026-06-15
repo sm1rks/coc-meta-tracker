@@ -16,6 +16,10 @@ export interface PlayerData {
   siegeMachine?: string | null;
   superTroops?: string[];
   armyLink?: string;
+  troops?: { name: string, count: number }[];
+  spells?: { name: string, count: number }[];
+  ccTroops?: { name: string, count: number }[];
+  ccSpells?: { name: string, count: number }[];
 }
 
 export interface ArmyData {
@@ -28,6 +32,10 @@ export interface ArmyData {
   topSuperTroops?: string[];
   topSecondaryTroops?: string[];
   topSiegeMachine?: string | null;
+  troops?: { name: string, count: number }[];
+  spells?: { name: string, count: number }[];
+  ccTroops?: { name: string, count: number }[];
+  ccSpells?: { name: string, count: number }[];
 }
 
 export interface UsageStat {

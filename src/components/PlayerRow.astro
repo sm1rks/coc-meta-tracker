@@ -1,5 +1,6 @@
 ---
-import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineIcon } from '../utils/iconUtils';
+import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon } from '../utils/iconUtils';
+
 
 import type { PlayerData } from '../types';
 
@@ -14,22 +15,14 @@ const containerClasses = theme === 'blue'
   ? 'flex flex-col md:flex-row items-center justify-between group gap-2 md:gap-4 bg-gray-50 hover:bg-white p-3 rounded-xl border-2 border-transparent hover:border-blue-200 hover:shadow-md transition-all'
   : 'flex flex-col md:flex-row items-center justify-between group/player gap-2 md:gap-4 bg-white p-2 sm:p-3 rounded-xl border border-[#c4a481]/50 hover:border-[#603813]/30 hover:shadow-md transition-all';
 
-const trophiesContainerClasses = theme === 'blue'
-  ? 'flex items-center justify-between w-full md:w-24 shrink-0 bg-yellow-100 px-3 py-1.5 rounded-lg border-2 border-yellow-300'
-  : 'flex items-center justify-between w-full md:w-24 shrink-0 bg-[#f4e4c1] px-3 py-1.5 rounded-lg border border-[#c4a481]';
-
-const trophiesLabelClasses = theme === 'blue'
-  ? 'text-xs font-black text-yellow-700 md:hidden uppercase tracking-wider'
-  : 'text-xs font-black text-[#603813]/60 md:hidden uppercase tracking-wider';
-
-const trophiesValueClasses = theme === 'blue'
-  ? 'text-sm font-black text-yellow-700'
-  : 'text-sm font-black text-[#603813]';
+const trophiesBoxClasses = theme === 'blue'
+  ? 'inline-flex items-center gap-1 mt-1 text-xs font-black text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-300 w-fit'
+  : 'inline-flex items-center gap-1 mt-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/50 w-fit';
 ---
 
 <div class={`player-row ${containerClasses}`} data-name={player.name.toLowerCase()}>
   <!-- Rank & Player Info -->
-  <div class="flex items-center gap-4 w-full md:w-1/3 min-w-[200px] shrink-0">
+  <div class="flex items-center gap-4 w-full md:w-1/4 min-w-[200px] shrink-0">
     <div class="font-black text-gray-400 w-12 text-center text-lg shrink-0">#{player.rank}</div>
     <div class="flex-1 min-w-0 flex items-center gap-3">
       {player.clanBadge ? (
@@ -37,9 +30,13 @@ const trophiesValueClasses = theme === 'blue'
       ) : (
         <div class="w-8 h-8 shrink-0 flex items-center justify-center bg-gray-200 rounded-full text-xs font-bold text-gray-500">-</div>
       )}
-      <div class="truncate min-w-0">
-        <div class="font-black text-base text-gray-800 truncate">{player.name}</div>
+      <div class="truncate min-w-0 flex flex-col justify-center">
+        <div class="font-black text-base text-gray-800 truncate leading-snug">{player.name}</div>
         {player.clanName && <div class="text-xs font-bold text-blue-600 truncate">{player.clanName}</div>}
+        <div class={trophiesBoxClasses}>
+          <span>{player.trophies}</span>
+          <span class="text-[10px]">🏆</span>
+        </div>
       </div>
     </div>
   </div>
@@ -64,41 +61,73 @@ const trophiesValueClasses = theme === 'blue'
     </div>
     <div class="flex items-center gap-2 mt-1.5 flex-wrap">
       {player.siegeMachine && (
-        <div class="cursor-help w-6 h-6 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
-          <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-contain scale-110" onerror="this.style.display='none'" />
+        <div class="cursor-help w-8 h-8 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
+          <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
         </div>
       )}
-      {player.superTroops && player.superTroops.map(t => (
-        <div class="cursor-help w-6 h-6 rounded bg-gray-100 border border-gray-200 shadow-sm overflow-hidden" data-tooltip={t}>
-          <img src={getSuperTroopIcon(t)} alt={t} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-        </div>
-      ))}
       {player.heroes && player.heroes.map(h => (
-        <div class="flex items-center bg-white rounded border border-gray-200 shadow-sm h-6 overflow-hidden">
-          <div class="cursor-help w-6 h-6 bg-gradient-to-b from-gray-100 to-gray-300 shrink-0" data-tooltip={h.hero}>
+        <div class="flex items-center bg-white rounded border border-gray-200 shadow-sm h-8 overflow-hidden">
+          <div class="cursor-help w-8 h-8 bg-gradient-to-b from-gray-100 to-gray-300 shrink-0" data-tooltip={h.hero}>
             <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover scale-110 ${h.hero === 'Grand Warden' ? 'object-top' : ''}`} onerror="this.style.display='none'" />
           </div>
           {h.pet && (
-            <div class="cursor-help w-5 h-5 bg-gradient-to-b from-purple-50 to-purple-200 shrink-0 border-l border-gray-200" data-tooltip={h.pet}>
+            <div class="cursor-help w-8 h-8 bg-gradient-to-b from-purple-50 to-purple-200 shrink-0 border-l border-gray-200" data-tooltip={h.pet}>
               <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
             </div>
           )}
           {h.combo && h.combo.split(' + ').map((eq) => (
-            <div class="cursor-help w-5 h-5 bg-gradient-to-b from-amber-50 to-amber-100 shrink-0 border-l border-gray-200" data-tooltip={eq}>
+            <div class="cursor-help w-8 h-8 bg-gradient-to-b from-amber-50 to-amber-100 shrink-0 border-l border-gray-200" data-tooltip={eq}>
               <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
             </div>
           ))}
         </div>
       ))}
     </div>
-  </div>
-  
-  <!-- Trophies -->
-  <div class={trophiesContainerClasses}>
-    <span class={trophiesLabelClasses}>Trophies</span>
-    <div class="flex items-center gap-1 ml-auto">
-      <span class={trophiesValueClasses}>{player.trophies}</span>
-      <span class="text-sm">🏆</span>
-    </div>
+    {((player.troops && player.troops.length > 0) || (player.spells && player.spells.length > 0) || (player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
+      <div class="flex flex-wrap items-end gap-x-4 gap-y-2 mt-2 border-t border-gray-200/50 pt-2">
+        {((player.troops && player.troops.length > 0) || (player.spells && player.spells.length > 0)) && (
+          <div class="flex items-center gap-1 flex-wrap">
+            {player.troops && player.troops.map(t => (
+              <div class="flex flex-col items-center shrink-0">
+                <div class="w-7 h-7 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
+                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                </div>
+                <span class="text-[10px] font-black text-gray-500 mt-0.5">x{t.count}</span>
+              </div>
+            ))}
+            {player.spells && player.spells.map(s => (
+              <div class="flex flex-col items-center shrink-0">
+                <div class="w-7 h-7 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
+                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                </div>
+                <span class="text-[10px] font-black text-gray-500 mt-0.5">x{s.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {((player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] font-black text-orange-700 bg-orange-100 border border-orange-200 rounded px-1 py-0.5 select-none shrink-0 self-center">CC</span>
+            {player.ccTroops && player.ccTroops.map(t => (
+              <div class="flex flex-col items-center shrink-0">
+                <div class="w-7 h-7 rounded border border-orange-200 shadow-sm bg-orange-50/30 overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
+                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                </div>
+                <span class="text-[10px] font-black text-orange-700/70 mt-0.5">x{t.count}</span>
+              </div>
+            ))}
+            {player.ccSpells && player.ccSpells.map(s => (
+              <div class="flex flex-col items-center shrink-0">
+                <div class="w-7 h-7 rounded border border-orange-200 shadow-sm bg-orange-50/30 overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
+                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                </div>
+                <span class="text-[10px] font-black text-orange-700/70 mt-0.5">x{s.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
   </div>
 </div>

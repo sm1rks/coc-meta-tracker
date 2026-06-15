@@ -4,6 +4,79 @@ import 'dotenv/config';
 import { EquipmentMap, HeroMap } from '../src/data/equipmentMap.js';
 import { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } from '../src/data/UnitMap.js';
 
+const TROOP_HOUSING_SPACES: Record<string, number> = {
+  "Barbarian": 1,
+  "Archer": 1,
+  "Goblin": 1,
+  "Giant": 5,
+  "Wall Breaker": 2,
+  "Balloon": 5,
+  "Wizard": 4,
+  "Healer": 14,
+  "Dragon": 20,
+  "P.E.K.K.A": 25,
+  "Minion": 2,
+  "Hog Rider": 5,
+  "Valkyrie": 8,
+  "Golem": 30,
+  "Witch": 12,
+  "Bowler": 6,
+  "Baby Dragon": 10,
+  "Miner": 6,
+  "Super Barbarian": 5,
+  "Super Archer": 12,
+  "Super Wall Breaker": 8,
+  "Super Giant": 10,
+  "Sneaky Goblin": 3,
+  "Super Miner": 24,
+  "Rocket Balloon": 8,
+  "Ice Golem": 15,
+  "Electro Dragon": 30,
+  "Inferno Dragon": 15,
+  "Super Valkyrie": 20,
+  "Dragon Rider": 25,
+  "Super Witch": 40,
+  "Ice Hound": 40,
+  "Super Bowler": 30,
+  "Super Dragon": 40,
+  "Headhunter": 6,
+  "Super Wizard": 10,
+  "Super Minion": 12,
+  "Electro Titan": 32,
+  "Apprentice Warden": 20,
+  "Super Hog Rider": 12,
+  "Root Rider": 20,
+  "Druid": 16,
+  "Thrower": 16,
+  "Super Yeti": 35,
+  "Ruin Witch": 26,
+  "Lava Hound": 30,
+  "Yeti": 18,
+  "Furnace": 18,
+  "Meteor Golem": 40
+};
+
+const SPELL_HOUSING_SPACES: Record<string, number> = {
+  "Lightning Spell": 1,
+  "Healing Spell": 2,
+  "Rage Spell": 2,
+  "Jump Spell": 2,
+  "Freeze Spell": 1,
+  "Poison Spell": 1,
+  "Earthquake Spell": 1,
+  "Haste Spell": 1,
+  "Clone Spell": 3,
+  "Skeleton Spell": 1,
+  "Bat Spell": 1,
+  "Invisibility Spell": 1,
+  "Recall Spell": 2,
+  "Overgrowth Spell": 2,
+  "Revive Spell": 2,
+  "Ice Block Spell": 1,
+  "Totem Spell": 1,
+  "Angry Spell": 1
+};
+
 const API_KEY = process.env.COC_API_KEY;
 const BASE_URL = 'https://cocproxy.royaleapi.dev/v1';
 
@@ -369,7 +442,16 @@ async function fetchMeta() {
 
             playerArmies[armyType] = (playerArmies[armyType] || 0) + 1;
             if (!playerHeroData[armyType]) playerHeroData[armyType] = [];
-            playerHeroData[armyType].push({ heroes: attackHeroes, troopCounts: allTroopCounts, mainTroopCounts, spellCounts: allSpellCounts, shareCode: attack.armyShareCode });
+            playerHeroData[armyType].push({
+              heroes: attackHeroes,
+              troopCounts: allTroopCounts,
+              mainTroopCounts,
+              ccTroopCounts,
+              spellCounts: allSpellCounts,
+              mainSpellCounts,
+              ccSpellCounts,
+              shareCode: attack.armyShareCode
+            });
           }
 
           let mainArmyType = null;
@@ -398,17 +480,34 @@ async function fetchMeta() {
               }
             }
 
-            bestAttack = { ...attacks[0], troopCounts: {}, mainTroopCounts: {}, shareCode: bestSourceAttack.shareCode };
+            bestAttack = {
+              ...attacks[0],
+              troopCounts: {},
+              mainTroopCounts: {},
+              ccTroopCounts: {},
+              mainSpellCounts: {},
+              ccSpellCounts: {},
+              shareCode: bestSourceAttack.shareCode
+            };
             
             // The API's armyShareCode in battlelogs only includes DEPLOYED troops.
             // To reconstruct the player's full trained army (including troops they didn't deploy in some attacks),
-            // we take the maximum count of each troop deployed across all their attacks with this army type.
+            // we take the maximum count of each troop/spell deployed across all their attacks with this army type.
             for (const attack of attacks) {
               for (const [troop, count] of Object.entries(attack.troopCounts as Record<string, number>)) {
                 bestAttack.troopCounts[troop] = Math.max(bestAttack.troopCounts[troop] || 0, count);
               }
               for (const [troop, count] of Object.entries(attack.mainTroopCounts as Record<string, number>)) {
                 bestAttack.mainTroopCounts[troop] = Math.max(bestAttack.mainTroopCounts[troop] || 0, count);
+              }
+              for (const [troop, count] of Object.entries((attack.ccTroopCounts || {}) as Record<string, number>)) {
+                bestAttack.ccTroopCounts[troop] = Math.max(bestAttack.ccTroopCounts[troop] || 0, count);
+              }
+              for (const [spell, count] of Object.entries(attack.mainSpellCounts as Record<string, number>)) {
+                bestAttack.mainSpellCounts[spell] = Math.max(bestAttack.mainSpellCounts[spell] || 0, count);
+              }
+              for (const [spell, count] of Object.entries((attack.ccSpellCounts || {}) as Record<string, number>)) {
+                bestAttack.ccSpellCounts[spell] = Math.max(bestAttack.ccSpellCounts[spell] || 0, count);
               }
             }
           }
@@ -443,7 +542,41 @@ async function fetchMeta() {
             heroes: bestAttack ? bestAttack.heroes : [],
             siegeMachine: bestSiegeMachine,
             superTroops: bestSuperTroops,
-            armyLink: armyLink
+            armyLink: armyLink,
+            troops: bestAttack ? Object.entries(bestAttack.mainTroopCounts)
+              .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
+              .map(([name, count]) => ({ name, count }))
+              .sort((a, b) => {
+                const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] || 1);
+                const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] || 1);
+                if (spaceB !== spaceA) return spaceB - spaceA;
+                return b.count - a.count;
+              }) : [],
+            spells: bestAttack ? Object.entries(bestAttack.mainSpellCounts)
+              .map(([name, count]) => ({ name, count }))
+              .sort((a, b) => {
+                const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] || 1);
+                const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] || 1);
+                if (spaceB !== spaceA) return spaceB - spaceA;
+                return b.count - a.count;
+              }) : [],
+            ccTroops: bestAttack ? Object.entries(bestAttack.ccTroopCounts)
+              .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
+              .map(([name, count]) => ({ name, count }))
+              .sort((a, b) => {
+                const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] || 1);
+                const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] || 1);
+                if (spaceB !== spaceA) return spaceB - spaceA;
+                return b.count - a.count;
+              }) : [],
+            ccSpells: bestAttack ? Object.entries(bestAttack.ccSpellCounts)
+              .map(([name, count]) => ({ name, count }))
+              .sort((a, b) => {
+                const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] || 1);
+                const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] || 1);
+                if (spaceB !== spaceA) return spaceB - spaceA;
+                return b.count - a.count;
+              }) : []
           });
 
           if (mainArmyType) {
@@ -509,6 +642,7 @@ async function fetchMeta() {
       const topSiegeMachine = Object.entries(armyStat.troopTotals)
         .filter(([name]) => ALL_SIEGE_MACHINES.has(name))
         .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+      const representativePlayer = stats.topPlayersList.find(p => p.armyType === armyName);
       formattedArmies.push({
         name: armyName,
         usage: stats.playersAnalyzed ? (armyStat.count / stats.playersAnalyzed) * 100 : 0,
@@ -517,7 +651,11 @@ async function fetchMeta() {
         playerCount: armyStat.playerTags.size,
         topHeroes,
         topSecondaryTroops,
-        topSiegeMachine
+        topSiegeMachine,
+        troops: representativePlayer ? representativePlayer.troops : [],
+        spells: representativePlayer ? representativePlayer.spells : [],
+        ccTroops: representativePlayer ? representativePlayer.ccTroops : [],
+        ccSpells: representativePlayer ? representativePlayer.ccSpells : []
       });
     }
     formattedArmies.sort((a, b) => b.usage - a.usage);
