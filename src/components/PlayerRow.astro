@@ -1,5 +1,5 @@
 ---
-import { getHeroIcon, getEqIcon, getPetIcon, getSuperTroopIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon } from '../utils/iconUtils';
+import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon } from '../utils/iconUtils';
 
 
 import type { PlayerData } from '../types';
@@ -18,25 +18,34 @@ const containerClasses = theme === 'blue'
 const trophiesBoxClasses = theme === 'blue'
   ? 'inline-flex items-center gap-1 mt-1 text-xs font-black text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-300 w-fit'
   : 'inline-flex items-center gap-1 mt-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/50 w-fit';
+
+const getHeroImageClass = (hero: string) => {
+  if (hero === 'Minion Prince') {
+    return 'scale-100 object-top'; // <-- EDIT THIS LINE to adjust Minion Prince scale & position
+  }
+  if (hero === 'Grand Warden' || hero === 'Barbarian King' || hero === 'Archer Queen') {
+    return 'scale-110 object-top';
+  }
+  return 'scale-110 object-center';
+};
 ---
 
 <div class={`player-row ${containerClasses}`} data-name={player.name.toLowerCase()}>
   <!-- Rank & Player Info -->
-  <div class="flex items-center gap-4 w-full md:w-1/4 min-w-[200px] shrink-0">
-    <div class="font-black text-gray-400 w-12 text-center text-lg shrink-0">#{player.rank}</div>
-    <div class="flex-1 min-w-0 flex items-center gap-3">
-      {player.clanBadge ? (
-        <img src={player.clanBadge} alt={player.clanName} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md shrink-0" onerror="this.style.display='none'" />
-      ) : (
-        <div class="w-8 h-8 shrink-0 flex items-center justify-center bg-gray-200 rounded-full text-xs font-bold text-gray-500">-</div>
-      )}
-      <div class="truncate min-w-0 flex flex-col justify-center">
-        <div class="font-black text-base text-gray-800 truncate leading-snug">{player.name}</div>
-        {player.clanName && <div class="text-xs font-bold text-blue-600 truncate">{player.clanName}</div>}
-        <div class={trophiesBoxClasses}>
-          <span>{player.trophies}</span>
-          <span class="text-[10px]">🏆</span>
-        </div>
+  <div class="flex items-center gap-3 w-full md:w-1/4 min-w-[180px] shrink-0">
+    {player.clanBadge ? (
+      <img src={player.clanBadge} alt={player.clanName} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md shrink-0" onerror="this.style.display='none'" />
+    ) : (
+      <div class="w-8 h-8 shrink-0 flex items-center justify-center bg-gray-200 rounded-full text-xs font-bold text-gray-500">-</div>
+    )}
+    <div class="truncate min-w-0 flex flex-col justify-center">
+      <div class="font-black text-base text-gray-800 truncate leading-snug">{player.name}</div>
+      {player.clanName && <div class="text-xs font-bold text-blue-600 truncate">{player.clanName}</div>}
+      <div class={trophiesBoxClasses}>
+        <span>#{player.rank}</span>
+        <span class="opacity-40">•</span>
+        <span>{player.trophies}</span>
+        <span class="text-[10px]">🏆</span>
       </div>
     </div>
   </div>
@@ -59,75 +68,113 @@ const trophiesBoxClasses = theme === 'blue'
         </a>
       )}
     </div>
-    <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-      {player.siegeMachine && (
-        <div class="cursor-help w-8 h-8 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
-          <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+    <div class="flex flex-col sm:flex-row gap-4 mt-2 items-start sm:items-stretch">
+      <!-- Left: Heroes vertical columns (side by side, max 4) -->
+      {player.heroes && player.heroes.length > 0 && (
+        <div class="flex gap-1 shrink-0 self-center sm:self-stretch">
+          {player.heroes.map(h => {
+            const equips = h.combo ? h.combo.split(' + ') : [];
+            return (
+              <div class={`flex flex-col items-center justify-between rounded-lg border p-1 w-[58px] shrink-0 gap-1 ${theme === 'blue' ? 'bg-white border-gray-200 shadow-sm' : 'bg-white/40 border-[#c4a481]/50 shadow-sm'}`}>
+                {/* Hero portrait */}
+                <div class="cursor-help w-8 h-8 rounded bg-gradient-to-b from-gray-100 to-gray-300 overflow-hidden shrink-0 border border-gray-200" data-tooltip={h.hero}>
+                  <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover ${getHeroImageClass(h.hero)}`} onerror="this.style.display='none'" />
+                </div>
+                
+                {/* Pet Icon */}
+                {h.pet ? (
+                  <div class="cursor-help w-8 h-8 rounded bg-gradient-to-b from-purple-50 to-purple-200 overflow-hidden shrink-0 border border-gray-200" data-tooltip={h.pet}>
+                    <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                  </div>
+                ) : (
+                  <div class="w-8 h-8 rounded border border-dashed border-gray-300/60 shrink-0 bg-gray-50/20 flex items-center justify-center text-[10px] text-gray-300 select-none">-</div>
+                )}
+                
+                {/* Equipments (Side by Side) */}
+                <div class="flex gap-1 justify-center w-full">
+                  {[0, 1].map(index => {
+                    const eq = equips[index];
+                    if (eq) {
+                      return (
+                        <div class="cursor-help w-[23px] h-[23px] rounded bg-gradient-to-b from-amber-50 to-amber-100 overflow-hidden shrink-0 border border-gray-200" data-tooltip={eq}>
+                          <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                        </div>
+                      );
+                    } else {
+                      return <div class="w-[23px] h-[23px] rounded border border-dashed border-gray-300/60 shrink-0 bg-gray-50/20 flex items-center justify-center text-[8px] text-gray-300 select-none">-</div>;
+                    }
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
-      {player.heroes && player.heroes.map(h => (
-        <div class="flex items-center bg-white rounded border border-gray-200 shadow-sm h-8 overflow-hidden">
-          <div class="cursor-help w-8 h-8 bg-gradient-to-b from-gray-100 to-gray-300 shrink-0" data-tooltip={h.hero}>
-            <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover scale-110 ${h.hero === 'Grand Warden' ? 'object-top' : ''}`} onerror="this.style.display='none'" />
-          </div>
-          {h.pet && (
-            <div class="cursor-help w-8 h-8 bg-gradient-to-b from-purple-50 to-purple-200 shrink-0 border-l border-gray-200" data-tooltip={h.pet}>
-              <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-            </div>
-          )}
-          {h.combo && h.combo.split(' + ').map((eq) => (
-            <div class="cursor-help w-8 h-8 bg-gradient-to-b from-amber-50 to-amber-100 shrink-0 border-l border-gray-200" data-tooltip={eq}>
-              <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-    {((player.troops && player.troops.length > 0) || (player.spells && player.spells.length > 0) || (player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
-      <div class="flex flex-wrap items-end gap-x-4 gap-y-2 mt-2 border-t border-gray-200/50 pt-2">
-        {((player.troops && player.troops.length > 0) || (player.spells && player.spells.length > 0)) && (
-          <div class="flex items-center gap-1 flex-wrap">
-            {player.troops && player.troops.map(t => (
+      
+      <!-- Right: Main troops, Spells + Siege, CC -->
+      <div class="flex-1 min-w-0 w-full flex flex-col gap-1">
+        {/* Row 1: Troops */}
+        {player.troops && player.troops.length > 0 && (
+          <div class="flex items-center gap-0.5 flex-wrap">
+            {player.troops.map(t => (
               <div class="flex flex-col items-center shrink-0">
-                <div class="w-7 h-7 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
+                <div class="w-8 h-8 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
                   <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
                 </div>
-                <span class="text-[10px] font-black text-gray-500 mt-0.5">x{t.count}</span>
-              </div>
-            ))}
-            {player.spells && player.spells.map(s => (
-              <div class="flex flex-col items-center shrink-0">
-                <div class="w-7 h-7 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
-                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                </div>
-                <span class="text-[10px] font-black text-gray-500 mt-0.5">x{s.count}</span>
+                <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{t.count}</span>
               </div>
             ))}
           </div>
         )}
-
-        {((player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="text-[10px] font-black text-orange-700 bg-orange-100 border border-orange-200 rounded px-1 py-0.5 select-none shrink-0 self-center">CC</span>
-            {player.ccTroops && player.ccTroops.map(t => (
-              <div class="flex flex-col items-center shrink-0">
-                <div class="w-7 h-7 rounded border border-orange-200 shadow-sm bg-orange-50/30 overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
-                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                </div>
-                <span class="text-[10px] font-black text-orange-700/70 mt-0.5">x{t.count}</span>
+        
+        {/* Row 2: Spells + Siege Machine + CC */}
+        {((player.spells && player.spells.length > 0) || player.siegeMachine || (player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
+          <div class="flex items-center gap-x-1 gap-y-1 flex-wrap border-t border-gray-200/50 pt-[6px]">
+            {player.spells && player.spells.length > 0 && (
+              <div class="flex items-center gap-0.5 flex-wrap">
+                {player.spells.map(s => (
+                  <div class="flex flex-col items-center shrink-0">
+                    <div class="w-8 h-8 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
+                      <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                    </div>
+                    <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{s.count}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-            {player.ccSpells && player.ccSpells.map(s => (
+            )}
+            
+            {player.siegeMachine && (
               <div class="flex flex-col items-center shrink-0">
-                <div class="w-7 h-7 rounded border border-orange-200 shadow-sm bg-orange-50/30 overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
-                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                <div class="cursor-help w-8 h-8 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
+                  <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
                 </div>
-                <span class="text-[10px] font-black text-orange-700/70 mt-0.5">x{s.count}</span>
+                <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x1</span>
               </div>
-            ))}
+            )}
+            
+            {((player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
+              <div class={`flex items-center gap-0.5 rounded-lg p-1 border shrink-0 -my-[5px] ${theme === 'blue' ? 'bg-orange-50/30 border-orange-200/60 shadow-sm' : 'bg-white/40 border-[#c4a481] shadow-sm'}`}>
+                {player.ccTroops && player.ccTroops.map(t => (
+                  <div class="flex flex-col items-center shrink-0">
+                    <div class={`w-8 h-8 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${t.name} (CC)`}>
+                      <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                    </div>
+                    <span class={`text-[10px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{t.count}</span>
+                  </div>
+                ))}
+                {player.ccSpells && player.ccSpells.map(s => (
+                  <div class="flex flex-col items-center shrink-0">
+                    <div class={`w-8 h-8 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${s.name} (CC)`}>
+                      <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                    </div>
+                    <span class={`text-[10px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{s.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
-    )}
+    </div>
   </div>
 </div>

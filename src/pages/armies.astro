@@ -23,7 +23,7 @@ if (metaData?.lastUpdated) {
 >
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="lg:col-span-4">
+    <div class="col-span-full">
       {armies.length > 0 && <ArmyTypesCard armies={armies} players={metaData?.topPlayers || []} noScroll={true} />}
     </div>
   </div>

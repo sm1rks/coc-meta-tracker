@@ -131,8 +131,10 @@ async function fetchMeta() {
     const rankingsData = await fetchWithRetry(`${BASE_URL}/locations/global/rankings/players?limit=200`);
     const playerTags = rankingsData.items.map((p: any) => p.tag);
     const topPlayersMap = new Map();
+    const topPlayersTrophiesMap = new Map();
     rankingsData.items.forEach((p: any) => {
       topPlayersMap.set(p.tag, p.rank);
+      topPlayersTrophiesMap.set(p.tag, p.trophies);
     });
     console.log(`Found ${playerTags.length} players. Analyzing profiles...`);
 
@@ -164,7 +166,7 @@ async function fetchMeta() {
       playersAnalyzed: 0,
       attacksAnalyzed: 0,
       armies: {} as Record<string, ArmyStat>,
-      heroes: {} as Record<string, { count: number, totalLevel: number }>,
+      heroes: {} as Record<string, { count: number }>,
       equipments: {} as Record<string, Record<string, number>>, // hero -> equipment -> count
       combos: {} as Record<string, Record<string, number>>, // hero -> combo -> count
       pets: {} as Record<string, Record<string, number>>, // hero -> pet -> count
@@ -174,7 +176,7 @@ async function fetchMeta() {
     };
 
     for (const [heroName, equips] of Object.entries(KNOWN_EQUIPMENT)) {
-      stats.heroes[heroName] = { count: 0, totalLevel: 0 };
+      stats.heroes[heroName] = { count: 0 };
       stats.equipments[heroName] = {};
       stats.combos[heroName] = {};
       stats.pets[heroName] = {};
@@ -190,7 +192,7 @@ async function fetchMeta() {
     }
 
     // Sliding window concurrency pool
-    const CONCURRENCY = 3;
+    const CONCURRENCY = 4;
     let activePromises = 0;
     let index = 0;
     const results: any[] = [];
@@ -219,7 +221,7 @@ async function fetchMeta() {
              process.stdout.write(`\rProgress: ${results.length}/${playerTags.length}`);
           }
         } catch (err) {
-          reject(err);
+          console.error(`\nFailed to fetch player ${tag}:`, err);
         } finally {
           activePromises--;
           runNext();
@@ -231,7 +233,12 @@ async function fetchMeta() {
       }
     });
 
-    console.log(`\nAll ${playerTags.length} players fetched successfully. Processing...`);
+    if (results.length === 0) {
+      console.error("Failed to fetch any player profiles!");
+      process.exit(1);
+    }
+
+    console.log(`\nSuccessfully fetched ${results.length}/${playerTags.length} players. Processing...`);
 
     const globalArmyBattlesCount: Record<string, number> = {};
 
@@ -244,7 +251,7 @@ async function fetchMeta() {
 
         // Parse Battlelog for Equipment
         if (battlelog && battlelog.items) {
-          const rankedAttacks = battlelog.items.filter((b: any) => b.attack === true && b.battleType === 'ranked');
+          const rankedAttacks = battlelog.items.filter((b: any) => b.attack === true && (b.battleType === 'legend' || b.battleType === 'ranked'));
           
           const playerArmies: Record<string, number> = {};
           const playerHeroData: Record<string, any[]> = {};
@@ -293,14 +300,13 @@ async function fetchMeta() {
                   if (eq2Name) equipNames.add(eq2Name);
 
                   if (!stats.heroes[heroName]) {
-                    stats.heroes[heroName] = { count: 0, totalLevel: 0 };
+                    stats.heroes[heroName] = { count: 0 };
                     stats.equipments[heroName] = {};
                     stats.combos[heroName] = {};
                     stats.pets[heroName] = {};
                   }
 
                   stats.heroes[heroName].count++;
-                  stats.heroes[heroName].totalLevel += 1; // Assuming max for simplicity if not looking up
 
                   const eqNames = [];
                   if (eq1Name) {
@@ -410,7 +416,8 @@ async function fetchMeta() {
 
             // Charge detection: 4+ invis spells + Spirit Fox on RC or Duke
             const invisSpells = allSpellCounts["Invisibility Spell"] || 0;
-            if (invisSpells >= 4) {
+            const hasFireballOrMonolith = equipNames.has("Fireball") || equipNames.has("Monolith Arrow");
+            if (invisSpells >= 4 && !hasFireballOrMonolith) {
               const rcWithFox = attackHeroes.find(h => h.hero === "Royal Champion" && h.pet === "Spirit Fox");
               const dukeWithFox = attackHeroes.find(h => h.hero === "Dragon Duke" && h.pet === "Spirit Fox");
               if (rcWithFox) prefixes.push("Royal Champion Charge");
@@ -535,7 +542,7 @@ async function fetchMeta() {
             rank: topPlayersMap.get(player.tag) || 0,
             name: player.name,
             tag: player.tag,
-            trophies: player.trophies,
+            trophies: topPlayersTrophiesMap.get(player.tag) || player.trophies,
             clanName: player.clan ? player.clan.name : '',
             clanBadge: player.clan && player.clan.badgeUrls ? player.clan.badgeUrls.small : '',
             armyType: mainArmyType || "Unknown",
@@ -704,9 +711,7 @@ async function fetchMeta() {
       // For heroes, denominator is stats.attacksAnalyzed. 
       // If a hero is not in an attack, they weren't used.
       const usagePct = stats.attacksAnalyzed ? (heroStat.count / stats.attacksAnalyzed) * 100 : 0;
-      // Note: avgLevel is rough here because we assumed 1.
-      const avgLevel = heroStat.count ? heroStat.totalLevel / heroStat.count : 0;
-      outputData.heroes.push({ name: heroName, usage: parseFloat(usagePct.toFixed(1)), avgLevel: parseFloat(avgLevel.toFixed(1)) });
+      outputData.heroes.push({ name: heroName, usage: parseFloat(usagePct.toFixed(1)) });
 
       // Equipments
       const heroEquips = stats.equipments[heroName] || {};
