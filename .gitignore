@@ -26,3 +26,7 @@ pnpm-debug.log*
 # agent and scratch folders
 .agents/
 scratch/
+
+# generated data
+data/meta.json
+public/last-updated.json
