@@ -112,6 +112,28 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
     <div id="global-tooltip" class="fixed hidden bg-black/85 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full opacity-0"></div>
 
     <script>
+      async function checkForUpdates() {
+        const currentUpdatedEl = document.getElementById('layoutLastUpdated');
+        const currentTimestamp = currentUpdatedEl?.getAttribute('data-timestamp');
+        if (!currentTimestamp) return;
+
+        try {
+          const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+          const res = await fetch(`${base}/last-updated.json`, { cache: "no-store" });
+          const data = await res.json();
+          if (data && data.lastUpdated) {
+            const fetchedTime = new Date(data.lastUpdated).getTime();
+            const currentTime = new Date(currentTimestamp).getTime();
+            // Use a 2-second buffer to prevent precision mismatch loops
+            if (fetchedTime > currentTime + 2000) {
+              window.location.reload();
+            }
+          }
+        } catch (e) {
+          console.error("Failed to check for updates", e);
+        }
+      }
+
       document.addEventListener('astro:page-load', () => {
         const updatedEl = document.getElementById('layoutLastUpdated');
         const timestamp = updatedEl?.getAttribute('data-timestamp');
@@ -119,26 +141,12 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
           const d = new Date(timestamp);
           updatedEl.textContent = `Updated:\n${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
         }
+        checkForUpdates();
       });
 
-      document.addEventListener("visibilitychange", async () => {
-        const currentUpdatedEl = document.getElementById('layoutLastUpdated');
-        const currentTimestamp = currentUpdatedEl?.getAttribute('data-timestamp');
-        if (document.visibilityState === "visible" && currentTimestamp) {
-          try {
-            const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-            const res = await fetch(`${base}/last-updated.json`, { cache: "no-store" });
-            const data = await res.json();
-            if (data && data.lastUpdated) {
-              const fetchedTime = new Date(data.lastUpdated).getTime();
-              const currentTime = new Date(currentTimestamp).getTime();
-              if (fetchedTime > currentTime) {
-                window.location.reload();
-              }
-            }
-          } catch (e) {
-            console.error("Failed to check for updates", e);
-          }
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          checkForUpdates();
         }
       });
 
