@@ -1,4 +1,3 @@
-
 ---
 import type { ArmyData, PlayerData } from '../types';
 
@@ -14,10 +13,73 @@ const { armies, title = "Top Army Types", noScroll = false, players = [] } = Ast
 import PlayerRow from './PlayerRow.astro';
 import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon } from '../utils/iconUtils';
 
+// Helper to get core army name by stripping equipment prefixes
+const getCoreArmyName = (fullName: string): string => {
+  if (fullName.includes("Fireball")) {
+    return "Fireball";
+  }
+  let name = fullName;
+  const prefixes = [
+    "Royal Champion Charge",
+    "Dragon Duke Charge",
+    "Queen Charge",
+    "Flame Blower",
+    "Fireball",
+    "Rocket Backpack"
+  ];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const prefix of prefixes) {
+      if (name.startsWith(prefix + " ")) {
+        name = name.slice(prefix.length + 1).trim();
+        changed = true;
+      } else if (name === prefix) {
+        name = "";
+        changed = true;
+      }
+    }
+  }
+  return name || "Unknown";
+};
+
+// Group armies by core name
+const groupsMap = new Map<string, {
+  coreName: string;
+  totalCount: number;
+  totalBattlesCount: number;
+  totalPlayerCount: number;
+  totalUsage: number;
+  variants: ArmyData[];
+}>();
+
+for (const army of armies) {
+  const coreName = getCoreArmyName(army.name);
+  if (!groupsMap.has(coreName)) {
+    groupsMap.set(coreName, {
+      coreName,
+      totalCount: 0,
+      totalBattlesCount: 0,
+      totalPlayerCount: 0,
+      totalUsage: 0,
+      variants: []
+    });
+  }
+  const group = groupsMap.get(coreName)!;
+  group.totalCount += army.count || 0;
+  group.totalBattlesCount += army.battlesCount || 0;
+  group.totalPlayerCount += army.playerCount || 0;
+  group.totalUsage += army.usage || 0;
+  group.variants.push(army);
+}
+
+// Convert map to array and sort by totalUsage desc
+const groupedArmies = Array.from(groupsMap.values())
+  .sort((a, b) => b.totalUsage - a.totalUsage);
 ---
 <div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden col-span-full">
   <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3 shrink-0">
-    <div class="bg-black/20 text-white rounded-lg p-2 shadow-inner inline-block transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center">⚔️</div>
+    <div class="bg-black/20 text-white rounded-lg shadow-inner transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center">⚔️</div>
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{title}</h2>
     </div>
@@ -25,8 +87,7 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, 
   
   <div class={`p-0 flex-1 ${noScroll ? 'min-h-[fit-content]' : 'min-h-[300px]'}`}>
     <div class={`${noScroll ? 'relative h-auto p-4' : 'absolute inset-0 overflow-y-auto p-4'} space-y-4 custom-scrollbar`}>
-      {armies.map((army, idx) => {
-        const armyPlayers = players.filter(p => p.armyType === army.name);
+      {groupedArmies.map((group, idx) => {
         return (
         <details class="group/details bg-white/40 rounded-lg border border-[#c4a481] [&_summary::-webkit-details-marker]:hidden">
           <summary class="flex flex-col group/row relative gap-2 p-3 cursor-pointer list-none hover:bg-white/60 transition-colors rounded-lg">
@@ -36,23 +97,21 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, 
                 <div class="w-6 h-6 flex items-center justify-center font-black text-[#603813] opacity-50 shrink-0">#{idx + 1}</div>
                 <div class="min-w-0">
                   <div class="font-black text-[#4a2e0f] text-base sm:text-xl leading-tight uppercase tracking-wide drop-shadow-sm truncate">
-                    {army.name}
+                    {group.coreName}
                   </div>
-                  {army.count !== undefined && army.playerCount !== undefined && army.battlesCount !== undefined && (
-                    <div class="text-[#603813]/70 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5">
-                      {army.battlesCount} Battles • {army.playerCount} Players
-                    </div>
-                  )}
+                  <div class="text-[#603813]/70 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5">
+                    {group.totalBattlesCount} {group.totalBattlesCount === 1 ? 'Battle' : 'Battles'} • {group.totalPlayerCount} {group.totalPlayerCount === 1 ? 'Player' : 'Players'} • {group.variants.length} {group.variants.length === 1 ? 'Variant' : 'Variants'}
+                  </div>
                 </div>
               </div>
               <div class="flex items-center gap-2 w-full sm:w-auto sm:flex-grow sm:justify-end min-w-0 sm:max-w-[200px] pl-8 sm:pl-0">
                 <div class="flex-1 h-3 sm:h-4 bg-[#603813]/10 rounded-full overflow-hidden shadow-inner min-w-[40px] border border-[#603813]/20">
                   <div 
                     class="h-full bg-gradient-to-r from-red-600 to-amber-500 rounded-full transition-all duration-1000 shadow-sm"
-                    style={`width: ${army.usage}%`}
+                    style={`width: ${group.totalUsage}%`}
                   ></div>
                 </div>
-                <div class="text-xs sm:text-sm font-black text-[#603813] w-10 sm:w-14 text-right flex-shrink-0">{army.usage.toFixed(1)}%</div>
+                <div class="text-xs sm:text-sm font-black text-[#603813] w-10 sm:w-14 text-right flex-shrink-0">{group.totalUsage.toFixed(1)}%</div>
                 
                 <!-- Expansion Arrow -->
                 <div class="w-6 h-6 flex items-center justify-center text-[#603813]/50 group-open/details:rotate-180 transition-transform duration-300">
@@ -62,108 +121,130 @@ import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, 
                 </div>
               </div>
             </div>
-
-            {(army.topHeroes && army.topHeroes.length > 0 || army.topSuperTroops && army.topSuperTroops.length > 0) && (
-              <div class="mt-2 pt-3 border-t-2 border-[#c4a481]/30 flex flex-wrap gap-4 items-center">
-                {army.topHeroes && army.topHeroes.map(hero => {
-                   const eqList = hero.equipment ? hero.equipment.split(' + ') : [];
-                   return (
-                     <div class="flex items-center gap-1.5 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
-                       <div class="cursor-help overflow-hidden" data-tooltip={hero.name}>
-                         <img src={getHeroIcon(hero.name)} alt={hero.name} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
-                       </div>
-                       
-                       {hero.pet && (
-                         <div class="cursor-help ml-1 overflow-hidden" data-tooltip={hero.pet}>
-                           <img src={getPetIcon(hero.pet)} alt={hero.pet} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror="this.style.display='none'"/>
-                         </div>
-                       )}
-
-                       {eqList.length > 0 && (
-                         <div class="flex items-center ml-1 gap-1">
-                           {eqList.map(eq => (
-                             <div class="cursor-help overflow-hidden" data-tooltip={eq}>
-                               <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror="this.style.display='none'"/>
-                             </div>
-                           ))}
-                         </div>
-                       )}
-                     </div>
-                   );
-                })}
-
-                {army.topSiegeMachine && (
-                  <div class="flex items-center gap-2 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
-                    <div class="cursor-help overflow-hidden" data-tooltip={army.topSiegeMachine}>
-                      <img src={getSiegeMachineIcon(army.topSiegeMachine)} alt={army.topSiegeMachine} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            {((army.troops && army.troops.length > 0) || (army.spells && army.spells.length > 0) || (army.ccTroops && army.ccTroops.length > 0) || (army.ccSpells && army.ccSpells.length > 0)) && (
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 border-t-2 border-[#c4a481]/30 pt-2">
-                {((army.troops && army.troops.length > 0) || (army.spells && army.spells.length > 0)) && (
-                  <div class="flex items-center gap-1 flex-wrap">
-                    {army.troops && army.troops.map(t => (
-                      <div class="flex flex-col items-center shrink-0">
-                        <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
-                          <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                        </div>
-                        <span class="text-[10px] font-black text-[#603813]/70 mt-0 leading-none">x{t.count}</span>
-                      </div>
-                    ))}
-                    {army.spells && army.spells.map(s => (
-                      <div class="flex flex-col items-center shrink-0">
-                        <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
-                          <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                        </div>
-                        <span class="text-[10px] font-black text-[#603813]/70 mt-0 leading-none">x{s.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {((army.ccTroops && army.ccTroops.length > 0) || (army.ccSpells && army.ccSpells.length > 0)) && (
-                  <div class="flex items-center gap-0.5 rounded-lg p-1 border shrink-0 bg-white/40 border-[#c4a481] shadow-sm -my-[5px]">
-                    {army.ccTroops && army.ccTroops.map(t => (
-                      <div class="flex flex-col items-center shrink-0">
-                        <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
-                          <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                        </div>
-                        <span class="text-[10px] font-black text-[#603813]/60 mt-0 leading-none">x{t.count}</span>
-                      </div>
-                    ))}
-                    {army.ccSpells && army.ccSpells.map(s => (
-                      <div class="flex flex-col items-center shrink-0">
-                        <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
-                          <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                        </div>
-                        <span class="text-[10px] font-black text-[#603813]/60 mt-0 leading-none">x{s.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </summary>
 
-          {armyPlayers.length > 0 && (
-            <div class="p-3 border-t-2 border-[#c4a481]/30 bg-white/50 rounded-b-lg space-y-2 cursor-default">
-               <div class="flex items-center text-[10px] font-black text-[#603813]/60 uppercase tracking-widest px-3 pb-1 border-b-2 border-[#603813]/10 mb-2 hidden md:flex">
-                <div class="w-1/4 min-w-[200px] mr-3">Player / Trophies & Rank</div>
-                <div class="flex-1">Army Setup</div>
-              </div>
-              
-              {armyPlayers.map(player => (
-                <PlayerRow player={player} theme="brown" />
-              ))}
-            </div>
-          )}
+          <div class="p-3 border-t-2 border-[#c4a481]/30 bg-[#fbf6ea] rounded-b-lg space-y-3 cursor-default">
+            {group.variants.map((variant) => {
+              const variantPlayers = players.filter(p => p.armyType === variant.name);
+              return (
+                <details class="group/variant bg-white/60 rounded-lg border border-[#c4a481]/50 [&_summary::-webkit-details-marker]:hidden">
+                  <summary class="flex flex-col gap-2 p-3 cursor-pointer list-none hover:bg-white/90 transition-colors rounded-lg">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div class="font-bold text-[#4a2e0f] text-sm sm:text-base uppercase tracking-wide">
+                          {variant.name}
+                        </div>
+                        <div class="text-[#603813]/70 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5">
+                          {variant.battlesCount} {variant.battlesCount === 1 ? 'Battle' : 'Battles'} • {variant.playerCount} {variant.playerCount === 1 ? 'Player' : 'Players'}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-[#603813]">{variant.usage.toFixed(1)}%</span>
+                        <div class="w-5 h-5 flex items-center justify-center text-[#603813]/50 group-open/variant:rotate-180 transition-transform duration-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {(variant.topHeroes && variant.topHeroes.length > 0 || variant.topSiegeMachine) && (
+                      <div class="mt-2 pt-2 border-t border-[#c4a481]/20 flex flex-wrap gap-3 items-center">
+                        {variant.topHeroes && variant.topHeroes.map(hero => {
+                           const eqList = hero.equipment ? hero.equipment.split(' + ') : [];
+                           return (
+                             <div class="flex items-center gap-1.5 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
+                               <div class="cursor-help overflow-hidden" data-tooltip={hero.name}>
+                                 <img src={getHeroIcon(hero.name)} alt={hero.name} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
+                               </div>
+                               {hero.pet && (
+                                 <div class="cursor-help ml-1 overflow-hidden" data-tooltip={hero.pet}>
+                                   <img src={getPetIcon(hero.pet)} alt={hero.pet} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror="this.style.display='none'"/>
+                                 </div>
+                               )}
+                               {eqList.length > 0 && (
+                                 <div class="flex items-center ml-1 gap-1">
+                                   {eqList.map(eq => (
+                                     <div class="cursor-help overflow-hidden" data-tooltip={eq}>
+                                       <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror="this.style.display='none'"/>
+                                     </div>
+                                   ))}
+                                 </div>
+                               )}
+                             </div>
+                           );
+                        })}
+                        {variant.topSiegeMachine && (
+                          <div class="flex items-center gap-2 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
+                            <div class="cursor-help overflow-hidden" data-tooltip={variant.topSiegeMachine}>
+                              <img src={getSiegeMachineIcon(variant.topSiegeMachine)} alt={variant.topSiegeMachine} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror="this.style.display='none'"/>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {((variant.troops && variant.troops.length > 0) || (variant.spells && variant.spells.length > 0) || (variant.ccTroops && variant.ccTroops.length > 0) || (variant.ccSpells && variant.ccSpells.length > 0)) && (
+                      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 border-t border-[#c4a481]/20 pt-2">
+                        {((variant.troops && variant.troops.length > 0) || (variant.spells && variant.spells.length > 0)) && (
+                          <div class="flex items-center gap-1 flex-wrap">
+                            {variant.troops && variant.troops.map(t => (
+                              <div class="flex flex-col items-center shrink-0">
+                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
+                                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                                </div>
+                                <span class="text-[10px] font-black text-[#603813]/70 mt-0 leading-none">x{t.count}</span>
+                              </div>
+                            ))}
+                            {variant.spells && variant.spells.map(s => (
+                              <div class="flex flex-col items-center shrink-0">
+                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
+                                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                                </div>
+                                <span class="text-[10px] font-black text-[#603813]/70 mt-0 leading-none">x{s.count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {((variant.ccTroops && variant.ccTroops.length > 0) || (variant.ccSpells && variant.ccSpells.length > 0)) && (
+                          <div class="flex items-center gap-0.5 rounded-lg p-1 border shrink-0 bg-white/40 border-[#c4a481] shadow-sm -my-[5px]">
+                            {variant.ccTroops && variant.ccTroops.map(t => (
+                              <div class="flex flex-col items-center shrink-0">
+                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
+                                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                                </div>
+                                <span class="text-[10px] font-black text-[#603813]/60 mt-0 leading-none">x{t.count}</span>
+                              </div>
+                            ))}
+                            {variant.ccSpells && variant.ccSpells.map(s => (
+                              <div class="flex flex-col items-center shrink-0">
+                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
+                                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                                </div>
+                                <span class="text-[10px] font-black text-[#603813]/60 mt-0 leading-none">x{s.count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </summary>
+
+                  {variantPlayers.length > 0 && (
+                    <div class="p-3 border-t border-[#c4a481]/30 bg-white/50 rounded-b-lg space-y-2 cursor-default font-sans">
+                      {variantPlayers.map(player => (
+                        <PlayerRow player={player} theme="brown" />
+                      ))}
+                    </div>
+                  )}
+                </details>
+              );
+            })}
+          </div>
         </details>
         );
       })}
-      {armies.length === 0 && <div class="text-[#603813]/60 text-sm italic text-center py-4 font-bold">No army data found.</div>}
+      {groupedArmies.length === 0 && <div class="text-[#603813]/60 text-sm italic text-center py-4 font-bold">No army data found.</div>}
     </div>
   </div>
 </div>

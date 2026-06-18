@@ -11,7 +11,7 @@ import PlayerRow from './PlayerRow.astro';
 ---
 <div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col">
   <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-t-xl border-b-4 border-black/10 flex items-center gap-4 shrink-0">
-    <div class="bg-black/20 text-white rounded-lg p-3 shadow-inner inline-block transform -rotate-3 text-3xl leading-none w-16 h-16 flex items-center justify-center">🏆</div>
+    <div class="bg-black/20 text-white rounded-lg shadow-inner transform -rotate-3 text-3xl leading-none w-16 h-16 flex items-center justify-center">🏆</div>
     <div class="min-w-0">
       <h2 class="text-2xl xl:text-3xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">Global Top 200</h2>
       <p class="text-blue-100 font-bold text-sm tracking-wide">Current Season Rankings & Compositions</p>
@@ -29,11 +29,6 @@ import PlayerRow from './PlayerRow.astro';
         </div>
       </div>
       <div class="w-full" id="players-table-wrapper">
-        <!-- Table Header -->
-        <div class="flex items-center text-xs font-black text-gray-500 uppercase tracking-widest px-3 pb-2 border-b-2 border-gray-200/50 mb-2 hidden md:flex">
-          <div class="w-1/4 min-w-[200px] mr-3">Player / Trophies & Rank</div>
-          <div class="flex-1">Army Composition</div>
-        </div>
         
         <div id="players-list" class="space-y-2">
           {players.map(player => (

@@ -28,22 +28,49 @@ const getHeroImageClass = (hero: string) => {
   }
   return 'scale-110 object-center';
 };
+
+const getRankBadgeClasses = (rank: number, theme: 'blue' | 'brown') => {
+  if (rank === 1) {
+    return 'bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 border-yellow-500 text-yellow-950 shadow-md scale-110 ring-2 ring-yellow-400/20';
+  }
+  if (rank === 2) {
+    return 'bg-gradient-to-br from-slate-100 via-slate-300 to-slate-400 border-slate-400 text-slate-900 shadow-md scale-105';
+  }
+  if (rank === 3) {
+    return 'bg-gradient-to-br from-[#d9a05b] via-[#a76f30] to-[#734215] border-[#5e320f] text-white shadow-md scale-105';
+  }
+  return theme === 'blue' 
+    ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm' 
+    : 'bg-[#f4e4c1]/60 border-[#c4a481]/50 text-[#603813] shadow-sm';
+};
+
+const rankTextClass = player.rank <= 3 ? 'text-base' : 'text-sm';
 ---
 
 <div class={`player-row ${containerClasses}`} data-name={player.name.toLowerCase()}>
   <!-- Rank & Player Info -->
   <div class="flex items-center gap-3 w-full md:w-1/4 min-w-[180px] shrink-0">
-    {player.clanBadge ? (
-      <img src={player.clanBadge} alt={player.clanName} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md shrink-0" onerror="this.style.display='none'" />
-    ) : (
-      <div class="w-8 h-8 shrink-0 flex items-center justify-center bg-gray-200 rounded-full text-xs font-bold text-gray-500">-</div>
-    )}
+    <div class={`w-8 h-8 shrink-0 flex items-center justify-center rounded-lg font-black ${rankTextClass} border ${getRankBadgeClasses(player.rank, theme)}`}>
+      {player.rank}
+    </div>
     <div class="truncate min-w-0 flex flex-col justify-center">
       <div class="font-black text-base text-gray-800 truncate leading-snug">{player.name}</div>
-      {player.clanName && <div class="text-xs font-bold text-blue-600 truncate">{player.clanName}</div>}
+      {player.clanName && (
+        <div class={`flex items-center gap-1 text-xs font-bold truncate ${theme === 'blue' ? 'text-blue-600' : 'text-[#603813]/80'}`}>
+          {player.clanBadge && (
+            <img 
+              src={player.clanBadge} 
+              alt="" 
+              loading="lazy" 
+              decoding="async" 
+              class="w-4 h-4 object-contain shrink-0" 
+              onerror="this.style.display='none'" 
+            />
+          )}
+          <span class="truncate">{player.clanName}</span>
+        </div>
+      )}
       <div class={trophiesBoxClasses}>
-        <span>#{player.rank}</span>
-        <span class="opacity-40">•</span>
         <span>{player.trophies}</span>
         <span class="text-[10px]">🏆</span>
       </div>
