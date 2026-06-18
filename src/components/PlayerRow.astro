@@ -49,7 +49,7 @@ const rankTextClass = player.rank <= 3 ? 'text-base' : 'text-sm';
 
 <div class={`player-row ${containerClasses}`} data-name={player.name.toLowerCase()}>
   <!-- Rank & Player Info -->
-  <div class="flex items-center gap-3 w-full md:w-1/4 min-w-[180px] shrink-0">
+  <div class="flex items-center gap-3 w-full md:w-[232px] shrink-0">
     <div class={`w-8 h-8 shrink-0 flex items-center justify-center rounded-lg font-black ${rankTextClass} border ${getRankBadgeClasses(player.rank, theme)}`}>
       {player.rank}
     </div>
@@ -138,67 +138,57 @@ const rankTextClass = player.rank <= 3 ? 'text-base' : 'text-sm';
         </div>
       )}
       
-      <!-- Right: Main troops, Spells + Siege, CC -->
-      <div class="flex-1 min-w-0 w-full flex flex-col gap-1">
-        {/* Row 1: Troops */}
-        {player.troops && player.troops.length > 0 && (
-          <div class="flex items-center gap-0.5 flex-wrap">
-            {player.troops.map(t => (
-              <div class="flex flex-col items-center shrink-0">
-                <div class="w-8 h-8 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
-                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                </div>
-                <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{t.count}</span>
-              </div>
-            ))}
+      <!-- Right: Main troops, Spells, Siege, and CC (Unified wrap flow) -->
+      <div class="flex-1 min-w-0 w-full flex flex-wrap items-center gap-x-1.5 gap-y-2">
+        {/* Main Troops */}
+        {player.troops && player.troops.map(t => (
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-8 h-8 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
+              <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+            </div>
+            <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{t.count}</span>
+          </div>
+        ))}
+
+        {/* Spells */}
+        {player.spells && player.spells.map(s => (
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-8 h-8 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
+              <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+            </div>
+            <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{s.count}</span>
+          </div>
+        ))}
+
+        {/* Siege Machine */}
+        {player.siegeMachine && (
+          <div class="flex flex-col items-center shrink-0">
+            <div class="cursor-help w-8 h-8 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
+              <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+            </div>
+            <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x1</span>
           </div>
         )}
-        
-        {/* Row 2: Spells + Siege Machine + CC */}
-        {((player.spells && player.spells.length > 0) || player.siegeMachine || (player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
-          <div class="flex items-center gap-x-1 gap-y-1 flex-wrap border-t border-gray-200/50 pt-[6px]">
-            {player.spells && player.spells.length > 0 && (
-              <div class="flex items-center gap-0.5 flex-wrap">
-                {player.spells.map(s => (
-                  <div class="flex flex-col items-center shrink-0">
-                    <div class="w-8 h-8 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
-                      <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                    </div>
-                    <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{s.count}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {player.siegeMachine && (
+
+        {/* CC Box */}
+        {((player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
+          <div class={`flex items-center gap-x-1.5 rounded-lg p-1 border shrink-0 -ml-1 -mr-1 ${theme === 'blue' ? 'bg-orange-50/30 border-orange-200/60 shadow-sm' : 'bg-white/40 border-[#c4a481] shadow-sm'}`}>
+            {player.ccTroops && player.ccTroops.map(t => (
               <div class="flex flex-col items-center shrink-0">
-                <div class="cursor-help w-8 h-8 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
-                  <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                <div class={`w-8 h-8 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${t.name} (CC)`}>
+                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
                 </div>
-                <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x1</span>
+                <span class={`text-[10px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{t.count}</span>
               </div>
-            )}
-            
-            {((player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
-              <div class={`flex items-center gap-0.5 rounded-lg p-1 border shrink-0 -my-[5px] ${theme === 'blue' ? 'bg-orange-50/30 border-orange-200/60 shadow-sm' : 'bg-white/40 border-[#c4a481] shadow-sm'}`}>
-                {player.ccTroops && player.ccTroops.map(t => (
-                  <div class="flex flex-col items-center shrink-0">
-                    <div class={`w-8 h-8 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${t.name} (CC)`}>
-                      <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                    </div>
-                    <span class={`text-[10px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{t.count}</span>
-                  </div>
-                ))}
-                {player.ccSpells && player.ccSpells.map(s => (
-                  <div class="flex flex-col items-center shrink-0">
-                    <div class={`w-8 h-8 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${s.name} (CC)`}>
-                      <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
-                    </div>
-                    <span class={`text-[10px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{s.count}</span>
-                  </div>
-                ))}
+            ))}
+            {player.ccSpells && player.ccSpells.map(s => (
+              <div class="flex flex-col items-center shrink-0">
+                <div class={`w-8 h-8 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${s.name} (CC)`}>
+                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                </div>
+                <span class={`text-[10px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{s.count}</span>
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>

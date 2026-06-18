@@ -207,7 +207,7 @@ const groupedArmies = Array.from(groupsMap.values())
                         )}
 
                         {((variant.ccTroops && variant.ccTroops.length > 0) || (variant.ccSpells && variant.ccSpells.length > 0)) && (
-                          <div class="flex items-center gap-0.5 rounded-lg p-1 border shrink-0 bg-white/40 border-[#c4a481] shadow-sm -my-[5px]">
+                          <div class="flex items-center gap-x-2 rounded-lg p-1 border shrink-0 bg-white/40 border-[#c4a481] shadow-sm -my-[5px] -ml-1 -mr-1">
                             {variant.ccTroops && variant.ccTroops.map(t => (
                               <div class="flex flex-col items-center shrink-0">
                                 <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>

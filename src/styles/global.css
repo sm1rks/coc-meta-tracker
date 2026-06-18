@@ -10,6 +10,7 @@
   --color-coc-panel: #ecf0f1;
   --color-coc-bg: #d5d8dc;
   --color-coc-text: #333333;
+  --breakpoint-md: 1000px;
 }
 
 body {
