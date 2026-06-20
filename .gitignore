@@ -29,4 +29,5 @@ scratch/
 
 # generated data
 data/meta.json
+data/clan_badges_cache.json
 public/last-updated.json
