@@ -53,7 +53,16 @@ const TROOP_HOUSING_SPACES: Record<string, number> = {
   "Lava Hound": 30,
   "Yeti": 18,
   "Furnace": 18,
-  "Meteor Golem": 40
+  "Meteor Golem": 40,
+  "Wall Wrecker": 0,
+  "Battle Blimp": 0,
+  "Stone Slammer": 0,
+  "Siege Barracks": 0,
+  "Log Launcher": 0,
+  "Flame Flinger": 0,
+  "Battle Drill": 0,
+  "Sky Wagon": 0,
+  "Troop Launcher": 0
 };
 
 const SPELL_HOUSING_SPACES: Record<string, number> = {
@@ -136,7 +145,7 @@ function mergeCounts(
     let space = 0;
     const counts = attack[key] || {};
     for (const [name, count] of Object.entries(counts)) {
-      space += (count as number) * (spaceMap[name] || 1);
+      space += (count as number) * (spaceMap[name] ?? 1);
     }
     if (space > capacityLimit) {
       capacityLimit = space;
@@ -152,7 +161,7 @@ function mergeCounts(
   const getMergedSpace = () => {
     let space = 0;
     for (const [name, count] of Object.entries(merged)) {
-      space += count * (spaceMap[name] || 1);
+      space += count * (spaceMap[name] ?? 1);
     }
     return space;
   };
@@ -163,7 +172,7 @@ function mergeCounts(
       const currentCount = merged[name] || 0;
       const targetCount = count as number;
       if (targetCount > currentCount) {
-        const spaceDiff = (targetCount - currentCount) * (spaceMap[name] || 1);
+        const spaceDiff = (targetCount - currentCount) * (spaceMap[name] ?? 1);
         if (getMergedSpace() + spaceDiff <= capacityLimit) {
           merged[name] = targetCount;
         }
