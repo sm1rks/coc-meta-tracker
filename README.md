@@ -63,7 +63,9 @@ Built with [Astro](https://astro.build) and [Tailwind CSS](https://tailwindcss.c
 - `npm run fetch-data`: Execute the data processing pipeline (`scripts/fetch-meta.ts`)
 - `npm run test:e2e`: Run E2E build artifact tests (`tests/e2e.test.js`)
 
-## Deployment
+## Deployment & Automation
 
-Continuous deployment is handled via GitHub Actions in `.github/workflows/deploy-pages.yml`. When triggered, the workflow fetches the latest player meta using the `COC_API_KEY` repository secret, builds the static site, and deploys it to GitHub Pages.
+Continuous deployment is handled via GitHub Actions in `.github/workflows/deploy-pages.yml`. When triggered via `workflow_dispatch`, the workflow fetches the latest player meta using the `COC_API_KEY` repository secret, bakes the fresh data into static HTML, and deploys it to GitHub Pages.
+
+To guarantee accurate end-of-day stats right before the Clash of Clans League Day reset, an external cron service ([cron-job.org](https://cron-job.org)) triggers the GitHub Actions workflow via the GitHub API daily at 04:55 UTC (12:55 AM EDT).
 
