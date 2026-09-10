@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import type { MetaData } from '../types';
 
-export function getMetaData() {
+export function getMetaData(): MetaData | null {
   const dataPath = path.join(process.cwd(), 'data', 'meta.json');
-  let metaData = null;
+  let metaData: MetaData | null = null;
 
   try {
     if (fs.existsSync(dataPath)) {

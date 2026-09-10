@@ -44,7 +44,7 @@ const heroIcon = getHeroIcon(name);
     <!-- Top Equipment Section -->
     <div class="space-y-2 flex-1 pb-4">
       <div class="space-y-2">
-        {equipments.map((eq: any) => {
+        {equipments.map(eq => {
           const eqIcon = getEqIcon(eq.name);
           return (
             <div class="flex items-center justify-between group/row relative gap-3">

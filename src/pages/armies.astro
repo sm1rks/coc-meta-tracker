@@ -2,9 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import ArmyTypesCard from '../components/ArmyTypesCard.astro';
 import { getMetaData } from '../utils/dataUtils';
-import type { MetaData } from '../types';
-
-const metaData = getMetaData() as MetaData;
+ 
+const metaData = getMetaData();
 
 const armies = [...(metaData?.armies || [])].sort((a, b) => b.usage - a.usage);
 const topPlayers = metaData?.topPlayers || [];
@@ -24,7 +23,7 @@ if (metaData?.lastUpdated) {
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <div class="col-span-full">
-      {armies.length > 0 && <ArmyTypesCard armies={armies} players={metaData?.topPlayers || []} noScroll={true} />}
+      {armies.length > 0 && <ArmyTypesCard armies={armies} players={topPlayers} noScroll={true} />}
     </div>
   </div>
 </Layout>

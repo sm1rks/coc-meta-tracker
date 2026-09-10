@@ -4,9 +4,8 @@ import HeroCard from '../components/HeroCard.astro';
 import SuperTroopsCard from '../components/SuperTroopsCard.astro';
 import SiegeMachinesCard from '../components/SiegeMachinesCard.astro';
 import { getMetaData } from '../utils/dataUtils';
-import type { MetaData } from '../types';
-
-const metaData = getMetaData() as MetaData;
+ 
+const metaData = getMetaData();
 
 const heroes = [...(metaData?.heroes || [])].sort((a, b) => b.usage - a.usage);
 const equipments = metaData?.equipments || [];
@@ -33,7 +32,7 @@ if (metaData?.lastUpdated) {
   lastUpdated={lastUpdated}
 >
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    {heroes.map((hero: any) => (
+    {heroes.map(hero => (
       <HeroCard 
         name={hero.name} 
         usage={hero.usage} 
