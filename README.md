@@ -60,12 +60,20 @@ Built with [Astro](https://astro.build) and [Tailwind CSS](https://tailwindcss.c
 
 - `npm run dev`: Start Astro dev server
 - `npm run build`: Build static site for production to `./dist`
+- `npm run sync-equipment`: Synchronize equipment, pets, siege machines, super troops, and icons from ClashKing
 - `npm run fetch-data`: Execute the data processing pipeline (`scripts/fetch-meta.ts`)
-- `npm run test:e2e`: Run E2E build artifact tests (`tests/e2e.test.js`)
+- `npm test`: Run automated tests (`tests/sync.test.js` & `tests/e2e.test.js`)
 
 ## Deployment & Automation
 
-Continuous deployment is handled via GitHub Actions in `.github/workflows/deploy-pages.yml`. When triggered via `workflow_dispatch`, the workflow fetches the latest player meta using the `COC_API_KEY` repository secret, bakes the fresh data into static HTML, and deploys it to GitHub Pages.
+Continuous deployment is handled via GitHub Actions in `.github/workflows/deploy-pages.yml`. When triggered via `workflow_dispatch`, the workflow automatically syncs new equipment/units and icons, fetches the latest player meta using the `COC_API_KEY` repository secret, bakes the fresh data into static HTML, and deploys it to GitHub Pages. Any new icons or metadata are automatically committed back to the repository.
 
 To guarantee accurate end-of-day stats right before the Clash of Clans League Day reset, an external cron service ([cron-job.org](https://cron-job.org)) triggers the GitHub Actions workflow via the GitHub API daily at 04:55 UTC (12:55 AM EDT).
+
+## Acknowledgements & Legal
+
+- **Data & Assets**: Static game data and unit icons are sourced from the community asset catalog at [ClashKing](https://clashk.ing). Support the creators using Creator Code: `ClashKing`.
+- **API Proxy**: Player rankings and battle logs are proxied via [RoyaleAPI](https://docs.royaleapi.com/proxy.html).
+- **Supercell Fan Content Policy**: This material is unofficial and is not endorsed by Supercell. For more information see [Supercell's Fan Content Policy](https://supercell.com/en/fan-content-policy/).
+
 

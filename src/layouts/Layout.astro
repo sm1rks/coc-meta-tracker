@@ -108,6 +108,25 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
       <slot />
     </main>
 
+    <footer class="max-w-6xl mx-auto px-6 py-8 mt-12 border-t border-black/10 text-xs text-center space-y-2.5">
+      <!-- ClashKing Credit & Creator Code -->
+      <div class="flex flex-wrap justify-center items-center gap-2 text-coc-dark/80 font-bold">
+        <span>Game data and static assets provided by <a href="https://clashk.ing" target="_blank" rel="noopener" class="text-coc-blue underline hover:text-blue-700">ClashKing</a></span>
+        <span>•</span>
+        <span>Support them with Creator Code: <span class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-black border border-amber-300">ClashKing</span></span>
+      </div>
+
+      <!-- Supercell Mandatory Disclaimer -->
+      <p class="max-w-3xl mx-auto text-[11px] leading-relaxed text-gray-500">
+        This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: 
+        <a href="https://supercell.com/en/fan-content-policy/" target="_blank" rel="noopener" class="underline hover:text-gray-800">www.supercell.com/fan-content-policy</a>.
+      </p>
+
+      <p class="text-[10px] text-gray-400">
+        Clash of Clans and its respective logos and assets are trademarks of Supercell Oy.
+      </p>
+    </footer>
+
     <!-- Shared Global Tooltip Element -->
     <div id="global-tooltip" class="fixed hidden bg-black/85 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full opacity-0"></div>
 
