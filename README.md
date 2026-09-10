@@ -13,7 +13,7 @@ Built with [Astro](https://astro.build) and [Tailwind CSS](https://tailwindcss.c
 
 ## Tech Stack
 
-- **Framework**: Astro 6 (Static Site Generation)
+- **Framework**: Astro 7 (Static Site Generation)
 - **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`)
 - **Language**: TypeScript / Node.js (v22.12+)
 - **API**: Clash of Clans API (via [RoyaleAPI Proxy](https://docs.royaleapi.com/proxy.html))
@@ -60,7 +60,10 @@ Built with [Astro](https://astro.build) and [Tailwind CSS](https://tailwindcss.c
 
 - `npm run dev`: Start Astro dev server
 - `npm run build`: Build static site for production to `./dist`
+- `npm run check`: Run Astro component diagnostics via `@astrojs/check`
+- `npm run typecheck`: Strict TypeScript type checking across the project (`tsc --noEmit`)
 - `npm run sync-equipment`: Synchronize equipment, pets, siege machines, super troops, and icons from ClashKing
+- `npm run optimize-images`: Optimize and convert icon assets to WebP
 - `npm run fetch-data`: Execute the data processing pipeline (`scripts/fetch-meta.ts`)
 - `npm test`: Run automated tests (`tests/sync.test.js` & `tests/e2e.test.js`)
 

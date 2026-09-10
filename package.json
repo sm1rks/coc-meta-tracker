@@ -10,6 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "check": "astro check",
+    "typecheck": "tsc --noEmit",
+    "optimize-images": "tsx scripts/optimize-images.ts",
     "sync-equipment": "tsx scripts/sync-equipment.ts",
     "fetch-data": "tsx scripts/fetch-meta.ts",
     "test:sync": "node --test tests/sync.test.js",
@@ -25,6 +28,9 @@
     "tsx": "^4.23.13"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/sitemap": "^3.7.4",
+    "sharp": "^0.35.4",
     "typescript": "^5.7.3"
   }
 }
