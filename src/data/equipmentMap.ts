@@ -1,3 +1,4 @@
+// Auto-generated mappings from static_data.json
 export const EquipmentMap: Record<number, string> = {
   0: "Barbarian Puppet",
   1: "Rage Vial",
