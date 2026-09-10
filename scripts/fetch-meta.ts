@@ -260,14 +260,25 @@ async function fetchMeta() {
 
     console.log(`Found ${playerTags.length} players. Analyzing profiles...`);
 
-    const KNOWN_EQUIPMENT: Record<string, string[]> = {
-      "Barbarian King": ["Barbarian Puppet", "Rage Vial", "Earthquake Boots", "Vampstache", "Giant Gauntlet", "Spiky Ball", "Snake Bracelet", "Stick Horse"],
-      "Archer Queen": ["Archer Puppet", "Invisibility Vial", "Giant Arrow", "Healer Puppet", "Frozen Arrow", "Magic Mirror", "Action Figure", "Monolith Arrow"],
-      "Grand Warden": ["Eternal Tome", "Life Gem", "Rage Gem", "Healing Tome", "Fireball", "Lavaloon Puppet", "Heroic Torch"],
-      "Royal Champion": ["Royal Gem", "Seeking Shield", "Hog Rider Puppet", "Haste Vial", "Rocket Spear", "Electro Boots", "Frost Flake"],
-      "Minion Prince": ["Henchmen Puppet", "Dark Orb", "Metal Pants", "Noble Iron", "Dark Crown", "Meteor Staff"],
-      "Dragon Duke": ["Fire Heart", "Stun Blaster", "Flame Blower", "Electro Fangs", "Rocket Backpack"]
-    };
+    const KNOWN_EQUIPMENT: Record<string, string[]> = {};
+    const staticDataFile = path.join(process.cwd(), 'data', 'static_data.json');
+    if (fs.existsSync(staticDataFile)) {
+      try {
+        const staticData = JSON.parse(fs.readFileSync(staticDataFile, 'utf-8'));
+        for (const eq of staticData.equipment || []) {
+          if (eq.hero && eq.name) {
+            if (!KNOWN_EQUIPMENT[eq.hero]) {
+              KNOWN_EQUIPMENT[eq.hero] = [];
+            }
+            if (!KNOWN_EQUIPMENT[eq.hero].includes(eq.name)) {
+              KNOWN_EQUIPMENT[eq.hero].push(eq.name);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to parse static_data.json for dynamic equipment list:", e);
+      }
+    }
 
     type HeroArmyStat = {
       count: number;

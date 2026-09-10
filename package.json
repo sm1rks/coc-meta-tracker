@@ -10,16 +10,19 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "sync-equipment": "tsx scripts/sync-equipment.ts",
     "fetch-data": "tsx scripts/fetch-meta.ts",
-    "test:e2e": "node --test tests/e2e.test.js"
+    "test:sync": "node --test tests/sync.test.js",
+    "test:e2e": "node --test tests/e2e.test.js",
+    "test": "node --test tests/sync.test.js tests/e2e.test.js"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^25.9.1",
-    "astro": "^6.4.4",
+    "astro": "^7.3.2",
     "dotenv": "^17.4.2",
-    "tailwindcss": "^4.3.0",
-    "tsx": "^4.22.4"
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13"
   },
   "devDependencies": {
     "typescript": "^5.7.3"
