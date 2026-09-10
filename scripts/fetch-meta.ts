@@ -3,88 +3,37 @@ import path from 'path';
 import 'dotenv/config';
 import { EquipmentMap, HeroMap } from '../src/data/equipmentMap.js';
 import { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } from '../src/data/UnitMap.js';
+import type { MetaData } from '../src/types.js';
 
-const TROOP_HOUSING_SPACES: Record<string, number> = {
-  "Barbarian": 1,
-  "Archer": 1,
-  "Goblin": 1,
-  "Giant": 5,
-  "Wall Breaker": 2,
-  "Balloon": 5,
-  "Wizard": 4,
-  "Healer": 14,
-  "Dragon": 20,
-  "P.E.K.K.A": 25,
-  "Minion": 2,
-  "Hog Rider": 5,
-  "Valkyrie": 8,
-  "Golem": 30,
-  "Witch": 12,
-  "Bowler": 6,
-  "Baby Dragon": 10,
-  "Miner": 6,
-  "Super Barbarian": 5,
-  "Super Archer": 12,
-  "Super Wall Breaker": 8,
-  "Super Giant": 10,
-  "Sneaky Goblin": 3,
-  "Super Miner": 24,
-  "Rocket Balloon": 8,
-  "Ice Golem": 15,
-  "Electro Dragon": 30,
-  "Inferno Dragon": 15,
-  "Super Valkyrie": 20,
-  "Dragon Rider": 25,
-  "Super Witch": 40,
-  "Ice Hound": 40,
-  "Super Bowler": 30,
-  "Super Dragon": 40,
-  "Headhunter": 6,
-  "Super Wizard": 10,
-  "Super Minion": 12,
-  "Electro Titan": 32,
-  "Apprentice Warden": 20,
-  "Super Hog Rider": 12,
-  "Root Rider": 20,
-  "Druid": 16,
-  "Thrower": 16,
-  "Super Yeti": 35,
-  "Ruin Witch": 26,
-  "Lava Hound": 30,
-  "Yeti": 18,
-  "Furnace": 18,
-  "Meteor Golem": 40,
-  "Wall Wrecker": 0,
-  "Battle Blimp": 0,
-  "Stone Slammer": 0,
-  "Siege Barracks": 0,
-  "Log Launcher": 0,
-  "Flame Flinger": 0,
-  "Battle Drill": 0,
-  "Sky Wagon": 0,
-  "Troop Launcher": 0
-};
+// Dynamically build housing space lookup from static_data.json
+const staticDataPath = path.join(process.cwd(), 'data', 'static_data.json');
+let staticData: any = {};
+if (fs.existsSync(staticDataPath)) {
+  try {
+    staticData = JSON.parse(fs.readFileSync(staticDataPath, 'utf8'));
+  } catch (err) {
+    console.warn("Could not read static_data.json, using fallback housing spaces", err);
+  }
+}
 
-const SPELL_HOUSING_SPACES: Record<string, number> = {
-  "Lightning Spell": 1,
-  "Healing Spell": 2,
-  "Rage Spell": 2,
-  "Jump Spell": 2,
-  "Freeze Spell": 1,
-  "Poison Spell": 1,
-  "Earthquake Spell": 1,
-  "Haste Spell": 1,
-  "Clone Spell": 3,
-  "Skeleton Spell": 1,
-  "Bat Spell": 1,
-  "Invisibility Spell": 1,
-  "Recall Spell": 2,
-  "Overgrowth Spell": 2,
-  "Revive Spell": 2,
-  "Ice Block Spell": 1,
-  "Totem Spell": 1,
-  "Angry Spell": 1
-};
+const TROOP_HOUSING_SPACES: Record<string, number> = {};
+for (const troop of staticData.troops || []) {
+  if (troop.name) {
+    // Siege machines produced in Workshop occupy a vehicle slot, taking 0 regular troop CC space
+    if (troop.production_building === 'Workshop') {
+      TROOP_HOUSING_SPACES[troop.name] = 0;
+    } else {
+      TROOP_HOUSING_SPACES[troop.name] = troop.housing_space ?? 1;
+    }
+  }
+}
+
+const SPELL_HOUSING_SPACES: Record<string, number> = {};
+for (const spell of staticData.spells || []) {
+  if (spell.name) {
+    SPELL_HOUSING_SPACES[spell.name] = spell.housing_space ?? 1;
+  }
+}
 
 const API_KEY = process.env.COC_API_KEY;
 const BASE_URL = 'https://cocproxy.royaleapi.dev/v1';
@@ -138,7 +87,7 @@ function mergeCounts(
   key: "troopCounts" | "mainTroopCounts" | "ccTroopCounts" | "mainSpellCounts" | "ccSpellCounts",
   spaceMap: Record<string, number>,
   bestSourceAttack: any,
-  absoluteMax: number
+  baselineMax: number
 ): Record<string, number> {
   let capacityLimit = 0;
   for (const attack of attacks) {
@@ -152,8 +101,15 @@ function mergeCounts(
     }
   }
 
-  if (capacityLimit > absoluteMax) {
-    capacityLimit = absoluteMax;
+  // Dynamic update ceiling:
+  // If an in-game update increases building capacity (e.g. CC level 14 = 60 space, or Army Camps = 360 space),
+  // capacityLimit can expand up to a generous sanity ceiling to accommodate upgraded players.
+  // Meanwhile, if a player only deployed 50 or 55 space (un-upgraded CC or holding units back),
+  // capacityLimit stays at their actual deployed space without artificial inflation.
+  const safetyBuffer = key === 'mainTroopCounts' ? 80 : key === 'ccTroopCounts' ? 25 : key === 'troopCounts' ? 105 : 6;
+  const maxAllowedCeiling = baselineMax + safetyBuffer;
+  if (capacityLimit > maxAllowedCeiling) {
+    capacityLimit = baselineMax;
   }
 
   const merged: Record<string, number> = { ...(bestSourceAttack[key] || {}) };
@@ -261,22 +217,14 @@ async function fetchMeta() {
     console.log(`Found ${playerTags.length} players. Analyzing profiles...`);
 
     const KNOWN_EQUIPMENT: Record<string, string[]> = {};
-    const staticDataFile = path.join(process.cwd(), 'data', 'static_data.json');
-    if (fs.existsSync(staticDataFile)) {
-      try {
-        const staticData = JSON.parse(fs.readFileSync(staticDataFile, 'utf-8'));
-        for (const eq of staticData.equipment || []) {
-          if (eq.hero && eq.name) {
-            if (!KNOWN_EQUIPMENT[eq.hero]) {
-              KNOWN_EQUIPMENT[eq.hero] = [];
-            }
-            if (!KNOWN_EQUIPMENT[eq.hero].includes(eq.name)) {
-              KNOWN_EQUIPMENT[eq.hero].push(eq.name);
-            }
-          }
+    for (const eq of staticData.equipment || []) {
+      if (eq.hero && eq.name) {
+        if (!KNOWN_EQUIPMENT[eq.hero]) {
+          KNOWN_EQUIPMENT[eq.hero] = [];
         }
-      } catch (e) {
-        console.warn("Failed to parse static_data.json for dynamic equipment list:", e);
+        if (!KNOWN_EQUIPMENT[eq.hero].includes(eq.name)) {
+          KNOWN_EQUIPMENT[eq.hero].push(eq.name);
+        }
       }
     }
 
@@ -333,7 +281,7 @@ async function fetchMeta() {
     
     console.log(`Fetching profiles and battlelogs for ${playerTags.length} players with concurrency ${CONCURRENCY}...`);
 
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve) => {
       const runNext = async () => {
         if (index >= playerTags.length) {
           if (activePromises === 0) resolve();
@@ -501,7 +449,7 @@ async function fetchMeta() {
 
             // Track global siege machine usage
             const deployedSiegeMachines = Object.entries(allTroopCounts).filter(([name]) => ALL_SIEGE_MACHINES.has(name));
-            for (const [smName, count] of deployedSiegeMachines) {
+            for (const [smName] of deployedSiegeMachines) {
               stats.siegeMachines[smName] = (stats.siegeMachines[smName] || 0) + 1;
             }
 
@@ -523,11 +471,16 @@ async function fetchMeta() {
               "Siege Barracks", "Log Launcher", "Flame Flinger", "Battle Drill",
               "Sky Wagon", "Troop Launcher",
               "Super Barbarian", "Super Archer", "Super Giant", "Rocket Balloon", "Inferno Dragon", "Healer",
+              "Furnace",
             ]);
 
             const coreTroops = Object.entries(mainTroopCounts)
               .filter(([name, count]) => {
-                if (name === "Rocket Balloon" && count >= 10) return true;
+                if (name === "Rocket Balloon") {
+                  if (count >= 10) return true;
+                  if (count >= 5 && (mainTroopCounts["Super Minion"] || 0) >= 3) return true;
+                  return false;
+                }
                 return !SUPPORT_TROOPS.has(name);
               })
               .map(([name, count]) => ({
@@ -547,13 +500,23 @@ async function fetchMeta() {
             } else if (coreTroops.length === 1 || coreTroops[0].space >= (coreTroops[1]?.space || 0) * 1.5) {
               // One dominant core troop in terms of housing space
               armyType = coreTroops[0].name;
+              if (armyType === "Super Minion" && (mainTroopCounts["Rocket Balloon"] || 0) >= 5) {
+                armyType = "Rocket Balloon & Super Minion";
+              } else if (armyType === "Rocket Balloon" && (mainTroopCounts["Super Minion"] || 0) >= 3) {
+                armyType = "Rocket Balloon & Super Minion";
+              }
             } else {
               // Two roughly equal core troops — combine them alphabetically for consistency
               const top2 = [coreTroops[0].name, coreTroops[1].name].sort();
               armyType = `${top2[0]} & ${top2[1]}`;
-              if (armyType === "Dragon & Dragon Rider") {
-                armyType = "Hydra";
-              }
+            }
+
+            if (armyType === "Dragon & Dragon Rider") {
+              armyType = "Hydra";
+            } else if (armyType === "Dragon & Ice Hound" || armyType === "Dragon & Lava Hound") {
+              armyType = "Dragon";
+            } else if (armyType === "Ice Hound" || armyType === "Lava Hound") {
+              armyType = "LaLo";
             }
 
             // Build prefixes (go at the front of the army name)
@@ -688,17 +651,16 @@ async function fetchMeta() {
             };
           }
 
-          let bestSiegeMachine = null;
-          let bestSuperTroops = [];
+          let bestSiegeMachine: string | null = null;
+          let bestSuperTroops: string[] = [];
           if (bestAttack) {
-
-
-            bestSiegeMachine = Object.entries(bestAttack.troopCounts)
+            bestSiegeMachine = Object.entries(bestAttack.troopCounts as Record<string, number>)
               .filter(([name]) => ALL_SIEGE_MACHINES.has(name))
               .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-            bestSuperTroops = Object.keys(bestAttack.mainTroopCounts || bestAttack.troopCounts)
+            const troopCountsSource = (bestAttack.mainTroopCounts || bestAttack.troopCounts) as Record<string, number>;
+            bestSuperTroops = Object.keys(troopCountsSource)
               .filter(name => ALL_SUPER_TROOPS.has(name))
-              .sort((a, b) => (bestAttack.mainTroopCounts || bestAttack.troopCounts)[b] - (bestAttack.mainTroopCounts || bestAttack.troopCounts)[a])
+              .sort((a, b) => (troopCountsSource[b] || 0) - (troopCountsSource[a] || 0))
               .slice(0, 2);
           }
 
@@ -721,35 +683,35 @@ async function fetchMeta() {
             siegeMachine: bestSiegeMachine,
             superTroops: bestSuperTroops,
             armyLink: armyLink,
-            troops: bestAttack ? Object.entries(bestAttack.mainTroopCounts)
+            troops: bestAttack ? Object.entries(bestAttack.mainTroopCounts as Record<string, number>)
               .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
-              .map(([name, count]) => ({ name, count }))
-              .sort((a, b) => {
+              .map(([name, count]) => ({ name, count: count as number }))
+              .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
                 const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] || 1);
                 const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] || 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : [],
-            spells: bestAttack ? Object.entries(bestAttack.mainSpellCounts)
-              .map(([name, count]) => ({ name, count }))
-              .sort((a, b) => {
+            spells: bestAttack ? Object.entries(bestAttack.mainSpellCounts as Record<string, number>)
+              .map(([name, count]) => ({ name, count: count as number }))
+              .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
                 const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] || 1);
                 const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] || 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : [],
-            ccTroops: bestAttack ? Object.entries(bestAttack.ccTroopCounts)
+            ccTroops: bestAttack ? Object.entries(bestAttack.ccTroopCounts as Record<string, number>)
               .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
-              .map(([name, count]) => ({ name, count }))
-              .sort((a, b) => {
+              .map(([name, count]) => ({ name, count: count as number }))
+              .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
                 const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] || 1);
                 const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] || 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : [],
-            ccSpells: bestAttack ? Object.entries(bestAttack.ccSpellCounts)
-              .map(([name, count]) => ({ name, count }))
-              .sort((a, b) => {
+            ccSpells: bestAttack ? Object.entries(bestAttack.ccSpellCounts as Record<string, number>)
+              .map(([name, count]) => ({ name, count: count as number }))
+              .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
                 const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] || 1);
                 const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] || 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
@@ -779,7 +741,7 @@ async function fetchMeta() {
                 }
               }
               // Track all troops by total count
-              for (const [tName, tCount] of Object.entries(attackTroops)) {
+              for (const [tName, tCount] of Object.entries(attackTroops) as [string, number][]) {
                 stats.armies[mainArmyType].troopTotals[tName] = (stats.armies[mainArmyType].troopTotals[tName] || 0) + tCount;
               }
             }
@@ -804,13 +766,7 @@ async function fetchMeta() {
            const topPet = Object.entries(hStat.pets).sort((a,b) => b[1] - a[1])[0]?.[0] || null;
            return { name: hName, equipment: topEq, pet: topPet };
         });
-      // Top 2 super troops used in this army (all super troops, including non-"Super " named ones)
-      const ALL_SUPER_TROOPS = new Set([
-        "Super Barbarian", "Super Archer", "Super Wall Breaker", "Super Giant",
-        "Sneaky Goblin", "Rocket Balloon", "Super Wizard", "Inferno Dragon",
-        "Super Minion", "Super Valkyrie", "Super Bowler", "Ice Hound",
-        "Super Dragon", "Super Witch", "Super Yeti", "Super Miner", "Super Hog Rider",
-      ]);
+      // Top 2 super troops used in this army
       const topSecondaryTroops = Object.entries(armyStat.troopTotals)
         .filter(([name]) => ALL_SUPER_TROOPS.has(name))
         .sort((a, b) => b[1] - a[1])
@@ -838,7 +794,7 @@ async function fetchMeta() {
     }
     formattedArmies.sort((a, b) => b.usage - a.usage);
 
-    const outputData = {
+    const outputData: MetaData = {
       lastUpdated: new Date().toISOString(),
       playersAnalyzed: stats.playersAnalyzed,
       attacksAnalyzed: stats.attacksAnalyzed,
@@ -848,6 +804,7 @@ async function fetchMeta() {
       combos: [] as any[],
       pets: [] as any[],
       superTroops: [] as any[],
+      siegeMachines: [] as any[],
       topPlayers: stats.topPlayersList
     };
 

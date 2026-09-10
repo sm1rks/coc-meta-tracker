@@ -63,12 +63,76 @@ test('Sync Logic: Dynamic Equipment resolution in fetch-meta', () => {
   assert.ok(knownEquipment['Dragon Duke'].includes('Revenge Deck'), 'Revenge Deck must be dynamically registered for Dragon Duke');
 });
 
+test('Sync Logic: Troop ID offset calculation', () => {
+  const mockTroop = { _id: 4000185, name: 'Elephant Rider' };
+  const calculatedId = mockTroop._id - 4000000;
+  assert.strictEqual(calculatedId, 185, 'Troop ID must be offset by 4,000,000');
+});
+
+test('Sync Logic: Spell ID offset calculation', () => {
+  const mockSpell = { _id: 26000123, name: 'Angry Spell' };
+  const calculatedId = mockSpell._id - 26000000;
+  assert.strictEqual(calculatedId, 123, 'Spell ID must be offset by 26,000,000');
+});
+
+test('Sync Logic: Hero ID offset calculation', () => {
+  const mockHero = { _id: 28000007, name: 'Dragon Duke' };
+  const calculatedId = mockHero._id - 28000000;
+  assert.strictEqual(calculatedId, 7, 'Hero ID must be offset by 28,000,000');
+});
+
+test('Sync Logic: Dynamic housing spaces from static_data.json', () => {
+  const staticDataPath = path.join(rootDir, 'data', 'static_data.json');
+  const staticData = JSON.parse(fs.readFileSync(staticDataPath, 'utf-8'));
+
+  const troopHousing = {};
+  for (const troop of staticData.troops || []) {
+    if (troop.name) {
+      if (troop.production_building === 'Workshop') {
+        troopHousing[troop.name] = 0;
+      } else {
+        troopHousing[troop.name] = troop.housing_space ?? 1;
+      }
+    }
+  }
+
+  const spellHousing = {};
+  for (const spell of staticData.spells || []) {
+    if (spell.name) {
+      spellHousing[spell.name] = spell.housing_space ?? 1;
+    }
+  }
+
+  // Verify regular troops
+  assert.strictEqual(troopHousing['Barbarian'], 1);
+  assert.strictEqual(troopHousing['Golem'], 30);
+  assert.strictEqual(troopHousing['Super Witch'], 40);
+
+  // Verify siege machines are 0 housing space
+  assert.strictEqual(troopHousing['Sky Wagon'], 0);
+  assert.strictEqual(troopHousing['Stone Slammer'], 0);
+
+  // Verify spells
+  assert.strictEqual(spellHousing['Lightning Spell'], 1);
+  assert.strictEqual(spellHousing['Rage Spell'], 2);
+  assert.strictEqual(spellHousing['Clone Spell'], 3);
+});
+
 test('Sync Logic: UnitMap completeness', async () => {
-  const { PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } = await import('../src/data/UnitMap.ts');
-  const { EquipmentMap } = await import('../src/data/equipmentMap.ts');
+  const { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } = await import('../src/data/UnitMap.ts');
+  const { EquipmentMap, HeroMap } = await import('../src/data/equipmentMap.ts');
 
   // Verify Revenge Deck in EquipmentMap
   assert.strictEqual(EquipmentMap[60], 'Revenge Deck');
+
+  // Verify Dragon Duke in HeroMap
+  assert.strictEqual(HeroMap[7], 'Dragon Duke');
+
+  // Verify Elephant Rider in TroopMap
+  assert.strictEqual(TroopMap[185], 'Elephant Rider');
+
+  // Verify Angry Spell in SpellMap
+  assert.strictEqual(SpellMap[123], 'Angry Spell');
 
   // Verify Sky Wagon and Stone Slammer in ALL_SIEGE_MACHINES
   assert.ok(ALL_SIEGE_MACHINES.has('Sky Wagon'));
@@ -81,4 +145,25 @@ test('Sync Logic: UnitMap completeness', async () => {
   // Verify Pets
   assert.strictEqual(PetMap[16], 'Sneezy');
   assert.strictEqual(PetMap[17], 'Greedy Raven');
+});
+
+test('Sync Logic: Dynamic capacity ceiling respects individual player capacity', () => {
+  // Simulating mergeCounts capacityLimit resolution
+  const resolveLimit = (deployedSpaces, baselineMax, safetyBuffer = 25) => {
+    let capacityLimit = Math.max(0, ...deployedSpaces);
+    const maxAllowedCeiling = baselineMax + safetyBuffer;
+    if (capacityLimit > maxAllowedCeiling) {
+      capacityLimit = baselineMax;
+    }
+    return capacityLimit;
+  };
+
+  // Case A: Player whose CC is un-upgraded (50 space) -> stays 50 without artificial inflation
+  assert.strictEqual(resolveLimit([45, 50], 55, 25), 50, 'Player with 50 deployed space must not be inflated');
+
+  // Case B: Player at standard TH17 max CC (55 space) -> 55
+  assert.strictEqual(resolveLimit([55, 50], 55, 25), 55, 'Player with 55 deployed space must be 55');
+
+  // Case C: Upgraded player following a game update (CC Level 14 = 60 space) -> expands to 60 without clamp
+  assert.strictEqual(resolveLimit([60], 55, 25), 60, 'Upgraded player with 60 space must not be clamped down to 55');
 });

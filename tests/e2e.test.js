@@ -37,8 +37,12 @@ test('E2E: Leaderboard Validation', () => {
   
   // Ensure the DOM optimization is present
   assert.ok(html.includes('id="player-search"'), 'Client-side pagination search input is rendered');
+  assert.ok(html.includes('Search by player, clan, or tag...'), 'Search input has multi-field placeholder');
   assert.ok(html.includes('id="pagination-controls"'), 'Pagination controls are rendered');
   assert.ok(html.includes('player-row'), 'Player rows are tagged for JS processing');
+  assert.ok(html.includes('data-name='), 'Player rows must have data-name attribute');
+  assert.ok(html.includes('data-clan='), 'Player rows must have data-clan attribute');
+  assert.ok(html.includes('data-tag='), 'Player rows must have data-tag attribute');
 });
 
 test('E2E: Armies Routing', () => {
@@ -55,4 +59,25 @@ test('E2E: HeroCard 3-slot placeholder consistency', () => {
   const rcSection = html.slice(html.indexOf('>Royal Champion<'));
   assert.ok(rcSection.includes('border-dashed'), 'Placeholder dashed slots must be rendered for missing combos/pets');
   assert.ok(rcSection.includes('—'), 'Placeholder text dash must be rendered for empty slots');
+});
+
+test('E2E: SEO, Canonical & Social Open Graph', () => {
+  if (!fs.existsSync(path.join(distDir, 'index.html'))) return;
+  const html = fs.readFileSync(path.join(distDir, 'index.html'), 'utf-8');
+
+  assert.ok(html.includes('rel="canonical"'), 'Canonical URL link must be present');
+  assert.ok(html.includes('property="og:title"'), 'og:title must be present');
+  assert.ok(html.includes('property="og:description"'), 'og:description must be present');
+  assert.ok(html.includes('name="twitter:card"'), 'Twitter card must be present');
+  assert.ok(html.includes('name="theme-color"'), 'Theme color meta tag must be present');
+  assert.ok(fs.existsSync(path.join(distDir, 'robots.txt')), 'robots.txt must be generated in dist');
+  assert.ok(fs.existsSync(path.join(distDir, 'sitemap-index.xml')), 'sitemap-index.xml must be generated in dist');
+});
+
+test('E2E: Accessibility & a11y standards', () => {
+  if (!fs.existsSync(path.join(distDir, 'players', 'index.html'))) return;
+  const playerHtml = fs.readFileSync(path.join(distDir, 'players', 'index.html'), 'utf-8');
+  assert.ok(playerHtml.includes('aria-label="Search players by name, clan, or tag"'), 'Search input has descriptive aria-label');
+  assert.ok(playerHtml.includes('role="tooltip"'), 'Global tooltip has role="tooltip"');
+  assert.ok(playerHtml.includes('type="search"'), 'Search input has native search type');
 });
