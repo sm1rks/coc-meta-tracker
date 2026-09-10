@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sm1rks.github.io/coc-meta-tracker/sitemap-index.xml

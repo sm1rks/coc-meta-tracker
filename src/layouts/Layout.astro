@@ -19,22 +19,45 @@ const navLinks = [
   { href: "/players", label: "Top 200" },
 ];
 const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const pageDescription = "Clash of Clans Legend League Global Top 200 army composition, pet choices, and hero equipment real-time statistics tracker.";
+const siteOrigin = Astro.site ? Astro.site.origin : 'https://sm1rks.github.io';
+const canonicalUrl = new URL(Astro.url.pathname, siteOrigin).href;
+const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, siteOrigin).href;
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Clash of Clans Legend League Global Top 200 army composition, pet choices, and hero equipment real-time statistics tracker." />
+    <title>{title}</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="theme-color" content="#2c3e50" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph / Facebook / Discord / Reddit -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Clash Meta Tracker" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={socialImageUrl} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={socialImageUrl} />
+
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <link rel="icon" type="image/svg+xml" href={`${basePath}favicon.svg`} />
     <link rel="alternate icon" type="image/x-icon" href={`${basePath}favicon.ico`} />
+    <link rel="sitemap" href={`${basePath}sitemap-index.xml`} />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <title>{title}</title>
     <ClientRouter />
   </head>
   <body class="min-h-screen bg-coc-bg relative">
@@ -48,7 +71,7 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
       <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10 p-6 pb-4">
         <div class="flex items-center gap-4 md:gap-6">
           <div class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-coc-gold to-yellow-300 rounded-2xl shadow-inner border-4 border-white/20 flex items-center justify-center transform -rotate-6 transition-transform hover:rotate-0 shrink-0">
-            <span class="text-3xl md:text-4xl">🛡️</span>
+            <span class="text-3xl md:text-4xl" role="img" aria-label="Shield">🛡️</span>
           </div>
           <div>
             <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-coc-gold to-yellow-200 drop-shadow-sm tracking-tight m-0">
@@ -128,7 +151,7 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
     </footer>
 
     <!-- Shared Global Tooltip Element -->
-    <div id="global-tooltip" class="fixed hidden bg-black/85 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full opacity-0"></div>
+    <div id="global-tooltip" role="tooltip" aria-hidden="true" class="fixed hidden bg-black/85 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full opacity-0"></div>
 
     <script>
       async function checkForUpdates() {
@@ -170,9 +193,12 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
       });
 
       // Global event delegation listener for data-tooltip
+      let currentTooltipTarget: HTMLElement | null = null;
+
       document.addEventListener('mouseover', (e) => {
-        const target = (e.target as HTMLElement).closest('[data-tooltip]');
-        if (!target) return;
+        const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null;
+        if (!target || target === currentTooltipTarget) return;
+        currentTooltipTarget = target;
         
         const tooltipText = target.getAttribute('data-tooltip');
         if (!tooltipText) return;
@@ -188,16 +214,37 @@ const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_U
         tooltip.style.opacity = '1';
         
         const rect = target.getBoundingClientRect();
-        tooltip.style.left = `${rect.left + rect.width / 2}px`;
-        tooltip.style.top = `${rect.top - 8}px`; // 8px above the target
+        const tooltipWidth = tooltip.offsetWidth;
+        let left = rect.left + rect.width / 2;
+        let top = rect.top - 8;
+        
+        // Clamp horizontally within viewport
+        if (left - tooltipWidth / 2 < 8) {
+          left = 8 + tooltipWidth / 2;
+        } else if (left + tooltipWidth / 2 > window.innerWidth - 8) {
+          left = window.innerWidth - 8 - tooltipWidth / 2;
+        }
+
+        // Flip below target if too close to viewport top
+        if (top < 36) {
+          top = rect.bottom + 8;
+          tooltip.classList.remove('-translate-y-full');
+        } else {
+          tooltip.classList.add('-translate-y-full');
+        }
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
         
         const leaveHandler = () => {
           tooltip.style.opacity = '0';
           tooltip.style.display = 'none';
-          target.removeEventListener('mouseleave', leaveHandler);
+          if (currentTooltipTarget === target) {
+            currentTooltipTarget = null;
+          }
         };
         
-        target.addEventListener('mouseleave', leaveHandler);
+        target.addEventListener('mouseleave', leaveHandler, { once: true });
       });
     </script>
   </body>
