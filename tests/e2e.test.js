@@ -46,3 +46,13 @@ test('E2E: Armies Routing', () => {
   const html = fs.readFileSync(path.join(distDir, 'armies', 'index.html'), 'utf-8');
   assert.ok(html.includes('Top Armies'), 'Army types header is present');
 });
+
+test('E2E: HeroCard 3-slot placeholder consistency', () => {
+  if (!fs.existsSync(path.join(distDir, 'index.html'))) return;
+  const html = fs.readFileSync(path.join(distDir, 'index.html'), 'utf-8');
+  
+  // Royal Champion has fewer than 3 combos and pets
+  const rcSection = html.slice(html.indexOf('>Royal Champion<'));
+  assert.ok(rcSection.includes('border-dashed'), 'Placeholder dashed slots must be rendered for missing combos/pets');
+  assert.ok(rcSection.includes('—'), 'Placeholder text dash must be rendered for empty slots');
+});
