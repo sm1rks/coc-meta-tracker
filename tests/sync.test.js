@@ -167,3 +167,30 @@ test('Sync Logic: Dynamic capacity ceiling respects individual player capacity',
   // Case C: Upgraded player following a game update (CC Level 14 = 60 space) -> expands to 60 without clamp
   assert.strictEqual(resolveLimit([60], 55, 25), 60, 'Upgraded player with 60 space must not be clamped down to 55');
 });
+
+test('Sync Logic: HeroCard 3-slot placeholder padding calculation', () => {
+  const padSlots = (items = [], maxSlots = 3) => {
+    const top = items.slice(0, maxSlots);
+    const emptySlots = Math.max(0, maxSlots - top.length);
+    return { topCount: top.length, emptySlots, totalSlots: top.length + emptySlots };
+  };
+
+  // Hero with 1 combo (e.g. Royal Champion in early meta)
+  const oneItem = padSlots([{ name: 'Rocket Spear + Seeking Shield' }]);
+  assert.strictEqual(oneItem.topCount, 1);
+  assert.strictEqual(oneItem.emptySlots, 2);
+  assert.strictEqual(oneItem.totalSlots, 3);
+
+  // Hero with 0 items
+  const zeroItems = padSlots([]);
+  assert.strictEqual(zeroItems.topCount, 0);
+  assert.strictEqual(zeroItems.emptySlots, 3);
+  assert.strictEqual(zeroItems.totalSlots, 3);
+
+  // Hero with 3 items
+  const threeItems = padSlots([{ name: 'A' }, { name: 'B' }, { name: 'C' }]);
+  assert.strictEqual(threeItems.topCount, 3);
+  assert.strictEqual(threeItems.emptySlots, 0);
+  assert.strictEqual(threeItems.totalSlots, 3);
+});
+

@@ -77,15 +77,15 @@ for (const army of armies) {
 const groupedArmies = Array.from(groupsMap.values())
   .sort((a, b) => b.totalUsage - a.totalUsage);
 ---
-<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden col-span-full">
-  <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 rounded-t-xl border-b-4 border-black/10 flex items-center gap-3 shrink-0">
+<div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden col-span-full">
+  <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 border-b-4 border-black/10 flex items-center gap-3 shrink-0">
     <div class="bg-black/20 text-white rounded-lg shadow-inner transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center" role="img" aria-label="Crossed Swords">⚔️</div>
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{title}</h2>
     </div>
   </div>
   
-  <div class={`p-0 flex-1 ${noScroll ? 'min-h-[fit-content]' : 'min-h-[300px]'}`}>
+  <div class={`bg-[#f4e4c1] p-0 flex-1 ${noScroll ? 'min-h-[fit-content]' : 'min-h-[300px]'}`}>
     <div class={`${noScroll ? 'relative h-auto p-4' : 'absolute inset-0 overflow-y-auto p-4'} space-y-4 custom-scrollbar`}>
       {groupedArmies.map((group, idx) => {
         return (
