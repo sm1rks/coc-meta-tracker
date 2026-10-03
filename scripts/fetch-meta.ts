@@ -38,24 +38,25 @@ for (const spell of staticData.spells || []) {
 const API_KEY = process.env.COC_API_KEY;
 const BASE_URL = 'https://cocproxy.royaleapi.dev/v1';
 
+// Ensure the data directory exists
+const dir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
 if (!API_KEY) {
   console.error("Missing COC_API_KEY in .env file. Please add it to fetch real data.");
   process.exit(1);
 }
 
-// Ensure the data directory exists
-const dir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-async function fetchWithRetry(url: string, retries = 5) {
+async function fetchWithRetry(url: string, retries = 7) {
 
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url, { headers: { Authorization: `Bearer ${API_KEY}` } });
       
       if (res.status === 429) {
-        console.log("Rate limited. Waiting...");
-        await new Promise(r => setTimeout(r, 2000));
+        const delay = Math.min(30000, (i + 1) * 3000 + Math.floor(Math.random() * 1000));
+        console.log(`Rate limited (429). Waiting ${(delay / 1000).toFixed(1)}s before retry (${i + 1}/${retries})...`);
+        await new Promise(r => setTimeout(r, delay));
         continue;
       }
       
@@ -65,9 +66,10 @@ async function fetchWithRetry(url: string, retries = 5) {
           throw new Error(`API Error: ${res.status} ${await res.text()}`);
         }
         
-        // For 520 or any other server error, log and let the retry loop handle it
-        console.log(`Received ${res.status}. Retrying (${i + 1}/${retries})...`);
-        await new Promise(r => setTimeout(r, 3000)); // Wait 3 seconds before retry
+        // For 500, 502, 503, 504, 520 or any other server error, use exponential backoff
+        const delay = Math.min(30000, Math.pow(2, i) * 2000 + Math.floor(Math.random() * 1000));
+        console.log(`Received ${res.status}. Retrying in ${(delay / 1000).toFixed(1)}s (${i + 1}/${retries})...`);
+        await new Promise(r => setTimeout(r, delay));
         continue;
       }
       
@@ -75,8 +77,9 @@ async function fetchWithRetry(url: string, retries = 5) {
       return data;
     } catch (e: any) {
       if (i === retries - 1) throw e;
-      console.log(`Network error: ${e.message}. Retrying (${i + 1}/${retries})...`);
-      await new Promise(r => setTimeout(r, 3000));
+      const delay = Math.min(30000, Math.pow(2, i) * 2000 + Math.floor(Math.random() * 1000));
+      console.log(`Network error: ${e.message}. Retrying in ${(delay / 1000).toFixed(1)}s (${i + 1}/${retries})...`);
+      await new Promise(r => setTimeout(r, delay));
     }
   }
   throw new Error(`Failed to fetch ${url} after ${retries} retries`);
