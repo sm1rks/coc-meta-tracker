@@ -28,12 +28,12 @@ const getHeroColor = (name: string) => {
 
 const gradient = getHeroColor(name);
 
-import { getHeroIcon, getEqIcon, getPetIcon } from '../utils/iconUtils';
+import { getHeroIcon, getEqIcon, getPetIcon, placeholderIcon } from '../utils/iconUtils';
 const heroIcon = getHeroIcon(name);
 ---
 <div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden transform transition-transform duration-200 hover:scale-[1.02] [will-change:transform] [backface-visibility:hidden] h-full flex flex-col relative z-0 hover:z-10">
   <div class={`bg-gradient-to-r ${gradient} p-3 border-b-4 border-black/10 flex items-center gap-3 shrink-0`}>
-    <img src={heroIcon} alt={name} title={name} loading="lazy" decoding="async" class="w-12 h-12 drop-shadow-lg object-contain shrink-0" onerror="this.style.display='none'" />
+    <img src={heroIcon} alt={name} title={name} loading="lazy" decoding="async" class="w-12 h-12 drop-shadow-lg object-contain shrink-0" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{name}</h2>
       <div class="text-white/90 font-bold text-xs mt-0.5">Usage: {usage.toFixed(1)}%</div>
@@ -51,7 +51,7 @@ const heroIcon = getHeroIcon(name);
               <div class="flex items-center gap-3">
                 <!-- Icon with Tooltip -->
                 <div class="w-8 h-8 flex-shrink-0 cursor-help" data-tooltip={eq.name}>
-                  <img src={eqIcon} alt={eq.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow" onerror="this.style.display='none'" />
+                  <img src={eqIcon} alt={eq.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                 </div>
               </div>
               <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end min-w-0">
@@ -82,7 +82,7 @@ const heroIcon = getHeroIcon(name);
                 {parts.map((part, idx) => (
                   <>
                     <div class="w-6 h-6 cursor-help" data-tooltip={part}>
-                       <img src={getEqIcon(part)} alt={part} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'" />
+                       <img src={getEqIcon(part)} alt={part} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                     </div>
                     {idx < parts.length - 1 && <span class="text-xs font-black text-gray-400">+</span>}
                   </>
@@ -124,7 +124,7 @@ const heroIcon = getHeroIcon(name);
           <div class="flex items-center justify-between group/row relative gap-3 h-[34px]">
             <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200 shadow-sm">
               <div class="w-6 h-6 cursor-help" data-tooltip={pet.name}>
-                <img src={getPetIcon(pet.name)} alt={pet.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror="this.style.display='none'" />
+                <img src={getPetIcon(pet.name)} alt={pet.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
               </div>
             </div>
             <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end pl-1 sm:pl-3 min-w-0">

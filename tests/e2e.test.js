@@ -98,3 +98,13 @@ test('E2E: Accessibility & a11y standards', () => {
   assert.ok(playerHtml.includes('role="tooltip"'), 'Global tooltip has role="tooltip"');
   assert.ok(playerHtml.includes('type="search"'), 'Search input has native search type');
 });
+
+test('E2E: Placeholder Asset and Fallback Handlers', () => {
+  if (!fs.existsSync(distDir)) return;
+  assert.ok(fs.existsSync(path.join(distDir, 'icons', 'placeholder.webp')), 'dist/icons/placeholder.webp must exist');
+
+  if (fs.existsSync(path.join(distDir, 'index.html'))) {
+    const html = fs.readFileSync(path.join(distDir, 'index.html'), 'utf-8');
+    assert.ok(html.includes('placeholder.webp'), 'HTML pages must include fallback to placeholder.webp');
+  }
+});

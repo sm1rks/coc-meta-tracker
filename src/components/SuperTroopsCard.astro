@@ -5,7 +5,7 @@ interface Props {
 
 const { troops } = Astro.props;
 
-import { getSuperTroopIcon, basePath } from '../utils/iconUtils';
+import { getSuperTroopIcon, basePath, placeholderIcon } from '../utils/iconUtils';
 ---
 <div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden flex flex-col h-full relative z-0 hover:z-10">
   <div class="bg-gradient-to-r from-red-500 to-orange-600 p-3 border-b-4 border-black/10 flex items-center gap-3 shrink-0">
@@ -21,7 +21,7 @@ import { getSuperTroopIcon, basePath } from '../utils/iconUtils';
         <div class="flex items-center justify-between group/row relative gap-3">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 flex-shrink-0 cursor-help rounded-lg overflow-hidden border-2 border-coc-gold/40 shadow-sm bg-gradient-to-b from-gray-100 to-gray-200" data-tooltip={troop.name}>
-              <img src={getSuperTroopIcon(troop.name)} alt={troop.name} loading="lazy" decoding="async" class="w-full h-full object-cover transform scale-110" onerror="this.style.display='none'" />
+              <img src={getSuperTroopIcon(troop.name)} alt={troop.name} loading="lazy" decoding="async" class="w-full h-full object-cover transform scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
             </div>
           </div>
           <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end min-w-0">

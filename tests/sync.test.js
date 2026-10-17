@@ -194,3 +194,21 @@ test('Sync Logic: HeroCard 3-slot placeholder padding calculation', () => {
   assert.strictEqual(threeItems.totalSlots, 3);
 });
 
+test('Sync Logic: Placeholder icon existence and validity', async () => {
+  const placeholderPath = path.join(rootDir, 'public', 'icons', 'placeholder.webp');
+  assert.ok(fs.existsSync(placeholderPath), 'public/icons/placeholder.webp must exist');
+
+  const buffer = fs.readFileSync(placeholderPath);
+  assert.ok(buffer.length > 0, 'placeholder.webp must not be empty');
+
+  // Validate WebP header (RIFF....WEBP)
+  const header = buffer.subarray(0, 4).toString('ascii');
+  const format = buffer.subarray(8, 12).toString('ascii');
+  assert.strictEqual(header, 'RIFF', 'placeholder.webp must start with RIFF');
+  assert.strictEqual(format, 'WEBP', 'placeholder.webp format must be WEBP');
+
+  const { placeholderIcon } = await import('../src/utils/iconUtils.ts');
+  assert.ok(placeholderIcon, 'placeholderIcon must be exported from iconUtils');
+  assert.ok(placeholderIcon.endsWith('icons/placeholder.webp'), 'placeholderIcon must point to placeholder.webp');
+});
+

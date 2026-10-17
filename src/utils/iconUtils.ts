@@ -1,4 +1,4 @@
-const base = import.meta.env.BASE_URL;
+const base = (import.meta.env && import.meta.env.BASE_URL) || '/';
 export const basePath = base.endsWith('/') ? base : base + '/';
 
 export const getHeroIcon = (name: string) => `${basePath}icons/Icon_HV_Hero_${name.replace(/\s+/g, '')}.webp`;
@@ -13,3 +13,6 @@ export const getSpellIcon = (name: string) => {
   const cleanName = name.replace(/\s*Spell$/, '').replace(/\s+/g, '_');
   return `${basePath}icons/Icon_HV_Spell_${cleanName}.webp`;
 };
+
+export const placeholderIcon = `${basePath}icons/placeholder.webp`;
+

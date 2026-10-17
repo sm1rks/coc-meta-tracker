@@ -105,12 +105,62 @@ function normalizeName(str: string): string {
   return str.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+const placeholderPath = path.join(iconsDir, 'placeholder.webp');
+
+async function ensurePlaceholderExists(): Promise<void> {
+  if (fs.existsSync(placeholderPath)) return;
+  const svg = `<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#3d2c1e"/>
+      <stop offset="100%" stop-color="#1f1610"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe28a"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#997316"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="26" fill="url(#bg)" stroke="url(#gold)" stroke-width="6" filter="url(#shadow)"/>
+  <rect x="12" y="12" width="104" height="104" rx="20" fill="none" stroke="#5a422d" stroke-width="2" stroke-dasharray="4 4"/>
+  <text x="64" y="85" font-family="sans-serif" font-size="64" font-weight="900" fill="url(#gold)" text-anchor="middle" filter="url(#shadow)">?</text>
+</svg>`;
+
+  if (sharp) {
+    await sharp(Buffer.from(svg))
+      .webp({ quality: 90 })
+      .toFile(placeholderPath);
+  } else {
+    fs.writeFileSync(placeholderPath, Buffer.from(svg));
+  }
+}
+
+function isPlaceholder(filePath: string): boolean {
+  if (!fs.existsSync(filePath) || !fs.existsSync(placeholderPath)) return false;
+  try {
+    return fs.statSync(filePath).size === fs.statSync(placeholderPath).size;
+  } catch {
+    return false;
+  }
+}
+
+function applyPlaceholder(destPath: string): void {
+  if (fs.existsSync(placeholderPath)) {
+    fs.copyFileSync(placeholderPath, destPath);
+  }
+}
+
 export async function syncAll(): Promise<void> {
   console.log('🔄 Checking for new equipment, heroes, pets, troops, spells, and siege machines...');
 
   if (!fs.existsSync(iconsDir)) {
     fs.mkdirSync(iconsDir, { recursive: true });
   }
+
+  await ensurePlaceholderExists();
 
   // 1. Fetch remote static_data.json
   const remoteData = await fetchJson<{
@@ -141,6 +191,7 @@ export async function syncAll(): Promise<void> {
   }>(MANIFEST_URL);
 
   const manifestEquipment = manifest.assets?.equipment || [];
+  const manifestHeroes = manifest.assets?.heroes || [];
   const manifestPets = manifest.assets?.pets || [];
   const manifestTroops = manifest.assets?.troops || [];
   const manifestSpells = manifest.assets?.spells || [];
@@ -149,6 +200,13 @@ export async function syncAll(): Promise<void> {
   for (const entry of manifestEquipment) {
     equipmentMapAsset.set(normalizeName(entry.display_name), entry.path);
     equipmentMapAsset.set(normalizeName(path.basename(entry.path, path.extname(entry.path))), entry.path);
+  }
+
+  const heroMapAsset = new Map<string, string>();
+  for (const entry of manifestHeroes) {
+    heroMapAsset.set(normalizeName(entry.display_name), entry.path);
+    heroMapAsset.set(normalizeName(path.basename(path.dirname(entry.path))), entry.path);
+    heroMapAsset.set(normalizeName(path.basename(entry.path, path.extname(entry.path))), entry.path);
   }
 
   const petMapAsset = new Map<string, string>();
@@ -184,14 +242,18 @@ export async function syncAll(): Promise<void> {
     const iconFilename = `Icon_HV_Equipment_${cleanName}.webp`;
     const iconPath = path.join(iconsDir, iconFilename);
 
-    if (!fs.existsSync(iconPath)) {
-      const matchPath = equipmentMapAsset.get(normalizeName(eq.name));
-      if (matchPath) {
+    const matchPath = equipmentMapAsset.get(normalizeName(eq.name));
+    if (matchPath) {
+      if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
         console.log(`⬇️ Downloading icon for Equipment: ${eq.name}`);
         const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
         await saveSmartIcon(buf, iconPath);
         newEquipments.push(eq.name);
       }
+    } else if (!fs.existsSync(iconPath)) {
+      console.log(`📦 [Placeholder] Asset not yet published on clashk.ing. Used placeholder for Equipment: ${eq.name}`);
+      applyPlaceholder(iconPath);
+      newEquipments.push(eq.name);
     }
   }
 
@@ -201,6 +263,20 @@ export async function syncAll(): Promise<void> {
   for (const h of remoteHeroes) {
     const heroId = h._id - 28000000;
     currentHeroMapEntries[heroId] = h.name;
+    const cleanName = h.name.replace(/\s+/g, '');
+    const iconFilename = `Icon_HV_Hero_${cleanName}.webp`;
+    const iconPath = path.join(iconsDir, iconFilename);
+
+    const matchPath = heroMapAsset.get(normalizeName(h.name));
+    if (matchPath) {
+      if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
+        console.log(`⬇️ Downloading icon for Hero: ${h.name}`);
+        const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
+        await saveSmartIcon(buf, iconPath);
+      }
+    } else if (!fs.existsSync(iconPath)) {
+      applyPlaceholder(iconPath);
+    }
   }
 
   const sortedEqIds = Object.keys(currentEquipmentMapEntries).map(Number).sort((a, b) => a - b);
@@ -236,14 +312,18 @@ ${formattedHeroEntries}
     const iconFilename = `Icon_HV_Hero_Pets_${cleanName}.webp`;
     const iconPath = path.join(iconsDir, iconFilename);
 
-    if (!fs.existsSync(iconPath)) {
-      const matchPath = petMapAsset.get(normalizeName(p.name));
-      if (matchPath) {
+    const matchPath = petMapAsset.get(normalizeName(p.name));
+    if (matchPath) {
+      if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
         console.log(`⬇️ Downloading icon for Pet: ${p.name}`);
         const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
         await saveSmartIcon(buf, iconPath);
         newPets.push(p.name);
       }
+    } else if (!fs.existsSync(iconPath)) {
+      console.log(`📦 [Placeholder] Asset not yet published on clashk.ing. Used placeholder for Pet: ${p.name}`);
+      applyPlaceholder(iconPath);
+      newPets.push(p.name);
     }
   }
 
@@ -281,9 +361,9 @@ ${formattedHeroEntries}
     }
 
     const iconPath = path.join(iconsDir, iconFilename);
-    if (!fs.existsSync(iconPath)) {
-      const matchPath = troopMapAsset.get(normalizeName(t.name));
-      if (matchPath) {
+    const matchPath = troopMapAsset.get(normalizeName(t.name));
+    if (matchPath) {
+      if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
         console.log(`⬇️ Downloading icon for Troop (${isSiege ? 'Siege' : isSuper ? 'Super' : 'Regular'}): ${t.name}`);
         const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
         await saveSmartIcon(buf, iconPath);
@@ -291,6 +371,12 @@ ${formattedHeroEntries}
         else if (isSuper) newSupers.push(t.name);
         else newTroops.push(t.name);
       }
+    } else if (!fs.existsSync(iconPath)) {
+      console.log(`📦 [Placeholder] Asset not yet published on clashk.ing. Used placeholder for Troop: ${t.name}`);
+      applyPlaceholder(iconPath);
+      if (isSiege) newSieges.push(t.name);
+      else if (isSuper) newSupers.push(t.name);
+      else newTroops.push(t.name);
     }
   }
 
@@ -309,17 +395,21 @@ ${formattedHeroEntries}
     const iconFilename = `Icon_HV_Spell_${cleanSpellName}.webp`;
     const iconPath = path.join(iconsDir, iconFilename);
 
-    if (!fs.existsSync(iconPath)) {
-      const norm1 = normalizeName(s.name);
-      const norm2 = normalizeName(s.name.replace(/\s*Spell$/i, ''));
-      const matchPath = spellMapAsset.get(norm1) || spellMapAsset.get(norm2);
+    const norm1 = normalizeName(s.name);
+    const norm2 = normalizeName(s.name.replace(/\s*Spell$/i, ''));
+    const matchPath = spellMapAsset.get(norm1) || spellMapAsset.get(norm2);
 
-      if (matchPath) {
+    if (matchPath) {
+      if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
         console.log(`⬇️ Downloading icon for Spell: ${s.name}`);
         const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
         await saveSmartIcon(buf, iconPath);
         newSpells.push(s.name);
       }
+    } else if (!fs.existsSync(iconPath)) {
+      console.log(`📦 [Placeholder] Asset not yet published on clashk.ing. Used placeholder for Spell: ${s.name}`);
+      applyPlaceholder(iconPath);
+      newSpells.push(s.name);
     }
   }
 

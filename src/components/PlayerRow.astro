@@ -1,5 +1,5 @@
 ---
-import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon } from '../utils/iconUtils';
+import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon, placeholderIcon } from '../utils/iconUtils';
 import type { PlayerData } from '../types';
 
 export interface Props {
@@ -129,13 +129,13 @@ if (ccUnitsCount <= 8) {
               <div class={`flex flex-col items-center justify-start rounded-lg border p-1 w-[50px] sm:w-[52px] shrink-0 gap-1 h-fit ${theme === 'blue' ? 'bg-white border-gray-200 shadow-sm' : 'bg-white/40 border-[#c4a481]/50 shadow-sm'}`}>
                 {/* Hero portrait */}
                 <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded bg-gradient-to-b from-gray-100 to-gray-300 overflow-hidden shrink-0 border border-gray-200" data-tooltip={h.hero}>
-                  <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover ${getHeroImageClass(h.hero)}`} onerror="this.style.display='none'" />
+                  <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover ${getHeroImageClass(h.hero)}`} onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                 </div>
                 
                 {/* Pet Icon */}
                 {h.pet ? (
                   <div class="cursor-help w-6.5 h-6.5 sm:w-7 sm:h-7 rounded bg-gradient-to-b from-purple-50 to-purple-200 overflow-hidden shrink-0 border border-gray-200" data-tooltip={h.pet}>
-                    <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                    <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                   </div>
                 ) : (
                   <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-dashed border-gray-300/60 shrink-0 bg-gray-50/20 flex items-center justify-center text-[10px] text-gray-300 select-none">-</div>
@@ -148,7 +148,7 @@ if (ccUnitsCount <= 8) {
                     if (eq) {
                       return (
                         <div class="cursor-help w-5 h-5 rounded bg-gradient-to-b from-amber-50 to-amber-100 overflow-hidden shrink-0 border border-gray-200" data-tooltip={eq}>
-                          <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                          <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                         </div>
                       );
                     } else {
@@ -168,7 +168,7 @@ if (ccUnitsCount <= 8) {
         {player.troops && player.troops.map(t => (
           <div class="flex flex-col items-center shrink-0">
             <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
-              <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+              <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
             </div>
             <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{t.count}</span>
           </div>
@@ -178,7 +178,7 @@ if (ccUnitsCount <= 8) {
         {player.spells && player.spells.map(s => (
           <div class="flex flex-col items-center shrink-0">
             <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
-              <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+              <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
             </div>
             <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{s.count}</span>
           </div>
@@ -188,7 +188,7 @@ if (ccUnitsCount <= 8) {
         {player.siegeMachine && (
           <div class="flex flex-col items-center shrink-0">
             <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
-              <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+              <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
             </div>
             <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x1</span>
           </div>
@@ -201,7 +201,7 @@ if (ccUnitsCount <= 8) {
           {player.ccTroops && player.ccTroops.map(t => (
             <div class="flex flex-col items-center shrink-0">
               <div class={`w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${t.name} (CC)`}>
-                <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
               </div>
               <span class={`text-[9px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{t.count}</span>
             </div>
@@ -209,7 +209,7 @@ if (ccUnitsCount <= 8) {
           {player.ccSpells && player.ccSpells.map(s => (
             <div class="flex flex-col items-center shrink-0">
               <div class={`w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${s.name} (CC)`}>
-                <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror="this.style.display='none'" />
+                <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
               </div>
               <span class={`text-[9px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{s.count}</span>
             </div>

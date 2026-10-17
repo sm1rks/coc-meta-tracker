@@ -376,6 +376,13 @@ async function fetchMeta() {
                   const eq1Name = EquipmentMap[eq1];
                   const eq2Name = eq2 ? EquipmentMap[eq2] : null;
 
+                  if (eq1 !== null && eq1 !== undefined && !eq1Name) {
+                    console.log(`Unmapped Equipment ID found: ${eq1} on ${heroName}`);
+                  }
+                  if (eq2 !== null && eq2 !== undefined && !eq2Name) {
+                    console.log(`Unmapped Equipment ID found: ${eq2} on ${heroName}`);
+                  }
+
                   if (eq1Name) equipNames.add(eq1Name);
                   if (eq2Name) equipNames.add(eq2Name);
 
