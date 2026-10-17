@@ -212,3 +212,27 @@ test('Sync Logic: Placeholder icon existence and validity', async () => {
   assert.ok(placeholderIcon.endsWith('icons/placeholder.webp'), 'placeholderIcon must point to placeholder.webp');
 });
 
+test('Sync Logic: Auto-discovery resolves unmapped equipment from player profile', () => {
+  const mockEquipmentMap = { 43: 'Dark Orb', 60: 'Revenge Deck' };
+  const mockProfile = {
+    heroEquipment: [
+      { name: 'Dark Orb', level: 18 },
+      { name: 'Portal Pendant', level: 27 },
+      { name: 'Revenge Deck', level: 18 }
+    ],
+    heroes: [
+      { name: 'Minion Prince', equipment: [{ name: 'Dark Orb' }, { name: 'Portal Pendant' }] }
+    ]
+  };
+
+  const knownNames = new Set(Object.values(mockEquipmentMap));
+  const unknownEquips = mockProfile.heroEquipment.filter(e => !knownNames.has(e.name));
+
+  assert.strictEqual(unknownEquips.length, 1);
+  assert.strictEqual(unknownEquips[0].name, 'Portal Pendant');
+
+  // Verify resolution
+  mockEquipmentMap[61] = unknownEquips[0].name;
+  assert.strictEqual(mockEquipmentMap[61], 'Portal Pendant');
+});
+

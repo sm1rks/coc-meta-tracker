@@ -235,6 +235,24 @@ export async function syncAll(): Promise<void> {
   const newEquipments: string[] = [];
   const currentEquipmentMapEntries: Record<number, string> = {};
 
+  if (fs.existsSync(equipmentMapPath)) {
+    try {
+      const content = fs.readFileSync(equipmentMapPath, 'utf8');
+      const eqMatch = content.match(/export const EquipmentMap: Record<number, string> = {([\s\S]*?)};/);
+      if (eqMatch) {
+        const lines = eqMatch[1].split('\n');
+        for (const line of lines) {
+          const match = line.match(/\s*(\d+):\s*"([^"]+)"/);
+          if (match) {
+            currentEquipmentMapEntries[parseInt(match[1])] = match[2];
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not parse existing equipmentMap.ts:", e);
+    }
+  }
+
   for (const eq of remoteEquipments) {
     const eqId = eq._id - 90000000;
     currentEquipmentMapEntries[eqId] = eq.name;
@@ -254,6 +272,27 @@ export async function syncAll(): Promise<void> {
       console.log(`📦 [Placeholder] Asset not yet published on clashk.ing. Used placeholder for Equipment: ${eq.name}`);
       applyPlaceholder(iconPath);
       newEquipments.push(eq.name);
+    }
+  }
+
+  // Also verify icons for any preserved auto-discovered equipment
+  for (const [idStr, eqName] of Object.entries(currentEquipmentMapEntries)) {
+    const cleanName = eqName.replace(/\s+/g, '');
+    const iconFilename = `Icon_HV_Equipment_${cleanName}.webp`;
+    const iconPath = path.join(iconsDir, iconFilename);
+
+    const matchPath = equipmentMapAsset.get(normalizeName(eqName));
+    if (matchPath) {
+      if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
+        console.log(`⬇️ Downloading icon for Equipment: ${eqName}`);
+        const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
+        await saveSmartIcon(buf, iconPath);
+        newEquipments.push(eqName);
+      }
+    } else if (!fs.existsSync(iconPath)) {
+      console.log(`📦 [Placeholder] Asset not yet published on clashk.ing. Used placeholder for Equipment: ${eqName}`);
+      applyPlaceholder(iconPath);
+      newEquipments.push(eqName);
     }
   }
 
@@ -462,7 +501,19 @@ export const ALL_SUPER_TROOPS = new Set([
   fs.writeFileSync(unitMapPath, unitMapContent, 'utf-8');
   console.log('📝 Updated src/data/UnitMap.ts (TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS)');
 
-  // 9. Update data/static_data.json
+  // 9. Update data/static_data.json while preserving any auto-discovered equipment
+  if (fs.existsSync(staticDataPath)) {
+    try {
+      const existingData = JSON.parse(fs.readFileSync(staticDataPath, 'utf8'));
+      const remoteEqNames = new Set((remoteData.equipment || []).map((e: any) => e.name));
+      for (const eq of existingData.equipment || []) {
+        if (!remoteEqNames.has(eq.name)) {
+          if (!remoteData.equipment) remoteData.equipment = [];
+          remoteData.equipment.push(eq);
+        }
+      }
+    } catch {}
+  }
   fs.writeFileSync(staticDataPath, JSON.stringify(remoteData, null, 2), 'utf-8');
   console.log(`💾 Saved updated static_data.json`);
 

@@ -58608,6 +58608,11 @@
           ]
         }
       ]
+    },
+    {
+      "_id": 90000061,
+      "name": "Portal Pendant",
+      "hero": "Minion Prince"
     }
   ],
   "decorations": [

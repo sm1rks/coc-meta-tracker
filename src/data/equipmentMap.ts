@@ -41,7 +41,8 @@ export const EquipmentMap: Record<number, string> = {
   56: "Stun Blaster",
   57: "Flame Blower",
   59: "Electro Fangs",
-  60: "Revenge Deck"
+  60: "Revenge Deck",
+  61: "Portal Pendant"
 };
 
 export const HeroMap: Record<number, string> = {

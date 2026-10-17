@@ -142,6 +142,127 @@ function mergeCounts(
   return merged;
 }
 
+async function autoDiscoverEquipment(
+  unmapped: Map<number, { tag: string; heroName: string }>,
+  equipmentMap: Record<number, string>,
+  heroMap: Record<number, string>,
+  knownEquipment: Record<string, string[]>,
+  stats: any
+) {
+  let discoveredAny = false;
+  const iconsDir = path.join(process.cwd(), 'public', 'icons');
+  const placeholderPath = path.join(iconsDir, 'placeholder.webp');
+  const equipmentMapPath = path.join(process.cwd(), 'src', 'data', 'equipmentMap.ts');
+  const staticDataPath = path.join(process.cwd(), 'data', 'static_data.json');
+
+  for (const [eqId, { tag, heroName }] of unmapped.entries()) {
+    try {
+      console.log(`🔍 Attempting auto-discovery for unmapped Equipment ID ${eqId} (${heroName}) via player ${tag}...`);
+      const encodedTag = encodeURIComponent(tag);
+      const profile = await fetchWithRetry(`${BASE_URL}/players/${encodedTag}`);
+      if (!profile || !profile.heroEquipment) {
+        console.warn(`Could not retrieve heroEquipment from player ${tag}`);
+        continue;
+      }
+
+      const knownNames = new Set(Object.values(equipmentMap));
+      const unknownEquipments = profile.heroEquipment.filter((e: any) => !knownNames.has(e.name));
+
+      let matchedName: string | null = null;
+
+      // 1. Check if hero has equipped an unknown piece in this player's active profile
+      const heroProfile = (profile.heroes || []).find((h: any) => h.name === heroName);
+      if (heroProfile && heroProfile.equipment) {
+        const heroUnknown = heroProfile.equipment.find((e: any) => !knownNames.has(e.name));
+        if (heroUnknown) matchedName = heroUnknown.name;
+      }
+
+      // 2. Fallback: match from unknown equipment unlocked in heroEquipment list
+      if (!matchedName && unknownEquipments.length === 1) {
+        matchedName = unknownEquipments[0].name;
+      } else if (!matchedName && unknownEquipments.length > 1) {
+        matchedName = unknownEquipments[0].name;
+      }
+
+      if (matchedName) {
+        console.log(`🎉 Auto-discovered Equipment ID ${eqId}: "${matchedName}" on ${heroName}!`);
+        equipmentMap[eqId] = matchedName;
+        discoveredAny = true;
+
+        if (!knownEquipment[heroName]) knownEquipment[heroName] = [];
+        if (!knownEquipment[heroName].includes(matchedName)) {
+          knownEquipment[heroName].push(matchedName);
+        }
+
+        // Initialize hero stats for this equipment
+        if (stats.equipments) {
+          if (!stats.equipments[heroName]) stats.equipments[heroName] = {};
+          if (stats.equipments[heroName][matchedName] === undefined) {
+            stats.equipments[heroName][matchedName] = 0;
+          }
+        }
+
+        // Ensure placeholder icon is created if real icon does not exist
+        const cleanName = matchedName.replace(/\s+/g, '');
+        const iconPath = path.join(iconsDir, `Icon_HV_Equipment_${cleanName}.webp`);
+        if (!fs.existsSync(iconPath) && fs.existsSync(placeholderPath)) {
+          fs.copyFileSync(placeholderPath, iconPath);
+          console.log(`📦 [Placeholder] Pre-provisioned placeholder icon for ${matchedName} -> ${path.basename(iconPath)}`);
+        }
+
+        // Add to static_data.json
+        if (fs.existsSync(staticDataPath)) {
+          try {
+            const staticJson = JSON.parse(fs.readFileSync(staticDataPath, 'utf8'));
+            if (!staticJson.equipment) staticJson.equipment = [];
+            const exists = staticJson.equipment.some((e: any) => e.name === matchedName);
+            if (!exists) {
+              staticJson.equipment.push({
+                _id: 90000000 + eqId,
+                name: matchedName,
+                hero: heroName
+              });
+              fs.writeFileSync(staticDataPath, JSON.stringify(staticJson, null, 2), 'utf8');
+              console.log(`💾 Added ${matchedName} to data/static_data.json`);
+            }
+          } catch (e) {
+            console.warn(`Could not update static_data.json with ${matchedName}:`, e);
+          }
+        }
+      } else {
+        console.warn(`Could not deduce equipment name for ID ${eqId} on ${heroName}`);
+      }
+    } catch (err) {
+      console.warn(`Failed to auto-discover equipment ID ${eqId} from player ${tag}:`, err);
+    }
+  }
+
+  if (discoveredAny) {
+    // Persist to src/data/equipmentMap.ts
+    const sortedEqIds = Object.keys(equipmentMap).map(Number).sort((a, b) => a - b);
+    const formattedEqEntries = sortedEqIds
+      .map(id => `  ${id}: ${JSON.stringify(equipmentMap[id])}`)
+      .join(',\n');
+
+    const sortedHeroIds = Object.keys(heroMap).map(Number).sort((a, b) => a - b);
+    const formattedHeroEntries = sortedHeroIds
+      .map(id => `  ${id}: ${JSON.stringify(heroMap[id])}`)
+      .join(',\n');
+
+    const equipmentMapContent = `// Auto-generated mappings from static_data.json
+export const EquipmentMap: Record<number, string> = {
+${formattedEqEntries}
+};
+
+export const HeroMap: Record<number, string> = {
+${formattedHeroEntries}
+};
+`;
+    fs.writeFileSync(equipmentMapPath, equipmentMapContent, 'utf-8');
+    console.log(`📝 Persisted updated src/data/equipmentMap.ts with new equipment`);
+  }
+}
+
 async function fetchMeta() {
   try {
     console.log("Fetching Global Rankings (Top Players)...");
@@ -319,6 +440,42 @@ async function fetchMeta() {
     }
 
     console.log(`\nSuccessfully fetched ${results.length}/${playerTags.length} players. Processing...`);
+
+    // Pre-scan for any unmapped equipment IDs across all battle logs
+    const unmappedEquipment = new Map<number, { tag: string; heroName: string }>();
+    for (const { tag, battlelog } of results) {
+      if (battlelog && battlelog.items) {
+        for (const attack of battlelog.items) {
+          if (!attack.armyShareCode) continue;
+          const hMatch = attack.armyShareCode.match(/h([^\-dsui]+(?:-[^\-dsui]+)*)/);
+          if (hMatch) {
+            const heroesList = hMatch[1].split('-');
+            for (const heroStr of heroesList) {
+              const idMatch = heroStr.match(/^(\d+)/);
+              const eMatch = heroStr.match(/e(\d+)(?:_(\d+))?/);
+              if (idMatch && eMatch) {
+                const heroId = parseInt(idMatch[1]);
+                const heroName = HeroMap[heroId];
+                if (!heroName) continue;
+                const eq1 = parseInt(eMatch[1]);
+                const eq2 = eMatch[2] ? parseInt(eMatch[2]) : null;
+                if (eq1 !== null && eq1 !== undefined && !EquipmentMap[eq1]) {
+                  unmappedEquipment.set(eq1, { tag, heroName });
+                }
+                if (eq2 !== null && eq2 !== undefined && !EquipmentMap[eq2]) {
+                  unmappedEquipment.set(eq2, { tag, heroName });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (unmappedEquipment.size > 0) {
+      console.log(`\n🔍 Found ${unmappedEquipment.size} unmapped equipment ID(s) in battle logs. Resolving via player profiles...`);
+      await autoDiscoverEquipment(unmappedEquipment, EquipmentMap, HeroMap, KNOWN_EQUIPMENT, stats);
+    }
 
     const globalArmyBattlesCount: Record<string, number> = {};
 
