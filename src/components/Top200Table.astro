@@ -1,5 +1,7 @@
 ---
 import type { PlayerData } from '../types';
+import PlayerRow from './PlayerRow.astro';
+import { getCoreArmyName } from '../utils/dataUtils';
 
 interface Props {
   players: PlayerData[];
@@ -7,36 +9,87 @@ interface Props {
 
 const { players = [] } = Astro.props;
 
-import PlayerRow from './PlayerRow.astro';
+// Compute overarching army archetypes with player counts for the filter dropdown
+const armyCounts = new Map<string, number>();
+for (const p of players) {
+  if (p.armyType && p.armyType !== 'Unknown') {
+    const coreName = getCoreArmyName(p.armyType);
+    if (coreName !== 'Unknown') {
+      armyCounts.set(coreName, (armyCounts.get(coreName) || 0) + 1);
+    }
+  }
+}
+const armyOptions = Array.from(armyCounts.entries())
+  .sort((a, b) => b[1] - a[1])
+  .map(([name, count]) => ({ name, count }));
 ---
-<div class="bg-[#f4e4c1] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col">
-  <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-t-xl border-b-4 border-black/10 flex items-center gap-4 shrink-0">
-    <div class="bg-black/20 text-white rounded-lg shadow-inner transform -rotate-3 text-3xl leading-none w-16 h-16 flex items-center justify-center" role="img" aria-label="Trophy">🏆</div>
+<div id="top200-card" class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col overflow-hidden">
+  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 border-b-4 border-black/15 flex items-center gap-3 shrink-0">
+    <div class="w-12 h-12 flex items-center justify-center text-3xl leading-none drop-shadow-lg shrink-0 select-none" role="img" aria-label="Trophy">🏆</div>
     <div class="min-w-0">
-      <h2 class="text-2xl xl:text-3xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">Global Top 200</h2>
-      <p class="text-blue-100 font-bold text-sm tracking-wide">Current Season Rankings & Compositions</p>
+      <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">Global Top 200</h2>
     </div>
   </div>
   
-  <div class="p-0 flex-1 relative">
-    <div class="p-4">
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-        <input type="search" inputmode="search" id="player-search" aria-label="Search players by name, clan, or tag" placeholder="Search by player, clan, or tag..." class="w-full sm:w-72 px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none shadow-sm text-sm" />
-        <div class="flex items-center gap-2" id="pagination-controls">
-          <button id="prev-page" aria-label="Previous page" class="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm font-bold shadow-sm">Previous</button>
-          <span id="page-info" class="text-sm font-bold text-gray-600">Page 1 of 1</span>
-          <button id="next-page" aria-label="Next page" class="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-sm font-bold shadow-sm">Next</button>
+  <div class="bg-[#f4e4c1] p-0 flex-1 relative">
+    <div class="p-3 sm:p-4">
+      <!-- Top Toolbar: Search + Army Filter + Pagination -->
+      <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3 mb-3.5 bg-[#e6d1a7]/60 p-2.5 rounded-xl border border-[#c4a481]/80">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+          <!-- Search Input -->
+          <div class="relative flex-1 sm:max-w-sm">
+            <svg class="w-4 h-4 text-[#603813]/50 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              type="search" 
+              inputmode="search" 
+              id="player-search" 
+              aria-label="Search players by name, clan, or tag" 
+              placeholder="Search player, clan, troop, equip, pet, spell..." 
+              class="w-full pl-9 pr-3 py-1.5 rounded-lg bg-[#fbf6ea] border border-[#c4a481] text-[#4a2e0f] placeholder-[#603813]/45 focus:border-[#603813] focus:bg-white focus:outline-none shadow-2xs text-xs sm:text-sm font-bold transition-colors" 
+            />
+          </div>
+
+          <!-- Army Archetype Filter Dropdown -->
+          {armyOptions.length > 0 && (
+            <select 
+              id="army-filter" 
+              aria-label="Filter players by army type"
+              class="px-3 py-1.5 rounded-lg bg-[#fbf6ea] border border-[#c4a481] text-[#4a2e0f] focus:border-[#603813] focus:bg-white focus:outline-none shadow-2xs text-xs sm:text-sm font-bold cursor-pointer transition-colors sm:max-w-[260px] truncate"
+            >
+              <option value="">All Armies ({players.length})</option>
+              {armyOptions.map(opt => (
+                <option value={opt.name.toLowerCase()}>{opt.name} ({opt.count})</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <!-- Top Pagination Controls -->
+        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0" id="pagination-controls">
+          <button id="prev-page" aria-label="Previous page" class="px-3 py-1.5 bg-[#fbf6ea] border border-[#c4a481] text-[#603813] rounded-lg hover:bg-white disabled:opacity-40 disabled:pointer-events-none text-xs sm:text-sm font-black shadow-2xs transition-colors cursor-pointer">Previous</button>
+          <span id="page-info" class="text-xs sm:text-sm font-black text-[#603813] px-1 tabular-nums">Page 1 of 1</span>
+          <button id="next-page" aria-label="Next page" class="px-3 py-1.5 bg-[#fbf6ea] border border-[#c4a481] text-[#603813] rounded-lg hover:bg-white disabled:opacity-40 disabled:pointer-events-none text-xs sm:text-sm font-black shadow-2xs transition-colors cursor-pointer">Next</button>
         </div>
       </div>
+
+      <!-- Players List -->
       <div class="w-full" id="players-table-wrapper">
-        
-        <div id="players-list" class="space-y-2">
+        <div id="players-list" class="space-y-2.5">
           {players.map(player => (
-            <PlayerRow player={player} theme="blue" />
+            <PlayerRow player={player} theme="brown" />
           ))}
-          {players.length === 0 && <div class="text-gray-400 text-sm italic p-4 text-center">No players found.</div>}
-          <div id="search-no-results" class="text-gray-500 font-bold text-sm italic p-6 text-center hidden">No matching players found.</div>
+          {players.length === 0 && <div class="text-[#603813]/60 text-sm italic p-4 text-center">No players found.</div>}
+          <div id="search-no-results" class="text-[#603813]/70 font-bold text-sm italic p-6 text-center hidden">No matching players found.</div>
         </div>
+      </div>
+
+      <!-- Bottom Pagination Controls -->
+      <div id="bottom-pagination" class="flex items-center justify-between sm:justify-end gap-2 mt-4 pt-3 border-t border-[#c4a481]/60">
+        <button id="prev-page-bottom" aria-label="Previous page" class="px-3 py-1.5 bg-[#fbf6ea] border border-[#c4a481] text-[#603813] rounded-lg hover:bg-white disabled:opacity-40 disabled:pointer-events-none text-xs sm:text-sm font-black shadow-2xs transition-colors cursor-pointer">Previous</button>
+        <span id="page-info-bottom" class="text-xs sm:text-sm font-black text-[#603813] px-1 tabular-nums">Page 1 of 1</span>
+        <button id="next-page-bottom" aria-label="Next page" class="px-3 py-1.5 bg-[#fbf6ea] border border-[#c4a481] text-[#603813] rounded-lg hover:bg-white disabled:opacity-40 disabled:pointer-events-none text-xs sm:text-sm font-black shadow-2xs transition-colors cursor-pointer">Next</button>
       </div>
     </div>
   </div>
@@ -54,9 +107,15 @@ import PlayerRow from './PlayerRow.astro';
     }
 
     const searchInput = document.getElementById('player-search') as HTMLInputElement;
+    const armyFilter = document.getElementById('army-filter') as HTMLSelectElement | null;
     const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
     const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
     const pageInfo = document.getElementById('page-info');
+    const prevBtnBottom = document.getElementById('prev-page-bottom') as HTMLButtonElement | null;
+    const nextBtnBottom = document.getElementById('next-page-bottom') as HTMLButtonElement | null;
+    const pageInfoBottom = document.getElementById('page-info-bottom');
+    const bottomPagination = document.getElementById('bottom-pagination');
+    const top200Card = document.getElementById('top200-card');
     const rows = Array.from(playersList.querySelectorAll('.player-row')) as HTMLElement[];
     const noResultsEl = document.getElementById('search-no-results');
     
@@ -64,14 +123,38 @@ import PlayerRow from './PlayerRow.astro';
     const itemsPerPage = 20;
     let filteredRows = [...rows];
 
-    const render = () => {
+    const matchesFilters = (row: HTMLElement, q: string, selectedArmy: string) => {
+      const coreArmy = (row.getAttribute('data-core-army') || '').toLowerCase();
+      if (selectedArmy && coreArmy !== selectedArmy) return false;
+      if (!q) return true;
+      const searchBlob = (row.getAttribute('data-search') || '').toLowerCase();
+      if (searchBlob.includes(q)) return true;
+      const tokens = q.split(/[\s,]+/).filter(Boolean);
+      return tokens.every(token => searchBlob.includes(token));
+    };
+
+    const applyFilters = () => {
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      const selectedArmy = (armyFilter?.value || '').toLowerCase().trim();
+      filteredRows = rows.filter(row => matchesFilters(row, q, selectedArmy));
+    };
+
+    const render = (scrollToTop = false) => {
       const totalPages = Math.ceil(filteredRows.length / itemsPerPage) || 1;
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
 
-      if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      const label = `Page ${currentPage} of ${totalPages}`;
+      if (pageInfo) pageInfo.textContent = label;
+      if (pageInfoBottom) pageInfoBottom.textContent = label;
       if (prevBtn) prevBtn.disabled = currentPage === 1;
       if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+      if (prevBtnBottom) prevBtnBottom.disabled = currentPage === 1;
+      if (nextBtnBottom) nextBtnBottom.disabled = currentPage === totalPages;
+
+      if (bottomPagination) {
+        bottomPagination.style.display = filteredRows.length > 0 ? 'flex' : 'none';
+      }
 
       if (noResultsEl) {
         if (filteredRows.length === 0) {
@@ -84,35 +167,38 @@ import PlayerRow from './PlayerRow.astro';
       const startIdx = (currentPage - 1) * itemsPerPage;
       const endIdx = startIdx + itemsPerPage;
 
-      // Hide all first
       rows.forEach(row => row.style.display = 'none');
 
-      // Show only filtered and paginated using flex
       filteredRows.slice(startIdx, endIdx).forEach(row => {
         row.style.display = 'flex';
       });
       
       // Update URL query params
       const url = new URL(window.location.href);
-      if (searchInput.value) url.searchParams.set('search', searchInput.value);
+      if (searchInput?.value) url.searchParams.set('search', searchInput.value);
       else url.searchParams.delete('search');
+      if (armyFilter?.value) url.searchParams.set('army', armyFilter.value);
+      else url.searchParams.delete('army');
       if (currentPage > 1) url.searchParams.set('page', currentPage.toString());
       else url.searchParams.delete('page');
       window.history.replaceState({}, '', url);
-    };
 
-    const matchesQuery = (row: HTMLElement, q: string) => {
-      if (!q) return true;
-      const name = (row.getAttribute('data-name') || '').toLowerCase();
-      const clan = (row.getAttribute('data-clan') || '').toLowerCase();
-      const tag = (row.getAttribute('data-tag') || '').toLowerCase();
-      return name.includes(q) || clan.includes(q) || tag.includes(q);
+      if (scrollToTop && top200Card) {
+        top200Card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     };
 
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
-        filteredRows = rows.filter(row => matchesQuery(row, query));
+      searchInput.addEventListener('input', () => {
+        applyFilters();
+        currentPage = 1;
+        render();
+      });
+    }
+
+    if (armyFilter) {
+      armyFilter.addEventListener('change', () => {
+        applyFilters();
         currentPage = 1;
         render();
       });
@@ -137,16 +223,38 @@ import PlayerRow from './PlayerRow.astro';
       });
     }
 
+    if (prevBtnBottom) {
+      prevBtnBottom.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          render(true);
+        }
+      });
+    }
+
+    if (nextBtnBottom) {
+      nextBtnBottom.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredRows.length / itemsPerPage) || 1;
+        if (currentPage < totalPages) {
+          currentPage++;
+          render(true);
+        }
+      });
+    }
+
     // Initialize from URL
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
+    const armyParam = urlParams.get('army');
     const pageParam = urlParams.get('page');
     
     if (searchParam && searchInput) {
       searchInput.value = searchParam;
-      const q = searchParam.toLowerCase().trim();
-      filteredRows = rows.filter(row => matchesQuery(row, q));
     }
+    if (armyParam && armyFilter) {
+      armyFilter.value = armyParam.toLowerCase();
+    }
+    applyFilters();
     if (pageParam) {
       currentPage = parseInt(pageParam) || 1;
     }

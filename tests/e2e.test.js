@@ -37,12 +37,13 @@ test('E2E: Leaderboard Validation', () => {
   
   // Ensure the DOM optimization is present
   assert.ok(html.includes('id="player-search"'), 'Client-side pagination search input is rendered');
-  assert.ok(html.includes('Search by player, clan, or tag...'), 'Search input has multi-field placeholder');
+  assert.ok(html.includes('Search player, clan, troop, equip, pet, spell...'), 'Search input has multi-field placeholder');
   assert.ok(html.includes('id="pagination-controls"'), 'Pagination controls are rendered');
   assert.ok(html.includes('player-row'), 'Player rows are tagged for JS processing');
   assert.ok(html.includes('data-name='), 'Player rows must have data-name attribute');
   assert.ok(html.includes('data-clan='), 'Player rows must have data-clan attribute');
   assert.ok(html.includes('data-tag='), 'Player rows must have data-tag attribute');
+  assert.ok(html.includes('data-search='), 'Player rows must have data-search attribute');
 });
 
 test('E2E: Armies Routing', () => {
@@ -59,11 +60,11 @@ test('E2E: HeroCard 3-slot placeholder consistency', () => {
   if (!fs.existsSync(metaPath)) return;
   const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
 
-  // Dynamically find any hero who has fewer than 3 combos or pets in the current dataset
+  // Dynamically find any hero who has fewer than 5 combos or 3 pets in the current dataset
   const heroWithMissing = (meta.heroes || []).find(hero => {
     const heroCombos = (meta.combos || []).filter(c => c.hero === hero.name);
     const heroPets = (meta.pets || []).filter(p => p.hero === hero.name);
-    return heroCombos.length < 3 || heroPets.length < 3;
+    return heroCombos.length < 5 || heroPets.length < 3;
   });
 
   if (heroWithMissing) {

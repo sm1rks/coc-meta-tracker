@@ -638,7 +638,7 @@ async function fetchMeta() {
               "Siege Barracks", "Log Launcher", "Flame Flinger", "Battle Drill",
               "Sky Wagon", "Troop Launcher",
               "Super Barbarian", "Super Archer", "Super Giant", "Rocket Balloon", "Inferno Dragon", "Healer",
-              "Furnace",
+              "Furnace", "Ruin Witch", "Druid", "Apprentice Warden",
             ]);
 
             const coreTroops = Object.entries(mainTroopCounts)
@@ -647,6 +647,10 @@ async function fetchMeta() {
                   if (count >= 10) return true;
                   if (count >= 5 && (mainTroopCounts["Super Minion"] || 0) >= 3) return true;
                   return false;
+                }
+                // Electro Titan is support when 1-2 are brought for aura, but a core Smash troop at 3+
+                if (name === "Electro Titan") {
+                  return count >= 3;
                 }
                 return !SUPPORT_TROOPS.has(name);
               })
@@ -684,6 +688,8 @@ async function fetchMeta() {
               armyType = "Dragon";
             } else if (armyType === "Ice Hound" || armyType === "Lava Hound") {
               armyType = "LaLo";
+            } else if (armyType === "Miner" && (allTroopCounts["Hog Rider"] || 0) >= 8) {
+              armyType = "Hybrid";
             }
 
             // Build prefixes (go at the front of the army name)

@@ -7,23 +7,26 @@ interface Props {
 }
 
 const { machines } = Astro.props;
-import { getSiegeMachineIcon, placeholderIcon } from '../utils/iconUtils';
+const activeMachines = machines.filter(m => m.usage > 0);
+const displayedMachines = activeMachines.length > 0 ? activeMachines : machines;
+
+import { getSiegeMachineIcon, basePath, placeholderIcon } from '../utils/iconUtils';
 ---
-<div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden flex flex-col h-full relative z-0 hover:z-10">
-  <div class="bg-gradient-to-r from-orange-500 to-red-600 p-3 border-b-4 border-black/10 flex items-center gap-3 shrink-0">
-    <div class="bg-black/20 text-white rounded-lg p-2 shadow-inner inline-block transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center" role="img" aria-label="Bow and Arrow">🏹</div>
+<div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden transform transition-transform duration-200 hover:scale-[1.01] [will-change:transform] [backface-visibility:hidden] flex flex-col h-full relative z-0 hover:z-10">
+  <div class="bg-gradient-to-r from-orange-500 to-red-600 p-3 border-b-4 border-black/15 flex items-center gap-3 shrink-0">
+    <img src={`${basePath}icons/Siege_Machine_HV_Wall_Wrecker_3.webp`} alt="Siege Machines" loading="lazy" decoding="async" class="w-12 h-12 object-contain drop-shadow-lg shrink-0" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">Siege Machines</h2>
     </div>
   </div>
   
-  <div class="bg-[#f4e4c1] p-0 flex-1 relative min-h-[300px]">
-    <div class="px-4 py-4 space-y-2">
-      {machines.map(machine => {
+  <div class="bg-[#f4e4c1] px-4 py-4 flex-1 flex flex-col justify-center">
+    <div class="space-y-2.5">
+      {displayedMachines.map(machine => {
         return (
           <div class="flex items-center justify-between group/row relative gap-3">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 flex-shrink-0 cursor-help rounded-lg overflow-hidden border-2 border-coc-gold/40 shadow-sm bg-gradient-to-b from-gray-100 to-gray-200" data-tooltip={machine.name}>
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 flex-shrink-0 cursor-help rounded-lg overflow-hidden border border-[#c4a481] shadow-sm bg-white/60" data-tooltip={machine.name}>
                 <img 
                   src={getSiegeMachineIcon(machine.name)} 
                   alt={machine.name}
@@ -35,19 +38,19 @@ import { getSiegeMachineIcon, placeholderIcon } from '../utils/iconUtils';
               </div>
             </div>
             
-            <div class="flex items-center gap-1 sm:gap-2 flex-grow justify-end min-w-0">
-              <div class="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner min-w-[40px]">
+            <div class="flex items-center gap-2 flex-grow justify-end min-w-0">
+              <div class="flex-1 h-3 bg-[#603813]/12 rounded-full overflow-hidden shadow-inner border border-[#603813]/15 min-w-[40px]">
                 <div 
                   class="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-1000 shadow-sm"
                   style={`width: ${machine.usage}%`}
                 ></div>
               </div>
-              <div class="text-xs sm:text-sm font-bold text-orange-700 w-8 sm:w-10 text-right flex-shrink-0">{machine.usage}%</div>
+              <div class="text-xs sm:text-sm font-black text-orange-800 w-11 text-right flex-shrink-0 tabular-nums">{machine.usage.toFixed(1)}%</div>
             </div>
           </div>
         );
       })}
-      {machines.length === 0 && <div class="text-gray-400 text-sm italic">No active siege machines found.</div>}
+      {displayedMachines.length === 0 && <div class="text-[#603813]/50 text-sm italic">No active siege machines found.</div>}
     </div>
   </div>
 </div>

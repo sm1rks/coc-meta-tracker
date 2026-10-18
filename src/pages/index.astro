@@ -31,7 +31,7 @@ if (metaData?.lastUpdated) {
   attacksAnalyzed={metaData?.attacksAnalyzed || 0}
   lastUpdated={lastUpdated}
 >
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
     {heroes.map(hero => (
       <HeroCard 
         name={hero.name} 
@@ -41,9 +41,12 @@ if (metaData?.lastUpdated) {
         pets={getHeroPets(hero.name)}
       />
     ))}
-    
-    {superTroops.length > 0 && <SuperTroopsCard troops={superTroops} />}
-    
-    {siegeMachines.length > 0 && <SiegeMachinesCard machines={siegeMachines} />}
   </div>
+
+  {(superTroops.length > 0 || siegeMachines.length > 0) && (
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      {superTroops.length > 0 && <SuperTroopsCard troops={superTroops} />}
+      {siegeMachines.length > 0 && <SiegeMachinesCard machines={siegeMachines} />}
+    </div>
+  )}
 </Layout>

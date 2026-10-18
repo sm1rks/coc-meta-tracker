@@ -11,37 +11,8 @@ interface Props {
 const { armies, title = "Top Army Types", noScroll = false, players = [] } = Astro.props;
 
 import PlayerRow from './PlayerRow.astro';
-import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon, placeholderIcon } from '../utils/iconUtils';
-
-// Helper to get core army name by stripping equipment prefixes
-const getCoreArmyName = (fullName: string): string => {
-  if (fullName.includes("Fireball")) {
-    return "Fireball";
-  }
-  let name = fullName;
-  const prefixes = [
-    "Royal Champion Charge",
-    "Dragon Duke Charge",
-    "Queen Charge",
-    "Flame Blower",
-    "Fireball",
-    "Rocket Backpack"
-  ];
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const prefix of prefixes) {
-      if (name.startsWith(prefix + " ")) {
-        name = name.slice(prefix.length + 1).trim();
-        changed = true;
-      } else if (name === prefix) {
-        name = "";
-        changed = true;
-      }
-    }
-  }
-  return name || "Unknown";
-};
+import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon, basePath, placeholderIcon } from '../utils/iconUtils';
+import { getCoreArmyName } from '../utils/dataUtils';
 
 // Group armies by core name
 const groupsMap = new Map<string, {
@@ -76,45 +47,108 @@ for (const army of armies) {
 // Convert map to array and sort by totalUsage desc
 const groupedArmies = Array.from(groupsMap.values())
   .sort((a, b) => b.totalUsage - a.totalUsage);
+
+const getGroupSignatureIcons = (coreName: string, variants: ArmyData[]): { src: string; label: string }[] => {
+  if (coreName === "Fireball" || coreName === "Fireball Value") {
+    return [{ src: getEqIcon("Fireball"), label: "Fireball" }];
+  }
+  if (coreName === "Hydra") {
+    return [
+      { src: getTroopIcon("Dragon"), label: "Dragon" },
+      { src: getTroopIcon("Dragon Rider"), label: "Dragon Rider" }
+    ];
+  }
+  if (coreName === "LaLo") {
+    return [
+      { src: getTroopIcon("Lava Hound"), label: "Lava Hound" },
+      { src: getTroopIcon("Balloon"), label: "Balloon" }
+    ];
+  }
+  if (coreName === "Hybrid") {
+    return [
+      { src: getTroopIcon("Miner"), label: "Miner" },
+      { src: getTroopIcon("Hog Rider"), label: "Hog Rider" }
+    ];
+  }
+  if (coreName.includes(" & ")) {
+    return coreName.split(" & ").slice(0, 2).map(part => ({
+      src: getTroopIcon(part.trim()),
+      label: part.trim()
+    }));
+  }
+  const primaryUnit = coreName !== "Unknown" ? coreName : (variants[0]?.troops?.[0]?.name || "Barbarian");
+  return [{ src: getTroopIcon(primaryUnit), label: primaryUnit }];
+};
+
+const HERO_ORDER = [
+  "Barbarian King",
+  "Archer Queen",
+  "Grand Warden",
+  "Royal Champion",
+  "Minion Prince",
+  "Dragon Duke"
+];
+
+const getHeroImageClass = (hero: string) => {
+  if (hero === 'Minion Prince') return 'scale-100 object-top';
+  if (hero === 'Grand Warden' || hero === 'Barbarian King' || hero === 'Archer Queen') return 'scale-110 object-top';
+  return 'scale-110 object-center';
+};
 ---
 <div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] flex flex-col h-full overflow-hidden col-span-full">
-  <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 border-b-4 border-black/10 flex items-center gap-3 shrink-0">
-    <div class="bg-black/20 text-white rounded-lg shadow-inner transform -rotate-3 text-2xl leading-none w-12 h-12 flex items-center justify-center" role="img" aria-label="Crossed Swords">⚔️</div>
+  <div class="bg-gradient-to-r from-red-600 to-orange-600 p-3 border-b-4 border-black/15 flex items-center gap-3 shrink-0">
+    <img src={`${basePath}icons/Icon_HV_Battle.webp`} alt="Top Army Types" loading="lazy" decoding="async" class="w-12 h-12 object-contain drop-shadow-lg shrink-0" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{title}</h2>
     </div>
   </div>
   
   <div class={`bg-[#f4e4c1] p-0 flex-1 ${noScroll ? 'min-h-[fit-content]' : 'min-h-[300px]'}`}>
-    <div class={`${noScroll ? 'relative h-auto p-4' : 'absolute inset-0 overflow-y-auto p-4'} space-y-4 custom-scrollbar`}>
+    <div class={`${noScroll ? 'relative h-auto p-3 sm:p-4' : 'absolute inset-0 overflow-y-auto p-3 sm:p-4'} space-y-3 custom-scrollbar`}>
       {groupedArmies.map((group, idx) => {
+        const signatureIcons = getGroupSignatureIcons(group.coreName, group.variants);
+        const isSingleVariant = group.variants.length === 1;
+
         return (
-        <details class="group/details bg-white/40 rounded-lg border border-[#c4a481] [&_summary::-webkit-details-marker]:hidden">
-          <summary class="flex flex-col group/row relative gap-2 p-3 cursor-pointer list-none hover:bg-white/60 transition-colors rounded-lg">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
-              <div class="flex items-center gap-2 sm:gap-3">
-                <div class="w-6 h-6 flex items-center justify-center font-black text-[#603813] opacity-50 shrink-0">#{idx + 1}</div>
+        <details class="group/details bg-white/45 rounded-xl border border-[#c4a481] shadow-xs overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+          <summary class="flex flex-col group/row relative gap-2 p-3 sm:px-4 cursor-pointer list-none hover:bg-white/70 transition-colors select-none">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+              <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div class="w-7 h-7 rounded-lg bg-[#603813]/10 border border-[#c4a481] flex items-center justify-center font-black text-xs text-[#603813] shrink-0 tabular-nums">
+                  #{idx + 1}
+                </div>
+
+                <!-- Signature Archetype Icon(s) -->
+                <div class="flex items-center -space-x-1.5 shrink-0">
+                  {signatureIcons.map(icon => (
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-[#c4a481] shadow-sm bg-white overflow-hidden shrink-0 relative z-0 hover:z-10" data-tooltip={icon.label}>
+                      <img src={icon.src} alt={icon.label} loading="lazy" decoding="async" class="w-full h-full object-cover scale-105" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                    </div>
+                  ))}
+                </div>
+
                 <div class="min-w-0">
-                  <div class="font-black text-[#4a2e0f] text-base sm:text-xl leading-tight uppercase tracking-wide drop-shadow-sm truncate">
+                  <div class="font-black text-[#4a2e0f] text-base sm:text-xl leading-tight uppercase tracking-wide drop-shadow-2xs truncate">
                     {group.coreName}
                   </div>
-                  <div class="text-[#603813]/70 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5">
-                    {group.totalBattlesCount} {group.totalBattlesCount === 1 ? 'Battle' : 'Battles'} • {group.totalPlayerCount} {group.totalPlayerCount === 1 ? 'Player' : 'Players'} • {group.variants.length} {group.variants.length === 1 ? 'Variant' : 'Variants'}
+                  <div class="text-[#603813]/70 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5 tabular-nums">
+                    {group.totalBattlesCount} {group.totalBattlesCount === 1 ? 'Battle' : 'Battles'} • {group.totalPlayerCount} {group.totalPlayerCount === 1 ? 'Player' : 'Players'}
+                    {!isSingleVariant && ` • ${group.variants.length} Variants`}
                   </div>
                 </div>
               </div>
-              <div class="flex items-center gap-2 w-full sm:w-auto sm:flex-grow sm:justify-end min-w-0 sm:max-w-[200px] pl-8 sm:pl-0">
-                <div class="flex-1 h-3 sm:h-4 bg-[#603813]/10 rounded-full overflow-hidden shadow-inner min-w-[40px] border border-[#603813]/20">
+
+              <div class="flex items-center gap-2.5 w-full sm:w-auto sm:flex-grow sm:justify-end min-w-0 sm:max-w-[320px] md:max-w-[380px] pl-9 sm:pl-0">
+                <div class="flex-1 h-3 sm:h-3.5 bg-[#603813]/12 rounded-full overflow-hidden shadow-inner min-w-[60px] border border-[#603813]/15">
                   <div 
                     class="h-full bg-gradient-to-r from-red-600 to-amber-500 rounded-full transition-all duration-1000 shadow-sm"
                     style={`width: ${group.totalUsage}%`}
                   ></div>
                 </div>
-                <div class="text-xs sm:text-sm font-black text-[#603813] w-10 sm:w-14 text-right flex-shrink-0">{group.totalUsage.toFixed(1)}%</div>
+                <div class="text-xs sm:text-sm font-black text-[#603813] w-12 text-right flex-shrink-0 tabular-nums">{group.totalUsage.toFixed(1)}%</div>
                 
                 <!-- Expansion Arrow -->
-                <div class="w-6 h-6 flex items-center justify-center text-[#603813]/50 group-open/details:rotate-180 transition-transform duration-300">
+                <div class="w-6 h-6 flex items-center justify-center text-[#603813]/60 group-open/details:rotate-180 transition-transform duration-200">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                   </svg>
@@ -123,121 +157,180 @@ const groupedArmies = Array.from(groupsMap.values())
             </div>
           </summary>
 
-          <div class="p-3 border-t-2 border-[#c4a481]/30 bg-[#fbf6ea] rounded-b-lg space-y-3 cursor-default">
+          <div class="p-2.5 sm:p-3 border-t border-[#c4a481]/50 bg-[#fbf6ea] space-y-3 cursor-default">
             {group.variants.map((variant) => {
               const variantPlayers = players.filter(p => p.armyType === variant.name);
+              const templateArmyLink = variantPlayers.find(p => p.armyLink)?.armyLink;
+              const sortedHeroes = [...(variant.topHeroes || [])].sort((a, b) => {
+                const idxA = HERO_ORDER.indexOf(a.name);
+                const idxB = HERO_ORDER.indexOf(b.name);
+                return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+              });
+              const ccUnitsCount = (variant.ccTroops?.length || 0) + (variant.ccSpells?.length || 0);
+              let ccBoxClasses = "shrink-0 flex flex-wrap items-center justify-center content-center gap-1 rounded-lg p-1.5 border border-[#c4a481] bg-white/65 shadow-sm self-center w-[148px] sm:w-[150px]";
+              if (ccUnitsCount <= 8) {
+                ccBoxClasses += " h-[84px] sm:h-[86px]";
+              } else if (ccUnitsCount <= 12) {
+                ccBoxClasses += " h-[118px] sm:h-[120px]";
+              } else {
+                ccBoxClasses += " min-h-[152px] sm:min-h-[155px]";
+              }
+
               return (
-                <details class="group/variant bg-white/60 rounded-lg border border-[#c4a481]/50 [&_summary::-webkit-details-marker]:hidden">
-                  <summary class="flex flex-col gap-2 p-3 cursor-pointer list-none hover:bg-white/90 transition-colors rounded-lg">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <div class="font-bold text-[#4a2e0f] text-sm sm:text-base uppercase tracking-wide">
-                          {variant.name}
-                        </div>
-                        <div class="text-[#603813]/70 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mt-0.5">
-                          {variant.battlesCount} {variant.battlesCount === 1 ? 'Battle' : 'Battles'} • {variant.playerCount} {variant.playerCount === 1 ? 'Player' : 'Players'}
-                        </div>
+                <div class="bg-white/80 rounded-xl border border-[#c4a481]/80 shadow-xs overflow-hidden">
+                  <!-- Variant Row (2-column layout aligned directly with PlayerRow below it) -->
+                  <div class="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4 p-2.5 sm:p-3">
+                    <!-- Left Column: Variant Info & Copy Button (Matches PlayerRow's md:w-[185px] left column) -->
+                    <div class="flex flex-col justify-center w-full md:w-[195px] shrink-0 min-w-0">
+                      <div class="flex items-center flex-wrap gap-1.5 mb-1">
+                        <span class="inline-flex items-center gap-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/80 tabular-nums">
+                          {variant.usage.toFixed(1)}%
+                        </span>
+                        {templateArmyLink && (
+                          <a 
+                            href={templateArmyLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onclick={`navigator.clipboard.writeText('${templateArmyLink}'); this.innerText = 'COPIED!'; setTimeout(() => { this.innerText = 'COPY ARMY'; }, 1500);`}
+                            class="bg-amber-100 hover:bg-amber-200 text-[#603813] text-[10px] font-black px-2 py-0.5 rounded cursor-pointer border border-[#c4a481] shadow-2xs transition-colors shrink-0"
+                            title="Open & Copy Template Army Link"
+                          >
+                            COPY ARMY
+                          </a>
+                        )}
                       </div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs font-black text-[#603813]">{variant.usage.toFixed(1)}%</span>
-                        <div class="w-5 h-5 flex items-center justify-center text-[#603813]/50 group-open/variant:rotate-180 transition-transform duration-300">
+
+                      <div class="font-black text-xs sm:text-sm text-[#4a2e0f] uppercase leading-snug wrap-break-word">
+                        {isSingleVariant && variant.name === group.coreName ? 'Most Common Setup' : variant.name}
+                      </div>
+
+                      <div class="text-[#603813]/75 text-[10px] font-bold uppercase tracking-wider mt-0.5 tabular-nums">
+                        {variant.battlesCount} {variant.battlesCount === 1 ? 'Battle' : 'Battles'} • {variant.playerCount} {variant.playerCount === 1 ? 'Player' : 'Players'}
+                      </div>
+                    </div>
+
+                    <!-- Right Column: Unified Army Composition Box (Matches PlayerRow layout) -->
+                    <div class="flex-1 min-w-0 w-full md:w-auto bg-[#f4e4c1]/55 rounded-lg p-2 md:px-3 md:py-2 border border-[#c4a481]/60 flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center">
+                      <!-- Left: Heroes vertical columns (side by side, max 4, canonical order) -->
+                      {sortedHeroes.length > 0 && (
+                        <div class="flex gap-1 shrink-0 self-center">
+                          {sortedHeroes.map(h => {
+                            const equips = h.equipment ? h.equipment.split(' + ') : [];
+                            return (
+                              <div class="flex flex-col items-center justify-start rounded-lg border border-[#c4a481]/80 bg-white/75 p-1 w-[50px] sm:w-[52px] shrink-0 gap-1 h-fit shadow-sm">
+                                <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded bg-gradient-to-b from-[#f4e4c1]/60 to-[#e3cba0]/80 overflow-hidden shrink-0 border border-[#c4a481]" data-tooltip={h.name}>
+                                  <img src={getHeroIcon(h.name)} alt={h.name} loading="lazy" decoding="async" class={`w-full h-full object-cover ${getHeroImageClass(h.name)}`} onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                                </div>
+                                {h.pet ? (
+                                  <div class="cursor-help w-6.5 h-6.5 sm:w-7 sm:h-7 rounded bg-white/80 overflow-hidden shrink-0 border border-[#c4a481]/80" data-tooltip={h.pet}>
+                                    <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                                  </div>
+                                ) : (
+                                  <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-dashed border-[#c4a481]/60 shrink-0 bg-[#603813]/5 flex items-center justify-center text-[10px] text-[#603813]/30 select-none">-</div>
+                                )}
+                                <div class="flex gap-0.5 justify-center w-full">
+                                  {[0, 1].map(index => {
+                                    const eq = equips[index];
+                                    if (eq) {
+                                      return (
+                                        <div class="cursor-help w-5 h-5 rounded bg-amber-50/90 overflow-hidden shrink-0 border border-[#c4a481]/80" data-tooltip={eq}>
+                                          <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                                        </div>
+                                      );
+                                    } else {
+                                      return <div class="w-5 h-5 rounded border border-dashed border-[#c4a481]/60 shrink-0 bg-[#603813]/5 flex items-center justify-center text-[8px] text-[#603813]/30 select-none">-</div>;
+                                    }
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <!-- Center: Main Army (Troops flow with grouped Spells + Siege so they never create a 3rd row or 1-icon orphan) -->
+                      <div class="flex-1 min-w-0 w-full flex flex-wrap items-center content-center gap-x-1 sm:gap-x-1.5 gap-y-1.5 self-center">
+                        {variant.troops && variant.troops.map(t => (
+                          <div class="flex flex-col items-center shrink-0">
+                            <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-[#c4a481] shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
+                              <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                            </div>
+                            <span class="text-[10px] font-black text-[#603813]/75 mt-0 leading-none tabular-nums">x{t.count}</span>
+                          </div>
+                        ))}
+
+                        {variant.troops && variant.troops.length <= 10 && ((variant.spells && variant.spells.length > 0) || variant.topSiegeMachine) && (
+                          <div class="basis-full h-0"></div>
+                        )}
+
+                        {((variant.spells && variant.spells.length > 0) || variant.topSiegeMachine) && (
+                          <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                            {variant.spells && variant.spells.map(s => (
+                              <div class="flex flex-col items-center shrink-0">
+                                <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-[#c4a481] shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
+                                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                                </div>
+                                <span class="text-[10px] font-black text-[#603813]/75 mt-0 leading-none tabular-nums">x{s.count}</span>
+                              </div>
+                            ))}
+
+                            {variant.topSiegeMachine && (
+                              <div class="flex flex-col items-center shrink-0">
+                                <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded bg-orange-50 border border-orange-300/80 shadow-sm overflow-hidden" data-tooltip={variant.topSiegeMachine}>
+                                  <img src={getSiegeMachineIcon(variant.topSiegeMachine)} alt={variant.topSiegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                                </div>
+                                <span class="text-[10px] font-black text-[#603813]/75 mt-0 leading-none tabular-nums">x1</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <!-- Right: Dedicated Clan Castle Box (Reinforcements) -->
+                      {((variant.ccTroops && variant.ccTroops.length > 0) || (variant.ccSpells && variant.ccSpells.length > 0)) && (
+                        <div class={ccBoxClasses} title="Clan Castle Reinforcements">
+                          {variant.ccTroops && variant.ccTroops.map(t => (
+                            <div class="flex flex-col items-center shrink-0">
+                              <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-[#c4a481] bg-white overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
+                                <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                              </div>
+                              <span class="text-[9px] font-black text-[#603813]/70 mt-0 leading-none tabular-nums">x{t.count}</span>
+                            </div>
+                          ))}
+                          {variant.ccSpells && variant.ccSpells.map(s => (
+                            <div class="flex flex-col items-center shrink-0">
+                              <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-[#c4a481] bg-white overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
+                                <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                              </div>
+                              <span class="text-[9px] font-black text-[#603813]/70 mt-0 leading-none tabular-nums">x{s.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <!-- Dedicated Players Toggle Footer -->
+                  {variantPlayers.length > 0 && (
+                    <details class="group/players border-t border-[#c4a481]/50 bg-[#f4e4c1]/35 [&_summary::-webkit-details-marker]:hidden">
+                      <summary class="flex items-center justify-between px-3 py-2 cursor-pointer list-none hover:bg-[#f4e4c1]/65 transition-colors select-none">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-[#603813]/80 tabular-nums">
+                          View {variantPlayers.length} {variantPlayers.length === 1 ? 'Player' : 'Players'} Using This Army
+                        </span>
+                        <div class="w-5 h-5 flex items-center justify-center text-[#603813]/60 group-open/players:rotate-180 transition-transform duration-200">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                           </svg>
                         </div>
+                      </summary>
+                      <div class="p-2 border-t border-[#c4a481]/40 bg-white/50 space-y-2 cursor-default font-sans">
+                        {variantPlayers.map(player => (
+                          <PlayerRow player={player} theme="brown" hideArmyTitle={true} />
+                        ))}
                       </div>
-                    </div>
-
-                    {(variant.topHeroes && variant.topHeroes.length > 0 || variant.topSiegeMachine) && (
-                      <div class="mt-2 pt-2 border-t border-[#c4a481]/20 flex flex-wrap gap-3 items-center">
-                        {variant.topHeroes && variant.topHeroes.map(hero => {
-                           const eqList = hero.equipment ? hero.equipment.split(' + ') : [];
-                           return (
-                             <div class="flex items-center gap-1.5 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
-                               <div class="cursor-help overflow-hidden" data-tooltip={hero.name}>
-                                 <img src={getHeroIcon(hero.name)} alt={hero.name} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror={`this.onerror=null;this.src='${placeholderIcon}';`}/>
-                               </div>
-                               {hero.pet && (
-                                 <div class="cursor-help ml-1 overflow-hidden" data-tooltip={hero.pet}>
-                                   <img src={getPetIcon(hero.pet)} alt={hero.pet} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror={`this.onerror=null;this.src='${placeholderIcon}';`}/>
-                                 </div>
-                               )}
-                               {eqList.length > 0 && (
-                                 <div class="flex items-center ml-1 gap-1">
-                                   {eqList.map(eq => (
-                                     <div class="cursor-help overflow-hidden" data-tooltip={eq}>
-                                       <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-8 h-8 object-contain drop-shadow-md border border-[#603813]/10 rounded-lg bg-black/5" onerror={`this.onerror=null;this.src='${placeholderIcon}';`}/>
-                                     </div>
-                                   ))}
-                                 </div>
-                               )}
-                             </div>
-                           );
-                        })}
-                        {variant.topSiegeMachine && (
-                          <div class="flex items-center gap-2 bg-black/5 rounded-xl p-2 border border-[#603813]/10 shadow-sm">
-                            <div class="cursor-help overflow-hidden" data-tooltip={variant.topSiegeMachine}>
-                              <img src={getSiegeMachineIcon(variant.topSiegeMachine)} alt={variant.topSiegeMachine} loading="lazy" decoding="async" class="w-10 h-10 object-contain drop-shadow-md" onerror={`this.onerror=null;this.src='${placeholderIcon}';`}/>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {((variant.troops && variant.troops.length > 0) || (variant.spells && variant.spells.length > 0) || (variant.ccTroops && variant.ccTroops.length > 0) || (variant.ccSpells && variant.ccSpells.length > 0)) && (
-                      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 border-t border-[#c4a481]/20 pt-2">
-                        {((variant.troops && variant.troops.length > 0) || (variant.spells && variant.spells.length > 0)) && (
-                          <div class="flex items-center gap-1 flex-wrap">
-                            {variant.troops && variant.troops.map(t => (
-                              <div class="flex flex-col items-center shrink-0">
-                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
-                                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
-                                </div>
-                                <span class="text-[10px] font-black text-[#603813]/70 mt-0 leading-none">x{t.count}</span>
-                              </div>
-                            ))}
-                            {variant.spells && variant.spells.map(s => (
-                              <div class="flex flex-col items-center shrink-0">
-                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
-                                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
-                                </div>
-                                <span class="text-[10px] font-black text-[#603813]/70 mt-0 leading-none">x{s.count}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {((variant.ccTroops && variant.ccTroops.length > 0) || (variant.ccSpells && variant.ccSpells.length > 0)) && (
-                          <div class="flex items-center gap-x-2 rounded-lg p-1 border shrink-0 bg-white/40 border-[#c4a481] shadow-sm -my-[5px] -ml-1 -mr-1">
-                            {variant.ccTroops && variant.ccTroops.map(t => (
-                              <div class="flex flex-col items-center shrink-0">
-                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
-                                  <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
-                                </div>
-                                <span class="text-[10px] font-black text-[#603813]/60 mt-0 leading-none">x{t.count}</span>
-                              </div>
-                            ))}
-                            {variant.ccSpells && variant.ccSpells.map(s => (
-                              <div class="flex flex-col items-center shrink-0">
-                                <div class="w-10 h-10 rounded border border-[#603813]/20 shadow-sm bg-white/40 overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
-                                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
-                                </div>
-                                <span class="text-[10px] font-black text-[#603813]/60 mt-0 leading-none">x{s.count}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </summary>
-
-                  {variantPlayers.length > 0 && (
-                    <div class="p-3 border-t border-[#c4a481]/30 bg-white/50 rounded-b-lg space-y-2 cursor-default font-sans">
-                      {variantPlayers.map(player => (
-                        <PlayerRow player={player} theme="brown" />
-                      ))}
-                    </div>
+                    </details>
                   )}
-                </details>
+                </div>
               );
             })}
           </div>

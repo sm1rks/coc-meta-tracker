@@ -1,25 +1,34 @@
 ---
 import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon, placeholderIcon } from '../utils/iconUtils';
+import { getCoreArmyName } from '../utils/dataUtils';
 import type { PlayerData } from '../types';
 
 export interface Props {
   player: PlayerData;
   theme?: 'blue' | 'brown';
+  hideArmyTitle?: boolean;
 }
 
-const { player, theme = 'blue' } = Astro.props;
+const { player, theme = 'blue', hideArmyTitle = false } = Astro.props;
 
-const containerClasses = theme === 'blue' 
-  ? 'flex flex-col md:flex-row items-center justify-between group gap-2 md:gap-4 bg-gray-50 hover:bg-white p-3 rounded-xl border-2 border-transparent hover:border-blue-200 hover:shadow-md transition-all'
-  : 'flex flex-col md:flex-row items-center justify-between group/player gap-2 md:gap-4 bg-white p-2 sm:p-3 rounded-xl border border-[#c4a481]/50 hover:border-[#603813]/30 hover:shadow-md transition-all';
+const HERO_ORDER = [
+  "Barbarian King",
+  "Archer Queen",
+  "Grand Warden",
+  "Royal Champion",
+  "Minion Prince",
+  "Dragon Duke"
+];
 
-const trophiesBoxClasses = theme === 'blue'
-  ? 'inline-flex items-center gap-1 text-xs font-black text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-300 w-fit'
-  : 'inline-flex items-center gap-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/50 w-fit';
+const sortedHeroes = [...(player.heroes || [])].sort((a, b) => {
+  const idxA = HERO_ORDER.indexOf(a.hero);
+  const idxB = HERO_ORDER.indexOf(b.hero);
+  return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+});
 
 const getHeroImageClass = (hero: string) => {
   if (hero === 'Minion Prince') {
-    return 'scale-100 object-top'; // <-- EDIT THIS LINE to adjust Minion Prince scale & position
+    return 'scale-100 object-top';
   }
   if (hero === 'Grand Warden' || hero === 'Barbarian King' || hero === 'Archer Queen') {
     return 'scale-110 object-top';
@@ -27,9 +36,9 @@ const getHeroImageClass = (hero: string) => {
   return 'scale-110 object-center';
 };
 
-const getRankBadgeClasses = (rank: number, theme: 'blue' | 'brown') => {
+const getRankBadgeClasses = (rank: number) => {
   if (rank === 1) {
-    return 'bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 border-yellow-500 text-yellow-950 shadow-md scale-110 ring-2 ring-yellow-400/20';
+    return 'bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-500 border-yellow-500 text-yellow-950 shadow-md scale-105 ring-2 ring-yellow-400/20';
   }
   if (rank === 2) {
     return 'bg-gradient-to-br from-slate-100 via-slate-300 to-slate-400 border-slate-400 text-slate-900 shadow-md scale-105';
@@ -37,55 +46,82 @@ const getRankBadgeClasses = (rank: number, theme: 'blue' | 'brown') => {
   if (rank === 3) {
     return 'bg-gradient-to-br from-[#d9a05b] via-[#a76f30] to-[#734215] border-[#5e320f] text-white shadow-md scale-105';
   }
-  return theme === 'blue' 
-    ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm' 
-    : 'bg-[#f4e4c1]/60 border-[#c4a481]/50 text-[#603813] shadow-sm';
+  return 'bg-[#f4e4c1] border-[#c4a481] text-[#603813] shadow-sm';
 };
 
 const rankTextClass = player.rank < 10 ? 'text-sm' : player.rank < 100 ? 'text-xs' : 'text-[10px]';
 
 const ccUnitsCount = (player.ccTroops?.length || 0) + (player.ccSpells?.length || 0);
 
-// CC sizing & upward expansion logic:
-// - Up to 8 units (1-2 rows): uniform w-[148px] sm:w-[150px] h-[84px] sm:h-[86px]
-// - 9-12 units (3 rows): expands upwards by ~32px into the empty name/header bar (sm:-mt-8 h-[118px] sm:h-[120px]), preventing player card from growing
-// - 13+ units (4+ rows): expands 1 row up (sm:-mt-8), and remaining rows grow down (min-h-[152px] sm:min-h-[155px])
-let ccBoxClasses = "shrink-0 flex flex-wrap items-center justify-center content-center gap-1 rounded-lg p-1.5 border self-center w-[148px] sm:w-[150px]";
+let ccBoxClasses = "shrink-0 flex flex-wrap items-center justify-center content-center gap-1 rounded-lg p-1.5 border border-[#c4a481] bg-white/65 shadow-sm self-center w-[148px] sm:w-[150px]";
 
 if (ccUnitsCount <= 8) {
-  ccBoxClasses += " h-[84px] sm:h-[86px]";
-} else if (ccUnitsCount <= 12) {
-  ccBoxClasses += " h-[118px] sm:h-[120px] sm:-mt-8 z-10";
+  ccBoxClasses += " min-h-[84px] sm:min-h-[86px]";
 } else {
-  ccBoxClasses += " min-h-[152px] sm:min-h-[155px] sm:-mt-8 z-10";
+  ccBoxClasses += " min-h-[112px]";
 }
+
+const coreArmyName = player.armyType ? getCoreArmyName(player.armyType) : '';
+
+const searchIndex = [
+  player.name,
+  player.clanName,
+  player.tag,
+  player.armyType,
+  coreArmyName,
+  player.siegeMachine,
+  ...(player.superTroops || []),
+  ...(player.heroes || []).flatMap(h => [h.hero, h.combo, h.pet]),
+  ...(player.troops || []).map(t => t.name),
+  ...(player.spells || []).map(s => s.name),
+  ...(player.ccTroops || []).map(t => t.name),
+  ...(player.ccSpells || []).map(s => s.name),
+]
+  .filter(Boolean)
+  .join(' | ')
+  .toLowerCase();
 ---
 
 <div 
-  class={`player-row ${containerClasses}`} 
+  class="player-row flex flex-col md:flex-row items-center justify-between group/player gap-2.5 md:gap-4 bg-[#fbf6ea] hover:bg-white p-2.5 sm:p-3 rounded-xl border border-[#c4a481]/70 hover:border-[#603813]/40 shadow-sm hover:shadow-md transition-all" 
   data-name={player.name.toLowerCase()}
   data-clan={player.clanName ? player.clanName.toLowerCase() : ''}
   data-tag={player.tag ? player.tag.toLowerCase() : ''}
+  data-army={player.armyType ? player.armyType.toLowerCase() : ''}
+  data-core-army={coreArmyName.toLowerCase()}
+  data-search={searchIndex}
 >
   <!-- Rank & Player Info -->
-  <div class="flex flex-col justify-center w-full md:w-[175px] shrink-0 min-w-0">
-    <!-- Top Row: Rank Badge + Trophies -->
-    <div class="flex items-center gap-1.5 mb-1">
-      <div class={`w-7 h-7 shrink-0 flex items-center justify-center rounded-lg font-black ${rankTextClass} border ${getRankBadgeClasses(player.rank, theme)}`}>
+  <div class="flex flex-col justify-center w-full md:w-[195px] shrink-0 min-w-0">
+    <!-- Top Row: Rank Badge + Trophies + Copy Button -->
+    <div class="flex items-center flex-wrap gap-1.5 mb-1">
+      <div class={`w-7 h-7 shrink-0 flex items-center justify-center rounded-lg font-black tabular-nums ${rankTextClass} border ${getRankBadgeClasses(player.rank)}`}>
         {player.rank}
       </div>
-      <div class={trophiesBoxClasses}>
+      <div class="inline-flex items-center gap-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/70 w-fit tabular-nums">
         <span>{player.trophies}</span>
         <span class="text-[10px]">🏆</span>
       </div>
+      {player.armyLink && (
+        <a 
+          href={player.armyLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          onclick={`navigator.clipboard.writeText('${player.armyLink}'); this.innerText = 'COPIED!'; setTimeout(() => { this.innerText = 'COPY'; }, 1500);`}
+          class="bg-amber-100 hover:bg-amber-200 text-[#603813] text-[10px] font-black px-2 py-0.5 rounded cursor-pointer border border-[#c4a481] shadow-2xs transition-colors shrink-0"
+          title="Open & Copy Army Link"
+        >
+          COPY
+        </a>
+      )}
     </div>
     
-    <!-- Player Name (Full Width, Never Truncated) -->
-    <div class="font-black text-base text-gray-800 truncate leading-snug" title={player.name}>{player.name}</div>
+    <!-- Player Name -->
+    <div class="font-black text-sm sm:text-base text-[#4a2e0f] truncate leading-snug" title={player.name}>{player.name}</div>
     
     <!-- Clan Info -->
     {player.clanName && (
-      <div class={`flex items-center gap-1 text-xs font-bold truncate mt-0.5 ${theme === 'blue' ? 'text-blue-600' : 'text-[#603813]/80'}`} title={player.clanName}>
+      <div class="flex items-center gap-1 text-xs font-bold text-[#603813]/75 truncate mt-0.5" title={player.clanName}>
         {player.clanBadge && (
           <img 
             src={player.clanBadge} 
@@ -99,46 +135,37 @@ if (ccUnitsCount <= 8) {
         <span class="truncate">{player.clanName}</span>
       </div>
     )}
+
+    <!-- Army Archetype Badge (shown on Top 200 page) -->
+    {!hideArmyTitle && player.armyType && (
+      <div class="mt-1.5 inline-flex items-center px-2 py-0.5 rounded-md bg-[#603813]/10 border border-[#c4a481]/80 text-[#4a2e0f] text-[10px] font-black uppercase tracking-tight leading-snug w-fit max-w-full">
+        <span class="wrap-break-word">{player.armyType}</span>
+      </div>
+    )}
   </div>
   
   <!-- Army Composition -->
-  <div class="flex-1 min-w-0 w-full md:w-auto bg-gray-100/50 rounded-lg p-2 md:px-3 md:py-2 border border-gray-200/50 relative group/army">
-    <div class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-0.5 md:hidden">Army</div>
-    <div class="flex items-center gap-2">
-      <div class="font-black text-sm text-gray-700">{player.armyType}</div>
-      {player.armyLink && (
-        <a 
-          href={player.armyLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          onclick={`navigator.clipboard.writeText('${player.armyLink}'); this.innerText = 'COPIED!'; setTimeout(() => { this.innerText = 'COPY ARMY'; }, 1500);`}
-          class="bg-blue-100 hover:bg-blue-200 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer border border-blue-200 transition-colors"
-          title="Open & Copy Army Link"
-        >
-          COPY ARMY
-        </a>
-      )}
-    </div>
-    <div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-2 items-center">
-      <!-- Left: Heroes vertical columns (side by side, max 4) -->
-      {player.heroes && player.heroes.length > 0 && (
+  <div class="flex-1 min-w-0 w-full md:w-auto rounded-lg p-2 md:px-3 md:py-2 border bg-[#f4e4c1]/55 border-[#c4a481]/60 relative group/army">
+    <div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-center">
+      <!-- Left: Heroes vertical columns (side by side, max 4, canonical order) -->
+      {sortedHeroes.length > 0 && (
         <div class="flex gap-1 shrink-0 self-center">
-          {player.heroes.map(h => {
+          {sortedHeroes.map(h => {
             const equips = h.combo ? h.combo.split(' + ') : [];
             return (
-              <div class={`flex flex-col items-center justify-start rounded-lg border p-1 w-[50px] sm:w-[52px] shrink-0 gap-1 h-fit ${theme === 'blue' ? 'bg-white border-gray-200 shadow-sm' : 'bg-white/40 border-[#c4a481]/50 shadow-sm'}`}>
+              <div class="flex flex-col items-center justify-start rounded-lg border p-1 w-[50px] sm:w-[52px] shrink-0 gap-1 h-fit bg-white/75 border-[#c4a481]/80 shadow-sm">
                 {/* Hero portrait */}
-                <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded bg-gradient-to-b from-gray-100 to-gray-300 overflow-hidden shrink-0 border border-gray-200" data-tooltip={h.hero}>
+                <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded overflow-hidden shrink-0 border bg-gradient-to-b from-[#f4e4c1]/60 to-[#e3cba0]/80 border-[#c4a481]" data-tooltip={h.hero}>
                   <img src={getHeroIcon(h.hero)} alt={h.hero} loading="lazy" decoding="async" class={`w-full h-full object-cover ${getHeroImageClass(h.hero)}`} onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                 </div>
                 
                 {/* Pet Icon */}
                 {h.pet ? (
-                  <div class="cursor-help w-6.5 h-6.5 sm:w-7 sm:h-7 rounded bg-gradient-to-b from-purple-50 to-purple-200 overflow-hidden shrink-0 border border-gray-200" data-tooltip={h.pet}>
+                  <div class="cursor-help w-6.5 h-6.5 sm:w-7 sm:h-7 rounded overflow-hidden shrink-0 border bg-white/80 border-[#c4a481]/80" data-tooltip={h.pet}>
                     <img src={getPetIcon(h.pet)} alt={h.pet} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                   </div>
                 ) : (
-                  <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-dashed border-gray-300/60 shrink-0 bg-gray-50/20 flex items-center justify-center text-[10px] text-gray-300 select-none">-</div>
+                  <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-dashed shrink-0 flex items-center justify-center text-[10px] select-none border-[#c4a481]/60 bg-[#603813]/5 text-[#603813]/30">-</div>
                 )}
                 
                 {/* Equipments (Side by Side) */}
@@ -147,12 +174,12 @@ if (ccUnitsCount <= 8) {
                     const eq = equips[index];
                     if (eq) {
                       return (
-                        <div class="cursor-help w-5 h-5 rounded bg-gradient-to-b from-amber-50 to-amber-100 overflow-hidden shrink-0 border border-gray-200" data-tooltip={eq}>
+                        <div class="cursor-help w-5 h-5 rounded overflow-hidden shrink-0 border bg-amber-50/90 border-[#c4a481]/80" data-tooltip={eq}>
                           <img src={getEqIcon(eq)} alt={eq} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
                         </div>
                       );
                     } else {
-                      return <div class="w-5 h-5 rounded border border-dashed border-gray-300/60 shrink-0 bg-gray-50/20 flex items-center justify-center text-[8px] text-gray-300 select-none">-</div>;
+                      return <div class="w-5 h-5 rounded border border-dashed shrink-0 flex items-center justify-center text-[8px] select-none border-[#c4a481]/60 bg-[#603813]/5 text-[#603813]/30">-</div>;
                     }
                   })}
                 </div>
@@ -162,56 +189,64 @@ if (ccUnitsCount <= 8) {
         </div>
       )}
       
-      <!-- Center: Main Army (Troops, Spells, and Siege flowing naturally) -->
-      <div class="flex-1 min-w-0 w-full flex flex-wrap items-center gap-1 sm:gap-1.5 self-center">
+      <!-- Center: Main Army -->
+      <div class="flex-1 min-w-0 w-full flex flex-wrap items-center content-center gap-x-1 sm:gap-x-1.5 gap-y-1.5 self-center">
         {/* Main Troops */}
         {player.troops && player.troops.map(t => (
           <div class="flex flex-col items-center shrink-0">
-            <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
+            <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-[#c4a481] shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={t.name}>
               <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
             </div>
-            <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{t.count}</span>
+            <span class="text-[10px] font-black mt-0 leading-none tabular-nums text-[#603813]/75">x{t.count}</span>
           </div>
         ))}
 
-        {/* Spells */}
-        {player.spells && player.spells.map(s => (
-          <div class="flex flex-col items-center shrink-0">
-            <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-gray-200 shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
-              <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
-            </div>
-            <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x{s.count}</span>
-          </div>
-        ))}
+        {/* Force Spells + Siege onto Row 2 when Troops fit on Row 1 (<=10 troops), otherwise let them share Row 2 with wrapped troops */}
+        {player.troops && player.troops.length <= 10 && ((player.spells && player.spells.length > 0) || player.siegeMachine) && (
+          <div class="basis-full h-0"></div>
+        )}
 
-        {/* Siege Machine */}
-        {player.siegeMachine && (
-          <div class="flex flex-col items-center shrink-0">
-            <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded bg-orange-100 border border-orange-200 shadow-sm overflow-hidden" data-tooltip={player.siegeMachine}>
-              <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
-            </div>
-            <span class="text-[10px] font-black text-gray-500 mt-0 leading-none">x1</span>
+        {/* Spells + Siege Machine grouped together */}
+        {((player.spells && player.spells.length > 0) || player.siegeMachine) && (
+          <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
+            {player.spells && player.spells.map(s => (
+              <div class="flex flex-col items-center shrink-0">
+                <div class="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border border-[#c4a481] shadow-sm bg-white overflow-hidden cursor-help shrink-0" data-tooltip={s.name}>
+                  <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                </div>
+                <span class="text-[10px] font-black mt-0 leading-none tabular-nums text-[#603813]/75">x{s.count}</span>
+              </div>
+            ))}
+
+            {player.siegeMachine && (
+              <div class="flex flex-col items-center shrink-0">
+                <div class="cursor-help w-7 h-7 sm:w-7.5 sm:h-7.5 rounded border shadow-sm overflow-hidden bg-orange-50 border-orange-300/80" data-tooltip={player.siegeMachine}>
+                  <img src={getSiegeMachineIcon(player.siegeMachine)} alt={player.siegeMachine} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                </div>
+                <span class="text-[10px] font-black mt-0 leading-none tabular-nums text-[#603813]/75">x1</span>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <!-- Right: Dedicated Clan Castle Box (Reinforcements) -->
       {((player.ccTroops && player.ccTroops.length > 0) || (player.ccSpells && player.ccSpells.length > 0)) && (
-        <div class={`${ccBoxClasses} ${theme === 'blue' ? 'bg-orange-50/50 border-orange-200/80 shadow-sm' : 'bg-white/50 border-[#c4a481] shadow-sm'}`} title="Clan Castle Reinforcements">
+        <div class={ccBoxClasses} title="Clan Castle Reinforcements">
           {player.ccTroops && player.ccTroops.map(t => (
             <div class="flex flex-col items-center shrink-0">
-              <div class={`w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${t.name} (CC)`}>
+              <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-[#c4a481] bg-white overflow-hidden cursor-help shrink-0" data-tooltip={`${t.name} (CC)`}>
                 <img src={getTroopIcon(t.name)} alt={t.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
               </div>
-              <span class={`text-[9px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{t.count}</span>
+              <span class="text-[9px] font-black mt-0 leading-none tabular-nums text-[#603813]/70">x{t.count}</span>
             </div>
           ))}
           {player.ccSpells && player.ccSpells.map(s => (
             <div class="flex flex-col items-center shrink-0">
-              <div class={`w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border overflow-hidden cursor-help shrink-0 ${theme === 'blue' ? 'border-orange-200 bg-white' : 'border-[#603813]/20 bg-white'}`} data-tooltip={`${s.name} (CC)`}>
+              <div class="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded border border-[#c4a481] bg-white overflow-hidden cursor-help shrink-0" data-tooltip={`${s.name} (CC)`}>
                 <img src={getSpellIcon(s.name)} alt={s.name} loading="lazy" decoding="async" class="w-full h-full object-cover scale-110" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
               </div>
-              <span class={`text-[9px] font-black mt-0 leading-none ${theme === 'blue' ? 'text-orange-700/70' : 'text-[#603813]/60'}`}>x{s.count}</span>
+              <span class="text-[9px] font-black mt-0 leading-none tabular-nums text-[#603813]/70">x{s.count}</span>
             </div>
           ))}
         </div>
