@@ -86,7 +86,8 @@ export const TroopMap: Record<number, string> = {
   "177": "Meteor Golem",
   "185": "Elephant Rider",
   "188": "Sky Wagon",
-  "190": "Yeti Undertaker"
+  "190": "Yeti Undertaker",
+  "194": "Totem Thrower"
 };
 
 export const SpellMap: Record<number, string> = {
