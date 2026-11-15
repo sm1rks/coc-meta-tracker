@@ -18,15 +18,12 @@ const getHeroPets = (heroName: string) => pets.filter(p => p.hero === heroName).
 
 const superTroops = metaData?.superTroops || [];
 const siegeMachines = metaData?.siegeMachines || [];
-
-let lastUpdated = '';
-if (metaData?.lastUpdated) {
-  lastUpdated = metaData.lastUpdated;
-}
+const lastUpdated = metaData?.lastUpdated || '';
 ---
 
 <Layout 
-  title="Stats Meta - Clash Tracker" 
+  title="Stats Meta - Clash Tracker"
+  description="Legend League Global Top 200 hero equipment combos, pet pairings, super troop boosts, and siege machine usage rates."
   playersAnalyzed={metaData?.playersAnalyzed || 0}
   attacksAnalyzed={metaData?.attacksAnalyzed || 0}
   lastUpdated={lastUpdated}

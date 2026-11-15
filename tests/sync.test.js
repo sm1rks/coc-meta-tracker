@@ -236,3 +236,35 @@ test('Sync Logic: Auto-discovery resolves unmapped equipment from player profile
   assert.strictEqual(mockEquipmentMap[61], 'Portal Pendant');
 });
 
+test('Data Logic: getCoreArmyName strips opener prefixes and classifies Fireball Value', async () => {
+  const { getCoreArmyName } = await import('../src/utils/dataUtils.ts');
+
+  assert.strictEqual(getCoreArmyName('Thrower'), 'Thrower');
+  assert.strictEqual(getCoreArmyName('Queen Charge Super Bowler'), 'Super Bowler');
+  assert.strictEqual(getCoreArmyName('Fireball Rocket Backpack Rocket Balloon & Super Minion'), 'Fireball Value');
+  assert.strictEqual(getCoreArmyName('Fireball Ruin Witch'), 'Fireball Value');
+  assert.strictEqual(getCoreArmyName('Fireball Thrower'), 'Thrower');
+  assert.strictEqual(getCoreArmyName('Dragon Duke Charge Dragon Rider'), 'Dragon Rider');
+  assert.strictEqual(getCoreArmyName('Flame Blower Hydra'), 'Hydra');
+  assert.strictEqual(getCoreArmyName('Fireball'), 'Fireball Value');
+});
+
+test('Icon Utils: resolves standard asset paths for heroes, pets, troops, spells, and sieges', async () => {
+  const { getHeroIcon, getEqIcon, getPetIcon, getTroopIcon, getSpellIcon, getSiegeMachineIcon } = await import('../src/utils/iconUtils.ts');
+
+  assert.ok(getHeroIcon('Barbarian King').endsWith('icons/Icon_HV_Hero_BarbarianKing.webp'));
+  assert.ok(getEqIcon('Barbarian Puppet').endsWith('icons/Icon_HV_Equipment_BarbarianPuppet.webp'));
+  assert.ok(getPetIcon('Spirit Fox').endsWith('icons/Icon_HV_Hero_Pets_Spirit_Fox.webp'));
+  assert.ok(getTroopIcon('Root Rider').endsWith('icons/Icon_HV_Root_Rider.webp'));
+  assert.ok(getSpellIcon('Rage Spell').endsWith('icons/Icon_HV_Spell_Rage.webp'));
+  assert.ok(getSiegeMachineIcon('Troop Launcher').endsWith('icons/Icon_HV_Siege_Machine_Troop_Launcher.webp'));
+});
+
+test('Data Logic: Equipment ID 0 (Barbarian Puppet) is not dropped as falsy', async () => {
+  const { EquipmentMap } = await import('../src/data/equipmentMap.ts');
+  const eq2 = 0;
+  const resolved = eq2 !== null && eq2 !== undefined ? EquipmentMap[eq2] : null;
+  assert.strictEqual(resolved, 'Barbarian Puppet');
+});
+
+

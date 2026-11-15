@@ -141,7 +141,8 @@ async function ensurePlaceholderExists(): Promise<void> {
 function isPlaceholder(filePath: string): boolean {
   if (!fs.existsSync(filePath) || !fs.existsSync(placeholderPath)) return false;
   try {
-    return fs.statSync(filePath).size === fs.statSync(placeholderPath).size;
+    if (fs.statSync(filePath).size !== fs.statSync(placeholderPath).size) return false;
+    return fs.readFileSync(filePath).equals(fs.readFileSync(placeholderPath));
   } catch {
     return false;
   }
@@ -276,7 +277,7 @@ export async function syncAll(): Promise<void> {
   }
 
   // Also verify icons for any preserved auto-discovered equipment
-  for (const [idStr, eqName] of Object.entries(currentEquipmentMapEntries)) {
+  for (const eqName of Object.values(currentEquipmentMapEntries)) {
     const cleanName = eqName.replace(/\s+/g, '');
     const iconFilename = `Icon_HV_Equipment_${cleanName}.webp`;
     const iconPath = path.join(iconsDir, iconFilename);

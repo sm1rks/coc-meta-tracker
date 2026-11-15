@@ -181,7 +181,7 @@ async function autoDiscoverEquipment(
       if (!matchedName && unknownEquipments.length === 1) {
         matchedName = unknownEquipments[0].name;
       } else if (!matchedName && unknownEquipments.length > 1) {
-        matchedName = unknownEquipments[0].name;
+        console.warn(`Ambiguous unknown equipment for ID ${eqId} on ${heroName}: [${unknownEquipments.map((e: any) => e.name).join(', ')}]`);
       }
 
       if (matchedName) {
@@ -531,7 +531,7 @@ async function fetchMeta() {
                   heroesDeployed.add(heroName);
 
                   const eq1Name = EquipmentMap[eq1];
-                  const eq2Name = eq2 ? EquipmentMap[eq2] : null;
+                  const eq2Name = eq2 !== null && eq2 !== undefined ? EquipmentMap[eq2] : null;
 
                   if (eq1 !== null && eq1 !== undefined && !eq1Name) {
                     console.log(`Unmapped Equipment ID found: ${eq1} on ${heroName}`);
@@ -657,7 +657,7 @@ async function fetchMeta() {
               .map(([name, count]) => ({
                 name,
                 count,
-                space: count * (TROOP_HOUSING_SPACES[name] || 1)
+                space: count * (TROOP_HOUSING_SPACES[name] ?? 1)
               }))
               .sort((a, b) => b.space - a.space);
 
@@ -860,16 +860,16 @@ async function fetchMeta() {
               .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
               .map(([name, count]) => ({ name, count: count as number }))
               .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
-                const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] || 1);
-                const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] || 1);
+                const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] ?? 1);
+                const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] ?? 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : [],
             spells: bestAttack ? Object.entries(bestAttack.mainSpellCounts as Record<string, number>)
               .map(([name, count]) => ({ name, count: count as number }))
               .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
-                const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] || 1);
-                const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] || 1);
+                const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] ?? 1);
+                const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] ?? 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : [],
@@ -877,16 +877,16 @@ async function fetchMeta() {
               .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
               .map(([name, count]) => ({ name, count: count as number }))
               .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
-                const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] || 1);
-                const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] || 1);
+                const spaceA = a.count * (TROOP_HOUSING_SPACES[a.name] ?? 1);
+                const spaceB = b.count * (TROOP_HOUSING_SPACES[b.name] ?? 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : [],
             ccSpells: bestAttack ? Object.entries(bestAttack.ccSpellCounts as Record<string, number>)
               .map(([name, count]) => ({ name, count: count as number }))
               .sort((a: { name: string; count: number }, b: { name: string; count: number }) => {
-                const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] || 1);
-                const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] || 1);
+                const spaceA = a.count * (SPELL_HOUSING_SPACES[a.name] ?? 1);
+                const spaceB = b.count * (SPELL_HOUSING_SPACES[b.name] ?? 1);
                 if (spaceB !== spaceA) return spaceB - spaceA;
                 return b.count - a.count;
               }) : []

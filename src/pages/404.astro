@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getMetaData } from '../utils/dataUtils';
+
+const metaData = getMetaData();
+const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+---
+
+<Layout
+  title="Page Not Found - Clash Tracker"
+  description="The requested Clash Meta Tracker page could not be found."
+  playersAnalyzed={metaData?.playersAnalyzed || 0}
+  attacksAnalyzed={metaData?.attacksAnalyzed || 0}
+  lastUpdated={metaData?.lastUpdated || ''}
+>
+  <div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden max-w-xl mx-auto my-8">
+    <div class="bg-gradient-to-r from-red-600 to-orange-600 p-4 border-b-4 border-black/15 text-center">
+      <h2 class="text-2xl font-black text-white drop-shadow-md tracking-tight uppercase">404 — Page Not Found</h2>
+    </div>
+    <div class="bg-[#f4e4c1] p-6 text-center space-y-4">
+      <p class="text-sm font-bold text-[#4a2e0f]">
+        That battle log or tracker page doesn't exist. Jump back into the current Legend League meta:
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href={basePath} class="px-4 py-2 rounded-xl bg-coc-gold hover:bg-amber-400 text-[#4a2e0f] font-black text-xs uppercase tracking-wider border border-[#c4a481] shadow-sm transition-colors">
+          Stats Overview
+        </a>
+        <a href={`${basePath}armies/`} class="px-4 py-2 rounded-xl bg-white/80 hover:bg-white text-[#4a2e0f] font-black text-xs uppercase tracking-wider border border-[#c4a481] shadow-sm transition-colors">
+          Top Armies
+        </a>
+        <a href={`${basePath}players/`} class="px-4 py-2 rounded-xl bg-white/80 hover:bg-white text-[#4a2e0f] font-black text-xs uppercase tracking-wider border border-[#c4a481] shadow-sm transition-colors">
+          Top 200 Players
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -4,25 +4,34 @@ import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title?: string;
+  description?: string;
   playersAnalyzed?: number;
   attacksAnalyzed?: number;
   lastUpdated?: string;
 }
 
-const { title = "Clash Meta Tracker - Legends", playersAnalyzed = 0, attacksAnalyzed = 0, lastUpdated = '' } = Astro.props;
+const {
+  title = "Clash Meta Tracker - Legends",
+  description = "Clash of Clans Legend League Global Top 200 army composition, pet choices, and hero equipment real-time statistics tracker.",
+  playersAnalyzed = 0,
+  attacksAnalyzed = 0,
+  lastUpdated = '',
+} = Astro.props;
 
 const currentPath = Astro.url.pathname;
+const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
 const navLinks = [
-  { href: "/", label: "Stats" },
-  { href: "/armies", label: "Armies" },
-  { href: "/players", label: "Top 200" },
+  { href: `${basePath}`, label: "Stats" },
+  { href: `${basePath}armies/`, label: "Armies" },
+  { href: `${basePath}players/`, label: "Top 200" },
 ];
-const basePath = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
-const pageDescription = "Clash of Clans Legend League Global Top 200 army composition, pet choices, and hero equipment real-time statistics tracker.";
+
 const siteOrigin = Astro.site ? Astro.site.origin : 'https://sm1rks.github.io';
 const canonicalUrl = new URL(Astro.url.pathname, siteOrigin).href;
 const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, siteOrigin).href;
+const placeholderIconUrl = `${basePath}icons/placeholder.webp`;
+const normalizedCurrent = currentPath.replace(/\/$/, '') || '/';
 ---
 
 <html lang="en">
@@ -30,7 +39,7 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-    <meta name="description" content={pageDescription} />
+    <meta name="description" content={description} />
     <meta name="theme-color" content="#2c3e50" />
     <link rel="canonical" href={canonicalUrl} />
 
@@ -39,19 +48,16 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
     <meta property="og:site_name" content="Clash Meta Tracker" />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={pageDescription} />
+    <meta property="og:description" content={description} />
     <meta property="og:image" content={socialImageUrl} />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:url" content={canonicalUrl} />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={socialImageUrl} />
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
     <link rel="icon" type="image/svg+xml" href={`${basePath}favicon.svg`} />
     <link rel="alternate icon" type="image/x-icon" href={`${basePath}favicon.ico`} />
     <link rel="sitemap" href={`${basePath}sitemap-index.xml`} />
@@ -59,25 +65,47 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
     <ClientRouter />
+    <script is:inline define:vars={{ placeholderIconUrl }}>
+      if (!window.__cocImgFallbackInit) {
+        window.__cocImgFallbackInit = true;
+        document.addEventListener('error', function (e) {
+          var img = e.target;
+          if (!img || img.tagName !== 'IMG' || img.dataset.fallbackApplied) return;
+          img.dataset.fallbackApplied = '1';
+          if (img.dataset.hideOnError === 'true') {
+            img.style.display = 'none';
+          } else {
+            img.src = placeholderIconUrl;
+          }
+        }, true);
+      }
+    </script>
   </head>
   <body class="min-h-screen bg-coc-bg relative">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-coc-gold focus:text-[#4a2e0f] focus:font-black focus:shadow-lg"
+    >
+      Skip to main content
+    </a>
+
     <!-- Vibrant decorative background -->
-    <div class="fixed inset-0 bg-gradient-to-br from-coc-blue/20 to-coc-gold/10 -z-10"></div>
+    <div class="fixed inset-0 bg-gradient-to-br from-coc-blue/20 to-coc-gold/10 -z-10" aria-hidden="true"></div>
     
     <header class="bg-gradient-to-b from-coc-dark to-slate-800 border-b-8 border-coc-gold shadow-2xl relative overflow-hidden">
-      <div class="absolute -right-20 -top-20 w-64 h-64 bg-coc-gold/20 rounded-full blur-3xl"></div>
-      <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-coc-blue/20 rounded-full blur-3xl"></div>
+      <div class="absolute -right-20 -top-20 w-64 h-64 bg-coc-gold/20 rounded-full blur-3xl" aria-hidden="true"></div>
+      <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-coc-blue/20 rounded-full blur-3xl" aria-hidden="true"></div>
       
       <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10 p-6 pb-4">
         <div class="flex items-center gap-4 md:gap-6">
-          <div class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-coc-gold to-yellow-300 rounded-2xl shadow-inner border-4 border-white/20 flex items-center justify-center transform -rotate-6 transition-transform hover:rotate-0 shrink-0">
+          <div class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-coc-gold to-yellow-300 rounded-2xl shadow-inner border-4 border-white/20 flex items-center justify-center transform -rotate-6 transition-transform hover:rotate-0 motion-reduce:transition-none motion-reduce:transform-none shrink-0">
             <span class="text-3xl md:text-4xl" role="img" aria-label="Shield">🛡️</span>
           </div>
           <div>
             <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-coc-gold to-yellow-200 drop-shadow-sm tracking-tight m-0">
               META TRACKER
             </h1>
-            <div class="text-coc-panel/80 font-bold tracking-widest text-[10px] md:text-sm mt-0.5 md:mt-1 uppercase">Legend League • Season Top 200</div>
+            <div class="text-coc-panel/90 font-bold tracking-widest text-[10px] md:text-sm mt-0.5 md:mt-1 uppercase">Legend League • Season Top 200</div>
           </div>
         </div>
         
@@ -86,17 +114,17 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
             <div class="flex gap-4 md:gap-6 items-center justify-center">
               <div>
                 <div class="text-coc-gold font-black text-2xl md:text-3xl leading-none tabular-nums">{playersAnalyzed}</div>
-                <div class="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-1">Players Analyzed</div>
+                <div class="text-white/80 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-1">Players Analyzed</div>
               </div>
-              <div class="w-px bg-white/10 h-8 md:h-10"></div>
+              <div class="w-px bg-white/10 h-8 md:h-10" aria-hidden="true"></div>
               <div>
                 <div class="text-coc-gold font-black text-2xl md:text-3xl leading-none tabular-nums">{attacksAnalyzed}</div>
-                <div class="text-white/70 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-1">Attacks Analyzed</div>
+                <div class="text-white/80 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mt-1">Attacks Analyzed</div>
               </div>
             </div>
             {lastUpdated && (
-              <div class="mt-3 pt-2 border-t border-white/10 text-white/40 text-[9px] font-mono uppercase tracking-widest" id="layoutLastUpdated" data-timestamp={lastUpdated}>
-                Updated: {lastUpdated}
+              <div class="mt-3 pt-2 border-t border-white/10 text-white/75 text-[9px] font-mono uppercase tracking-widest">
+                Updated: <time id="layoutLastUpdated" datetime={lastUpdated} data-timestamp={lastUpdated}>{lastUpdated}</time>
               </div>
             )}
           </div>
@@ -104,20 +132,19 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
       </div>
 
       <!-- Navigation Bar -->
-      <nav class="max-w-6xl mx-auto px-6 pb-0 flex flex-wrap gap-2 md:gap-3 justify-center md:justify-start relative z-10">
+      <nav aria-label="Primary" class="max-w-6xl mx-auto px-6 pb-0 flex flex-wrap gap-2 md:gap-3 justify-center md:justify-start relative z-10">
         {navLinks.map((link) => {
-          const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-          const resolvedHref = base + (link.href === '/' ? '' : link.href) || '/';
-          const normalizedPath = currentPath.replace(/\/$/, '') || '/';
-          const isActive = normalizedPath === resolvedHref || (link.href !== '/' && normalizedPath.startsWith(resolvedHref));
+          const normalizedTarget = link.href.replace(/\/$/, '') || '/';
+          const isActive = normalizedCurrent === normalizedTarget;
           return (
             <a 
-              href={resolvedHref}
+              href={link.href}
+              aria-current={isActive ? 'page' : undefined}
               data-astro-prefetch="hover"
-              class={`px-5 md:px-6 py-2.5 md:py-3 font-black uppercase tracking-wider text-xs md:text-sm rounded-t-xl transition-all duration-200 ${
+              class={`px-5 md:px-6 py-2.5 md:py-3 font-black uppercase tracking-wider text-xs md:text-sm rounded-t-xl transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coc-gold ${
                 isActive 
                   ? 'bg-gradient-to-b from-[#f4e4c1] to-coc-gold text-[#4a2e0f] shadow-[0_-4px_12px_rgba(0,0,0,0.35)] border-t-2 border-x-2 border-yellow-200/70 z-10' 
-                  : 'bg-black/25 text-white/65 hover:bg-black/45 hover:text-white border-t border-x border-white/10'
+                  : 'bg-black/25 text-white/75 hover:bg-black/45 hover:text-white border-t border-x border-white/10'
               }`}
             >
               {link.label}
@@ -127,105 +154,68 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
       </nav>
     </header>
 
-    <main class="max-w-6xl mx-auto p-4 md:p-6 mt-4">
+    <main id="main-content" class="max-w-6xl mx-auto px-2 py-3 sm:p-4 md:p-6 mt-2 sm:mt-4">
       <slot />
     </main>
 
-    <footer class="max-w-6xl mx-auto px-6 py-8 mt-12 border-t border-black/10 text-xs text-center space-y-2.5">
+    <footer class="max-w-6xl mx-auto px-6 py-8 mt-12 border-t border-black/15 text-xs text-center space-y-2.5">
       <!-- ClashKing Credit & Creator Code -->
-      <div class="flex flex-wrap justify-center items-center gap-2 text-coc-dark/80 font-bold">
-        <span>Game data and static assets provided by <a href="https://clashk.ing" target="_blank" rel="noopener" class="text-coc-blue underline hover:text-blue-700">ClashKing</a></span>
-        <span>•</span>
-        <span>Support them with Creator Code: <span class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-black border border-amber-300">ClashKing</span></span>
+      <div class="flex flex-wrap justify-center items-center gap-2 text-coc-dark font-bold">
+        <span>Game data and static assets provided by <a href="https://clashk.ing" target="_blank" rel="noopener noreferrer" class="text-blue-800 underline hover:text-blue-950 focus-visible:outline-2 focus-visible:outline-coc-dark rounded">ClashKing</a></span>
+        <span aria-hidden="true">•</span>
+        <span>Support them with Creator Code: <span class="bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded font-black border border-amber-400">ClashKing</span></span>
       </div>
 
       <!-- Supercell Mandatory Disclaimer -->
-      <p class="max-w-3xl mx-auto text-[11px] leading-relaxed text-gray-500">
+      <p class="max-w-3xl mx-auto text-[11px] leading-relaxed text-slate-700">
         This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: 
-        <a href="https://supercell.com/en/fan-content-policy/" target="_blank" rel="noopener" class="underline hover:text-gray-800">www.supercell.com/fan-content-policy</a>.
+        <a href="https://supercell.com/en/fan-content-policy/" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-coc-dark rounded">www.supercell.com/fan-content-policy</a>.
       </p>
 
-      <p class="text-[10px] text-gray-400">
+      <p class="text-[10px] text-slate-600">
         Clash of Clans and its respective logos and assets are trademarks of Supercell Oy.
       </p>
     </footer>
 
     <!-- Shared Global Tooltip Element -->
-    <div id="global-tooltip" role="tooltip" aria-hidden="true" class="fixed hidden bg-black/85 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 transform -translate-x-1/2 -translate-y-full opacity-0"></div>
+    <div id="global-tooltip" role="tooltip" aria-hidden="true" class="fixed hidden bg-black/90 text-white text-[10px] font-black rounded px-2.5 py-1 z-[100] shadow-xl pointer-events-none transition-opacity duration-150 motion-reduce:transition-none transform -translate-x-1/2 -translate-y-full opacity-0"></div>
 
     <script>
-      async function checkForUpdates() {
-        const currentUpdatedEl = document.getElementById('layoutLastUpdated');
-        const currentTimestamp = currentUpdatedEl?.getAttribute('data-timestamp');
-        if (!currentTimestamp) return;
-
-        try {
-          const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-          const res = await fetch(`${base}/last-updated.json`, { cache: "no-store" });
-          const data = await res.json();
-          if (data && data.lastUpdated) {
-            const fetchedTime = new Date(data.lastUpdated).getTime();
-            const currentTime = new Date(currentTimestamp).getTime();
-            // Use a 2-second buffer to prevent precision mismatch loops
-            if (fetchedTime > currentTime + 2000) {
-              window.location.reload();
-            }
-          }
-        } catch (e) {
-          console.error("Failed to check for updates", e);
-        }
-      }
-
-      document.addEventListener('astro:page-load', () => {
-        const updatedEl = document.getElementById('layoutLastUpdated');
-        const timestamp = updatedEl?.getAttribute('data-timestamp');
-        if (timestamp && updatedEl) {
-          const d = new Date(timestamp);
-          updatedEl.textContent = `Updated:\n${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
-        }
-        checkForUpdates();
-      });
-
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          checkForUpdates();
-        }
-      });
-
-      // Global event delegation listener for data-tooltip
+      const copyTimers = new WeakMap<HTMLElement, number>();
       let currentTooltipTarget: HTMLElement | null = null;
 
-      document.addEventListener('mouseover', (e) => {
-        const target = (e.target as HTMLElement).closest('[data-tooltip]') as HTMLElement | null;
-        if (!target || target === currentTooltipTarget) return;
-        currentTooltipTarget = target;
-        
-        const tooltipText = target.getAttribute('data-tooltip');
-        if (!tooltipText) return;
-        
+      function hideTooltip() {
         const tooltip = document.getElementById('global-tooltip');
-        if (!tooltip) return;
-        
+        if (tooltip) {
+          tooltip.style.opacity = '0';
+          tooltip.style.display = 'none';
+          tooltip.setAttribute('aria-hidden', 'true');
+        }
+        currentTooltipTarget = null;
+      }
+
+      function showTooltip(target: HTMLElement) {
+        const tooltipText = target.getAttribute('data-tooltip');
+        const tooltip = document.getElementById('global-tooltip');
+        if (!tooltipText || !tooltip) return;
+
+        currentTooltipTarget = target;
         tooltip.textContent = tooltipText;
+        tooltip.setAttribute('aria-hidden', 'false');
         tooltip.style.display = 'block';
-        
-        // Force reflow
-        tooltip.offsetHeight;
         tooltip.style.opacity = '1';
-        
+
         const rect = target.getBoundingClientRect();
         const tooltipWidth = tooltip.offsetWidth;
         let left = rect.left + rect.width / 2;
         let top = rect.top - 8;
-        
-        // Clamp horizontally within viewport
+
         if (left - tooltipWidth / 2 < 8) {
           left = 8 + tooltipWidth / 2;
         } else if (left + tooltipWidth / 2 > window.innerWidth - 8) {
           left = window.innerWidth - 8 - tooltipWidth / 2;
         }
 
-        // Flip below target if too close to viewport top
         if (top < 36) {
           top = rect.bottom + 8;
           tooltip.classList.remove('-translate-y-full');
@@ -235,16 +225,105 @@ const socialImageUrl = new URL(`${basePath}icons/Icon_HV_Super_Troops.webp`, sit
 
         tooltip.style.left = `${left}px`;
         tooltip.style.top = `${top}px`;
-        
-        const leaveHandler = () => {
-          tooltip.style.opacity = '0';
-          tooltip.style.display = 'none';
-          if (currentTooltipTarget === target) {
-            currentTooltipTarget = null;
+      }
+
+      async function checkForUpdates() {
+        const currentUpdatedEl = document.getElementById('layoutLastUpdated');
+        const currentTimestamp = currentUpdatedEl?.getAttribute('data-timestamp');
+        if (!currentTimestamp) return;
+
+        try {
+          const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+          const res = await fetch(`${base}/last-updated.json`, { cache: "no-store" });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data && data.lastUpdated) {
+            const fetchedTime = new Date(data.lastUpdated).getTime();
+            const currentTime = new Date(currentTimestamp).getTime();
+            if (fetchedTime > currentTime + 2000) {
+              const activeSearch = (document.getElementById('player-search') as HTMLInputElement | null)?.value.trim();
+              if (!activeSearch) {
+                window.location.reload();
+              }
+            }
           }
-        };
-        
-        target.addEventListener('mouseleave', leaveHandler, { once: true });
+        } catch (e) {
+          console.error("Failed to check for updates", e);
+        }
+      }
+
+      document.addEventListener('astro:page-load', () => {
+        hideTooltip();
+        const updatedEl = document.getElementById('layoutLastUpdated');
+        const timestamp = updatedEl?.getAttribute('data-timestamp');
+        if (timestamp && updatedEl) {
+          const d = new Date(timestamp);
+          if (!Number.isNaN(d.getTime())) {
+            updatedEl.textContent = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+          }
+        }
+        checkForUpdates();
+      });
+
+      document.addEventListener('astro:before-swap', hideTooltip);
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          checkForUpdates();
+        }
+      });
+
+      // Delegated copy handler for COPY / COPY ARMY links
+      document.addEventListener('click', (e) => {
+        const copyLink = (e.target as HTMLElement | null)?.closest('a[data-copy-army]') as HTMLAnchorElement | null;
+        if (copyLink) {
+          const url = copyLink.getAttribute('data-copy-army');
+          if (url && navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(url).catch(() => {});
+          }
+          if (!copyLink.dataset.defaultLabel) {
+            copyLink.dataset.defaultLabel = copyLink.textContent?.trim() || 'COPY';
+          }
+          const prevTimer = copyTimers.get(copyLink);
+          if (prevTimer) window.clearTimeout(prevTimer);
+          copyLink.textContent = 'COPIED!';
+          const timerId = window.setTimeout(() => {
+            copyLink.textContent = copyLink.dataset.defaultLabel || 'COPY';
+            copyTimers.delete(copyLink);
+          }, 1500);
+          copyTimers.set(copyLink, timerId);
+          return;
+        }
+
+        // Touch/tap tooltip toggle for non-interactive icon tiles
+        const tooltipTarget = (e.target as HTMLElement | null)?.closest('[data-tooltip]') as HTMLElement | null;
+        if (tooltipTarget && !tooltipTarget.closest('a, button, summary, input, select')) {
+          if (currentTooltipTarget === tooltipTarget && document.getElementById('global-tooltip')?.style.display === 'block') {
+            hideTooltip();
+          } else {
+            showTooltip(tooltipTarget);
+          }
+          return;
+        }
+
+        if (currentTooltipTarget) {
+          hideTooltip();
+        }
+      });
+
+      // Mouse hover tooltip delegation
+      document.addEventListener('mouseover', (e) => {
+        const target = (e.target as HTMLElement | null)?.closest('[data-tooltip]') as HTMLElement | null;
+        if (!target || target === currentTooltipTarget) return;
+        showTooltip(target);
+        target.addEventListener('mouseleave', () => {
+          if (currentTooltipTarget === target) hideTooltip();
+        }, { once: true });
+      });
+
+      window.addEventListener('scroll', hideTooltip, { passive: true });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideTooltip();
       });
     </script>
   </body>

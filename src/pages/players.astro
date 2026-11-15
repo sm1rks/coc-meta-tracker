@@ -6,20 +6,16 @@ import { getMetaData } from '../utils/dataUtils';
 const metaData = getMetaData();
 
 const topPlayers = metaData?.topPlayers || [];
-
-let lastUpdated = '';
-if (metaData?.lastUpdated) {
-  lastUpdated = metaData.lastUpdated;
-}
+const lastUpdated = metaData?.lastUpdated || '';
 ---
 
 <Layout 
-  title="Top 200 Players - Clash Tracker" 
+  title="Top 200 Players - Clash Tracker"
+  description="Searchable and filterable Global Top 200 Legend League player leaderboard with full armies, heroes, pets, and clan data."
   playersAnalyzed={metaData?.playersAnalyzed || 0}
   attacksAnalyzed={metaData?.attacksAnalyzed || 0}
   lastUpdated={lastUpdated}
 >
-
   <div class="grid grid-cols-1 gap-6">
     {topPlayers.length > 0 && <Top200Table players={topPlayers} />}
   </div>

@@ -1,4 +1,6 @@
 ---
+import { getHeroIcon, getEqIcon, getPetIcon } from '../utils/iconUtils';
+
 interface Props {
   name: string;
   usage: number;
@@ -18,36 +20,35 @@ const emptyPetSlots = Math.max(0, 3 - topPets.length);
 const activeEquipments = equipments.filter(eq => eq.usage > 0);
 const displayedEquipments = activeEquipments.length > 0 ? activeEquipments : equipments;
 
-// Helper to pick a color based on hero name
-const getHeroColor = (name: string) => {
-  if (name.includes("Barbarian")) return "from-amber-500 to-red-700";
-  if (name.includes("Archer")) return "from-emerald-500 to-teal-800";
-  if (name.includes("Warden")) return "from-cyan-500 to-blue-700";
-  if (name.includes("Champion")) return "from-fuchsia-600 to-purple-800";
-  if (name.includes("Minion")) return "from-slate-700 to-indigo-800";
-  if (name.includes("Dragon")) return "from-red-700 to-rose-900";
+const getHeroColor = (heroName: string) => {
+  if (heroName.includes("Barbarian")) return "from-amber-500 to-red-700";
+  if (heroName.includes("Archer")) return "from-emerald-500 to-teal-800";
+  if (heroName.includes("Warden")) return "from-cyan-500 to-blue-700";
+  if (heroName.includes("Champion")) return "from-fuchsia-600 to-purple-800";
+  if (heroName.includes("Minion")) return "from-slate-700 to-indigo-800";
+  if (heroName.includes("Dragon")) return "from-red-700 to-rose-900";
   return "from-yellow-400 to-orange-500";
 };
 
-const gradient = getHeroColor(name);
+const clampPct = (val: number) => Math.min(100, Math.max(0, val));
 
-import { getHeroIcon, getEqIcon, getPetIcon, placeholderIcon } from '../utils/iconUtils';
+const gradient = getHeroColor(name);
 const heroIcon = getHeroIcon(name);
 ---
-<div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden transform transition-transform duration-200 hover:scale-[1.01] [will-change:transform] [backface-visibility:hidden] flex flex-col relative z-0 hover:z-10">
+<div class="bg-[#603813] rounded-2xl shadow-xl border-4 border-[#603813] overflow-hidden transition-transform duration-200 hover:scale-[1.01] motion-reduce:transition-none motion-reduce:hover:scale-100 flex flex-col relative z-0 hover:z-10">
   <div class={`bg-gradient-to-r ${gradient} p-3 border-b-4 border-black/15 flex items-center gap-3 shrink-0`}>
-    <img src={heroIcon} alt={name} title={name} loading="lazy" decoding="async" class="w-12 h-12 drop-shadow-lg object-contain shrink-0" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+    <img src={heroIcon} alt={name} title={name} width="48" height="48" loading="lazy" decoding="async" class="w-12 h-12 drop-shadow-lg object-contain shrink-0" />
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{name}</h2>
-      <div class="text-white/90 font-bold text-xs mt-0.5 tabular-nums">Usage: {usage.toFixed(1)}%</div>
+      <div class="text-white/95 font-bold text-xs mt-0.5 tabular-nums">Usage: {usage.toFixed(1)}%</div>
     </div>
   </div>
   
   <div class="bg-[#f4e4c1] px-4 py-4 flex-1 flex flex-col">
-    <!-- Top Combos Section (Premier Stat - Always 3 slots for uniform card height) -->
+    <!-- Top Combos Section (Always 5 slots for uniform card height) -->
     <div class="space-y-2.5 shrink-0">
       <div class="flex items-center justify-between">
-        <h3 class="text-xs font-black text-[#603813]/75 tracking-wider uppercase">TOP COMBOS</h3>
+        <h3 class="text-xs font-black text-[#603813]/80 tracking-wider uppercase">TOP COMBOS</h3>
       </div>
       <div class="space-y-2">
         {topCombos.map(combo => {
@@ -58,9 +59,9 @@ const heroIcon = getHeroIcon(name);
                 {parts.map((part, idx) => (
                   <>
                     <div class="w-7 h-7 cursor-help" data-tooltip={part}>
-                       <img src={getEqIcon(part)} alt={part} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                       <img src={getEqIcon(part)} alt={part} width="28" height="28" loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" />
                     </div>
-                    {idx < parts.length - 1 && <span class="text-xs font-black text-[#603813]/45">+</span>}
+                    {idx < parts.length - 1 && <span class="text-xs font-black text-[#603813]/45" aria-hidden="true">+</span>}
                   </>
                 ))}
               </div>
@@ -68,7 +69,7 @@ const heroIcon = getHeroIcon(name);
                 <div class="flex-1 h-3 bg-[#603813]/12 rounded-full overflow-hidden shadow-inner border border-[#603813]/15 min-w-[40px]">
                   <div 
                     class="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-sm"
-                    style={`width: ${combo.usage}%`}
+                    style={`width: ${clampPct(combo.usage)}%`}
                   ></div>
                 </div>
                 <div class="text-xs sm:text-sm font-black text-[#9a4a06] w-11 text-right flex-shrink-0 tabular-nums">{combo.usage.toFixed(1)}%</div>
@@ -77,15 +78,15 @@ const heroIcon = getHeroIcon(name);
           );
         })}
         {Array.from({ length: emptyComboSlots }).map(() => (
-          <div class="flex items-center justify-between group/row relative gap-3 h-[38px] opacity-45">
+          <div class="flex items-center justify-between group/row relative gap-3 h-[38px] opacity-50" aria-hidden="true">
             <div class="flex items-center gap-1 bg-[#603813]/5 px-1.5 py-1 rounded-lg border border-dashed border-[#603813]/25 shrink-0">
-              <div class="w-7 h-7 rounded bg-[#603813]/8 flex items-center justify-center text-[10px] text-[#603813]/50 font-bold">—</div>
-              <span class="text-xs font-black text-[#603813]/35">+</span>
-              <div class="w-7 h-7 rounded bg-[#603813]/8 flex items-center justify-center text-[10px] text-[#603813]/50 font-bold">—</div>
+              <div class="w-7 h-7 rounded bg-[#603813]/8 flex items-center justify-center text-[10px] text-[#603813]/60 font-bold">—</div>
+              <span class="text-xs font-black text-[#603813]/40">+</span>
+              <div class="w-7 h-7 rounded bg-[#603813]/8 flex items-center justify-center text-[10px] text-[#603813]/60 font-bold">—</div>
             </div>
             <div class="flex items-center gap-2 flex-grow justify-end pl-1 min-w-0">
               <div class="flex-1 h-3 bg-[#603813]/8 rounded-full overflow-hidden min-w-[40px]"></div>
-              <div class="text-xs sm:text-sm font-bold text-[#603813]/40 w-11 text-right flex-shrink-0 tabular-nums">—</div>
+              <div class="text-xs sm:text-sm font-bold text-[#603813]/50 w-11 text-right flex-shrink-0 tabular-nums">—</div>
             </div>
           </div>
         ))}
@@ -94,20 +95,20 @@ const heroIcon = getHeroIcon(name);
 
     <!-- Top Pets Section (Always 3 slots for uniform card height) -->
     <div class="space-y-2 pt-3.5 mt-3.5 border-t-2 border-[#603813]/15 shrink-0">
-      <h3 class="text-xs font-black text-[#603813]/75 tracking-wider uppercase">TOP PETS</h3>
+      <h3 class="text-xs font-black text-[#603813]/80 tracking-wider uppercase">TOP PETS</h3>
       <div class="space-y-2">
         {topPets.map(pet => (
           <div class="flex items-center justify-between group/row relative gap-3 h-[34px]">
             <div class="flex items-center gap-1 bg-white/60 p-1 rounded-lg border border-[#c4a481] shadow-sm shrink-0">
               <div class="w-6 h-6 cursor-help" data-tooltip={pet.name}>
-                <img src={getPetIcon(pet.name)} alt={pet.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                <img src={getPetIcon(pet.name)} alt={pet.name} width="24" height="24" loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <div class="flex items-center gap-2 flex-grow justify-end pl-1 min-w-0">
               <div class="flex-1 h-2.5 bg-[#603813]/12 rounded-full overflow-hidden shadow-inner border border-[#603813]/15 min-w-[30px]">
                 <div 
                   class="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full shadow-sm"
-                  style={`width: ${pet.usage}%`}
+                  style={`width: ${clampPct(pet.usage)}%`}
                 ></div>
               </div>
               <div class="text-xs sm:text-sm font-black text-emerald-800 w-11 text-right flex-shrink-0 tabular-nums">{pet.usage.toFixed(1)}%</div>
@@ -115,13 +116,13 @@ const heroIcon = getHeroIcon(name);
           </div>
         ))}
         {Array.from({ length: emptyPetSlots }).map(() => (
-          <div class="flex items-center justify-between group/row relative gap-3 h-[34px] opacity-45">
+          <div class="flex items-center justify-between group/row relative gap-3 h-[34px] opacity-50" aria-hidden="true">
             <div class="flex items-center gap-1 bg-[#603813]/5 p-1 rounded-lg border border-dashed border-[#603813]/25 shrink-0">
-              <div class="w-6 h-6 rounded bg-[#603813]/8 flex items-center justify-center text-[10px] text-[#603813]/50 font-bold">—</div>
+              <div class="w-6 h-6 rounded bg-[#603813]/8 flex items-center justify-center text-[10px] text-[#603813]/60 font-bold">—</div>
             </div>
             <div class="flex items-center gap-2 flex-grow justify-end pl-1 min-w-0">
               <div class="flex-1 h-2.5 bg-[#603813]/8 rounded-full overflow-hidden min-w-[30px]"></div>
-              <div class="text-xs sm:text-sm font-bold text-[#603813]/40 w-11 text-right flex-shrink-0 tabular-nums">—</div>
+              <div class="text-xs sm:text-sm font-bold text-[#603813]/50 w-11 text-right flex-shrink-0 tabular-nums">—</div>
             </div>
           </div>
         ))}
@@ -131,12 +132,12 @@ const heroIcon = getHeroIcon(name);
     <!-- Individual Equipment Usage Dropdown -->
     <div class="pt-3.5 mt-3.5 border-t-2 border-[#603813]/15 shrink-0">
       <details class="group/eq bg-white/40 rounded-xl border border-[#c4a481] overflow-hidden [&_summary::-webkit-details-marker]:hidden">
-        <summary class="flex items-center justify-between px-3 py-2 cursor-pointer list-none hover:bg-white/65 transition-colors select-none">
+        <summary class="flex items-center justify-between px-3 py-2 cursor-pointer list-none hover:bg-white/65 transition-colors select-none focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#603813]">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-black text-[#603813]/80 tracking-wider uppercase">Individual Equipment</span>
-            <span class="text-[10px] font-black text-[#603813]/60 bg-[#603813]/10 px-1.5 py-0.5 rounded-full tabular-nums">{displayedEquipments.length}</span>
+            <span class="text-xs font-black text-[#603813]/85 tracking-wider uppercase">Individual Equipment</span>
+            <span class="text-[10px] font-black text-[#603813]/75 bg-[#603813]/10 px-1.5 py-0.5 rounded-full tabular-nums">{displayedEquipments.length}</span>
           </div>
-          <div class="w-5 h-5 flex items-center justify-center text-[#603813]/60 group-open/eq:rotate-180 transition-transform duration-200">
+          <div class="w-5 h-5 flex items-center justify-center text-[#603813]/65 group-open/eq:rotate-180 transition-transform duration-200 motion-reduce:transition-none" aria-hidden="true">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
@@ -150,7 +151,7 @@ const heroIcon = getHeroIcon(name);
               <div class="flex items-center justify-between group/row relative gap-2.5">
                 <div class="flex items-center gap-2 min-w-0 w-36 shrink-0">
                   <div class="w-7 h-7 p-0.5 rounded-lg bg-white/70 border border-[#c4a481] shadow-sm flex-shrink-0 cursor-help" data-tooltip={eq.name}>
-                    <img src={eqIcon} alt={eq.name} loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" onerror={`this.onerror=null;this.src='${placeholderIcon}';`} />
+                    <img src={eqIcon} alt={eq.name} width="24" height="24" loading="lazy" decoding="async" class="w-full h-full object-contain drop-shadow-sm" />
                   </div>
                   <span class="text-[11px] font-bold text-[#4a2e0f] truncate" title={eq.name}>{eq.name}</span>
                 </div>
@@ -158,7 +159,7 @@ const heroIcon = getHeroIcon(name);
                   <div class="flex-1 h-2.5 bg-[#603813]/12 rounded-full overflow-hidden shadow-inner border border-[#603813]/15 min-w-[30px]">
                     <div 
                       class="h-full bg-gradient-to-r from-sky-500 to-coc-blue rounded-full"
-                      style={`width: ${eq.usage}%`}
+                      style={`width: ${clampPct(eq.usage)}%`}
                     ></div>
                   </div>
                   <div class="text-xs font-black text-coc-darkblue w-11 text-right flex-shrink-0 tabular-nums">{eq.usage.toFixed(1)}%</div>
@@ -166,7 +167,7 @@ const heroIcon = getHeroIcon(name);
               </div>
             );
           })}
-          {displayedEquipments.length === 0 && <div class="text-[#603813]/50 text-xs italic">No data</div>}
+          {displayedEquipments.length === 0 && <div class="text-[#603813]/65 text-xs italic">No data</div>}
         </div>
       </details>
     </div>
