@@ -11,7 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "astro sync && tsc --noEmit",
     "optimize-images": "tsx scripts/optimize-images.ts",
     "sync-equipment": "tsx scripts/sync-equipment.ts",
     "fetch-data": "tsx scripts/fetch-meta.ts",
