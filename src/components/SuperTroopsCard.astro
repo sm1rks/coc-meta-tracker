@@ -1,8 +1,9 @@
 ---
 import { getSuperTroopIcon, basePath } from '../utils/iconUtils';
+import TrendBadge from './TrendBadge.astro';
 
 interface Props {
-  troops: { name: string; usage: number }[];
+  troops: { name: string; usage: number; usageDelta?: number }[];
 }
 
 const { troops } = Astro.props;
@@ -35,7 +36,10 @@ const clampPct = (val: number) => Math.min(100, Math.max(0, val));
                 style={`width: ${clampPct(troop.usage)}%`}
               ></div>
             </div>
-            <div class="text-xs sm:text-sm font-black text-red-700 w-11 text-right flex-shrink-0 tabular-nums">{troop.usage.toFixed(1)}%</div>
+            <div class="flex flex-col items-end w-11 shrink-0 leading-tight">
+              <span class="text-xs sm:text-sm font-black text-red-700 tabular-nums">{troop.usage.toFixed(1)}%</span>
+              <TrendBadge delta={troop.usageDelta} />
+            </div>
           </div>
         </div>
       ))}

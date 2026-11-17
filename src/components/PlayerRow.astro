@@ -1,5 +1,6 @@
 ---
 import { getCoreArmyName } from '../utils/dataUtils';
+import { basePath } from '../utils/iconUtils';
 import ArmyComposition from './ArmyComposition.astro';
 import type { PlayerData } from '../types';
 
@@ -49,72 +50,394 @@ const searchIndex = [
   .filter(Boolean)
   .join(' | ')
   .toLowerCase();
+
+const totalRankedBattles = (player.attackCount || 0) + (player.defenseCount || 0);
+const battlelogsUrl = `${basePath}battlelogs.json`;
+const atkHitRate = player.attackCount && player.attackCount > 0
+  ? ((player.threeStarCount || 0) / player.attackCount) * 100
+  : -1;
 ---
 
 <div 
-  class="player-row flex flex-col md:flex-row items-center justify-between group/player gap-2 md:gap-4 bg-[#fbf6ea] hover:bg-white p-2 sm:p-3 rounded-xl border border-[#c4a481]/70 hover:border-[#603813]/40 shadow-sm hover:shadow-md transition-all" 
+  class="player-row flex flex-col bg-[#fbf6ea] hover:bg-white p-2 sm:p-3 rounded-xl border border-[#c4a481]/70 hover:border-[#603813]/40 shadow-sm hover:shadow-md transition-all" 
   data-core-army={coreArmyName.toLowerCase()}
   data-search={searchIndex}
+  data-rank={player.rank}
+  data-atk-rate={atkHitRate.toFixed(2)}
+  data-prev-rank={player.prevSeasonRank ?? 999999}
 >
-  <!-- Rank & Player Info -->
-  <div class="flex flex-col justify-center w-full md:w-[195px] shrink-0 min-w-0">
-    <div class="flex items-center justify-between md:justify-start flex-wrap gap-1.5 mb-1">
-      <div class="flex items-center gap-1.5">
-        <div class={`w-7 h-7 shrink-0 flex items-center justify-center rounded-lg font-black tabular-nums ${rankTextClass} border ${getRankBadgeClasses(player.rank)}`}>
-          {player.rank}
+  <div class="flex flex-col md:flex-row items-center justify-between group/player gap-2 md:gap-4 w-full">
+    <!-- Rank & Player Info -->
+    <div class="flex flex-col justify-center w-full md:w-[195px] shrink-0 min-w-0">
+      <div class="flex items-center justify-between md:justify-start flex-wrap gap-1.5 mb-1">
+        <div class="flex items-center gap-1.5">
+          <div class={`w-7 h-7 shrink-0 flex items-center justify-center rounded-lg font-black tabular-nums ${rankTextClass} border ${getRankBadgeClasses(player.rank)}`}>
+            {player.rank}
+          </div>
+          <div class="inline-flex items-center gap-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/70 w-fit tabular-nums">
+            <span>{player.trophies}</span>
+            <span class="text-[10px]" aria-hidden="true">🏆</span>
+          </div>
         </div>
-        <div class="inline-flex items-center gap-1 text-xs font-black text-[#603813] bg-[#f4e4c1] px-2 py-0.5 rounded border border-[#c4a481]/70 w-fit tabular-nums">
-          <span>{player.trophies}</span>
-          <span class="text-[10px]" aria-hidden="true">🏆</span>
-        </div>
+        {player.armyLink && (
+          <a 
+            href={player.armyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-copy-army={player.armyLink}
+            class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-[#603813] text-[10px] font-black px-2.5 py-1 md:px-2 md:py-0.5 rounded cursor-pointer border border-[#c4a481] shadow-2xs transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#603813]"
+            title="Open & Copy Army Link"
+          >
+            COPY
+          </a>
+        )}
       </div>
-      {player.armyLink && (
-        <a 
-          href={player.armyLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-copy-army={player.armyLink}
-          class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-[#603813] text-[10px] font-black px-2.5 py-1 md:px-2 md:py-0.5 rounded cursor-pointer border border-[#c4a481] shadow-2xs transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#603813]"
-          title="Open & Copy Army Link"
+      
+      <div class="font-black text-sm sm:text-base text-[#4a2e0f] truncate leading-snug" title={player.name}>{player.name}</div>
+      
+      {player.clanName && (
+        <div class="flex items-center gap-1 text-xs font-bold text-[#603813]/80 truncate mt-0.5" title={player.clanName}>
+          {player.clanBadge && (
+            <img 
+              src={player.clanBadge} 
+              alt="" 
+              width="16"
+              height="16"
+              loading="lazy" 
+              decoding="async" 
+              data-hide-on-error="true"
+              class="w-4 h-4 object-contain shrink-0" 
+            />
+          )}
+          <span class="truncate">{player.clanName}</span>
+        </div>
+      )}
+
+      {(player.prevSeasonRank || player.attackWins !== undefined) && (
+        <div class="flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-[#603813]/75 mt-0.5 tabular-nums">
+          {player.prevSeasonRank && (
+            <span class="cursor-help" data-tooltip={player.prevSeasonTrophies ? `Previous Season: #${player.prevSeasonRank} (${player.prevSeasonTrophies} 🏆)` : `Previous Season Rank: #${player.prevSeasonRank}`}>
+              Prev #{player.prevSeasonRank}
+            </span>
+          )}
+          {player.prevSeasonRank && player.attackWins !== undefined && <span aria-hidden="true">•</span>}
+          {player.attackWins !== undefined && (
+            <span>{player.attackWins}W / {player.defenseWins ?? 0}D</span>
+          )}
+        </div>
+      )}
+
+      {!hideArmyTitle && player.armyType && (
+        <div class="mt-1.5 inline-flex items-center px-2 py-0.5 rounded-md bg-[#603813]/10 border border-[#c4a481]/80 text-[#4a2e0f] text-[10px] font-black uppercase tracking-tight leading-snug w-fit max-w-full">
+          <span class="wrap-break-word">{player.armyType}</span>
+        </div>
+      )}
+
+      {totalRankedBattles > 0 && (
+        <button
+          type="button"
+          data-battlelog-toggle={player.tag}
+          data-battlelogs-url={battlelogsUrl}
+          aria-expanded="false"
+          class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/80 hover:bg-amber-100 border border-[#c4a481] text-[#603813] text-[10px] font-black uppercase tracking-tight cursor-pointer transition-colors w-fit shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#603813]"
         >
-          COPY
-        </a>
+          <span>Battle Log</span>
+          {(player.attackCount || 0) > 0 && (
+            <span class="text-amber-800 tabular-nums">
+              {player.threeStarCount ?? 0}/{player.attackCount} ★
+            </span>
+          )}
+          <svg data-chevron xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#603813]/70 transition-transform duration-200 motion-reduce:transition-none" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
       )}
     </div>
     
-    <div class="font-black text-sm sm:text-base text-[#4a2e0f] truncate leading-snug" title={player.name}>{player.name}</div>
-    
-    {player.clanName && (
-      <div class="flex items-center gap-1 text-xs font-bold text-[#603813]/80 truncate mt-0.5" title={player.clanName}>
-        {player.clanBadge && (
-          <img 
-            src={player.clanBadge} 
-            alt="" 
-            width="16"
-            height="16"
-            loading="lazy" 
-            decoding="async" 
-            data-hide-on-error="true"
-            class="w-4 h-4 object-contain shrink-0" 
-          />
-        )}
-        <span class="truncate">{player.clanName}</span>
-      </div>
-    )}
-
-    {!hideArmyTitle && player.armyType && (
-      <div class="mt-1.5 inline-flex items-center px-2 py-0.5 rounded-md bg-[#603813]/10 border border-[#c4a481]/80 text-[#4a2e0f] text-[10px] font-black uppercase tracking-tight leading-snug w-fit max-w-full">
-        <span class="wrap-break-word">{player.armyType}</span>
-      </div>
-    )}
+    <ArmyComposition
+      heroes={normalizedHeroes}
+      troops={player.troops}
+      spells={player.spells}
+      siegeMachine={player.siegeMachine}
+      ccTroops={player.ccTroops}
+      ccSpells={player.ccSpells}
+    />
   </div>
-  
-  <ArmyComposition
-    heroes={normalizedHeroes}
-    troops={player.troops}
-    spells={player.spells}
-    siegeMachine={player.siegeMachine}
-    ccTroops={player.ccTroops}
-    ccSpells={player.ccSpells}
-  />
+
+  {totalRankedBattles > 0 && (
+    <div data-battlelog-panel={player.tag} class="hidden mt-2.5 pt-2.5 border-t border-[#c4a481]/60 w-full"></div>
+  )}
 </div>
+
+<script>
+  interface BattleItem {
+    attack: boolean;
+    battleType: string;
+    stars: number;
+    destructionPercentage: number;
+    opponentName: string;
+    battleTimestamp: string;
+    battleTime?: number;
+    armyType?: string;
+    armyLink?: string;
+  }
+
+  let battlelogsPromise: Promise<Record<string, BattleItem[]>> | null = null;
+
+  function fetchBattlelogs(url: string): Promise<Record<string, BattleItem[]>> {
+    if (!battlelogsPromise) {
+      battlelogsPromise = fetch(url)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .catch(err => {
+          battlelogsPromise = null;
+          throw err;
+        });
+    }
+    return battlelogsPromise;
+  }
+
+  function parseCocTimestamp(ts: string): number | null {
+    const m = ts.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+    if (!m) return null;
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+  }
+
+  function formatRelativeTime(ts: string): string {
+    const ms = parseCocTimestamp(ts);
+    if (!ms) return '';
+    const diffSec = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+    if (diffSec < 60) return `${diffSec}s ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    return `${Math.floor(diffHr / 24)}d ago`;
+  }
+
+  function formatDuration(sec?: number): string {
+    if (!sec || sec <= 0) return '';
+    const mins = Math.floor(sec / 60);
+    const rem = sec % 60;
+    return mins > 0 ? `${mins}m ${rem}s` : `${rem}s`;
+  }
+
+  function createStarSvg(filled: boolean): SVGSVGElement {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 20 20');
+    svg.setAttribute('fill', 'currentColor');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', `w-3.5 h-3.5 ${filled ? 'text-amber-500' : 'text-[#603813]/20'}`);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  function renderBattlelogPanel(panel: HTMLElement, battles: BattleItem[]) {
+    panel.replaceChildren();
+
+    if (battles.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'text-xs font-bold text-[#603813]/70 italic py-2 px-1';
+      empty.textContent = 'No ranked battle log entries available.';
+      panel.appendChild(empty);
+      return;
+    }
+
+    const attacks = battles.filter(b => b.attack);
+    const defenses = battles.filter(b => !b.attack);
+    const atkThreeStars = attacks.filter(b => b.stars === 3).length;
+    const atkAvgPct = attacks.length > 0
+      ? (attacks.reduce((sum, b) => sum + b.destructionPercentage, 0) / attacks.length).toFixed(1)
+      : '0.0';
+    const defThreeStars = defenses.filter(b => b.stars === 3).length;
+    const defAvgPct = defenses.length > 0
+      ? (defenses.reduce((sum, b) => sum + b.destructionPercentage, 0) / defenses.length).toFixed(1)
+      : '0.0';
+
+    const header = document.createElement('div');
+    header.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 px-1';
+
+    const summary = document.createElement('div');
+    summary.className = 'flex flex-wrap items-center gap-2 text-[11px] font-black text-[#603813] tabular-nums';
+
+    const atkStat = document.createElement('span');
+    atkStat.className = 'px-2 py-0.5 rounded bg-emerald-100/90 text-emerald-900 border border-emerald-300/80';
+    atkStat.textContent = `Attacks: ${atkThreeStars}/${attacks.length} 3★ (${atkAvgPct}% avg)`;
+    summary.appendChild(atkStat);
+
+    const defStat = document.createElement('span');
+    defStat.className = 'px-2 py-0.5 rounded bg-rose-100/80 text-rose-900 border border-rose-300/80';
+    defStat.textContent = `Defenses: ${defThreeStars}/${defenses.length} 3★ (${defAvgPct}% avg)`;
+    summary.appendChild(defStat);
+
+    const filterGroup = document.createElement('div');
+    filterGroup.className = 'flex items-center gap-1';
+
+    const list = document.createElement('div');
+    list.className = 'space-y-1.5 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar';
+
+    const renderList = (mode: 'all' | 'atk' | 'def') => {
+      list.replaceChildren();
+      const visible = mode === 'all' ? battles : mode === 'atk' ? attacks : defenses;
+      if (visible.length === 0) {
+        const none = document.createElement('div');
+        none.className = 'text-xs font-bold text-[#603813]/65 italic py-2 px-1';
+        none.textContent = 'No battles in this category.';
+        list.appendChild(none);
+        return;
+      }
+
+      for (const b of visible) {
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-[#f4e4c1]/55 border border-[#c4a481]/70 text-xs';
+
+        const left = document.createElement('div');
+        left.className = 'flex flex-wrap items-center gap-2 min-w-0';
+
+        const typeBadge = document.createElement('span');
+        typeBadge.className = b.attack
+          ? 'px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-600 text-white shrink-0'
+          : 'px-1.5 py-0.5 rounded text-[10px] font-black uppercase bg-rose-700 text-white shrink-0';
+        typeBadge.textContent = b.attack ? 'ATK' : 'DEF';
+        left.appendChild(typeBadge);
+
+        const starsWrap = document.createElement('span');
+        starsWrap.className = 'inline-flex items-center gap-0.5 shrink-0';
+        starsWrap.setAttribute('aria-label', `${b.stars} stars`);
+        for (let s = 1; s <= 3; s++) {
+          starsWrap.appendChild(createStarSvg(s <= b.stars));
+        }
+        left.appendChild(starsWrap);
+
+        const pctEl = document.createElement('span');
+        pctEl.className = `font-black tabular-nums shrink-0 ${b.stars === 3 ? 'text-emerald-800' : b.stars === 2 ? 'text-[#603813]' : 'text-rose-800'}`;
+        pctEl.textContent = `${b.destructionPercentage}%`;
+        left.appendChild(pctEl);
+
+        const oppEl = document.createElement('span');
+        oppEl.className = 'font-bold text-[#4a2e0f] truncate max-w-[160px] sm:max-w-[220px]';
+        oppEl.textContent = b.opponentName;
+        oppEl.title = b.opponentName;
+        left.appendChild(oppEl);
+
+        if (b.armyType) {
+          const armyEl = document.createElement('span');
+          armyEl.className = 'px-1.5 py-0.5 rounded bg-white/80 border border-[#c4a481]/80 text-[10px] font-black uppercase text-[#603813] truncate max-w-[220px]';
+          armyEl.textContent = b.armyType;
+          armyEl.title = b.armyType;
+          left.appendChild(armyEl);
+        }
+
+        const right = document.createElement('div');
+        right.className = 'flex items-center gap-2 shrink-0 ml-auto';
+
+        const metaParts = [formatDuration(b.battleTime), formatRelativeTime(b.battleTimestamp)].filter(Boolean);
+        if (metaParts.length > 0) {
+          const metaEl = document.createElement('span');
+          metaEl.className = 'text-[10px] font-bold text-[#603813]/75 tabular-nums';
+          metaEl.textContent = metaParts.join(' • ');
+          right.appendChild(metaEl);
+        }
+
+        if (b.armyLink) {
+          const copyLink = document.createElement('a');
+          copyLink.href = b.armyLink;
+          copyLink.target = '_blank';
+          copyLink.rel = 'noopener noreferrer';
+          copyLink.setAttribute('data-copy-army', b.armyLink);
+          copyLink.className = 'bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-[#603813] text-[10px] font-black px-2 py-0.5 rounded cursor-pointer border border-[#c4a481] shadow-2xs transition-colors shrink-0';
+          copyLink.textContent = 'COPY';
+          right.appendChild(copyLink);
+        }
+
+        row.appendChild(left);
+        row.appendChild(right);
+        list.appendChild(row);
+      }
+    };
+
+    const tabs: { mode: 'all' | 'atk' | 'def'; label: string }[] = [
+      { mode: 'all', label: `All (${battles.length})` },
+      { mode: 'atk', label: `Attacks (${attacks.length})` },
+      { mode: 'def', label: `Defenses (${defenses.length})` },
+    ];
+    let activeMode: 'all' | 'atk' | 'def' = 'all';
+
+    const updateTabStyles = () => {
+      for (const btn of Array.from(filterGroup.children) as HTMLButtonElement[]) {
+        const isActive = btn.dataset.mode === activeMode;
+        btn.className = isActive
+          ? 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[#603813] text-white cursor-pointer'
+          : 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-white/80 hover:bg-white text-[#603813] border border-[#c4a481] cursor-pointer';
+      }
+    };
+
+    for (const tab of tabs) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.mode = tab.mode;
+      btn.textContent = tab.label;
+      btn.addEventListener('click', () => {
+        activeMode = tab.mode;
+        updateTabStyles();
+        renderList(activeMode);
+      });
+      filterGroup.appendChild(btn);
+    }
+
+    updateTabStyles();
+    renderList('all');
+
+    header.appendChild(summary);
+    header.appendChild(filterGroup);
+    panel.appendChild(header);
+    panel.appendChild(list);
+  }
+
+  if (!(window as any).__cocBattlelogInit) {
+    (window as any).__cocBattlelogInit = true;
+    document.addEventListener('click', async (e) => {
+      const toggleBtn = (e.target as HTMLElement | null)?.closest('[data-battlelog-toggle]') as HTMLButtonElement | null;
+      if (!toggleBtn) return;
+
+      const row = toggleBtn.closest('.player-row');
+      const panel = row?.querySelector('[data-battlelog-panel]') as HTMLElement | null;
+      if (!panel) return;
+
+      const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+      const nextExpanded = !isExpanded;
+      toggleBtn.setAttribute('aria-expanded', String(nextExpanded));
+      panel.classList.toggle('hidden', !nextExpanded);
+
+      const chevron = toggleBtn.querySelector('[data-chevron]') as HTMLElement | null;
+      if (chevron) {
+        chevron.style.transform = nextExpanded ? 'rotate(180deg)' : '';
+      }
+
+      if (nextExpanded && !panel.dataset.loaded) {
+        panel.dataset.loaded = '1';
+        const loading = document.createElement('div');
+        loading.className = 'text-xs font-bold text-[#603813]/75 py-2 px-1';
+        loading.textContent = 'Loading battle log...';
+        panel.replaceChildren(loading);
+
+        const tag = toggleBtn.getAttribute('data-battlelog-toggle') || '';
+        const url = toggleBtn.getAttribute('data-battlelogs-url') || '/battlelogs.json';
+        try {
+          const allLogs = await fetchBattlelogs(url);
+          renderBattlelogPanel(panel, allLogs[tag] || []);
+        } catch {
+          panel.dataset.loaded = '';
+          const errEl = document.createElement('div');
+          errEl.className = 'text-xs font-bold text-rose-800 py-2 px-1';
+          errEl.textContent = 'Could not load battle log.';
+          panel.replaceChildren(errEl);
+        }
+      }
+    });
+  }
+</script>

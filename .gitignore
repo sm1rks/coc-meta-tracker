@@ -37,5 +37,8 @@ scratch/
 
 # generated data
 data/meta.json
+data/meta-prev.json
 data/clan_badges_cache.json
 public/last-updated.json
+public/battlelogs.json
+public/meta-summary.json

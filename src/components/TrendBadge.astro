@@ -1,0 +1,22 @@
+---
+interface Props {
+  delta?: number;
+  light?: boolean;
+}
+
+const { delta, light = false } = Astro.props;
+const show = delta !== undefined && Math.abs(delta) >= 0.1;
+const isPositive = (delta ?? 0) > 0;
+const formatted = show ? `${isPositive ? '▲+' : '▼'}${delta!.toFixed(1)}%` : '';
+const colorClass = light
+  ? isPositive ? 'text-emerald-200' : 'text-rose-200'
+  : isPositive ? 'text-emerald-700' : 'text-rose-700';
+---
+{show && (
+  <span
+    class={`text-[9px] font-black leading-none tabular-nums shrink-0 cursor-help ${colorClass}`}
+    data-tooltip="24h Change"
+  >
+    {formatted}
+  </span>
+)}

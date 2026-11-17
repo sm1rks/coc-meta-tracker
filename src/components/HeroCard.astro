@@ -1,15 +1,17 @@
 ---
 import { getHeroIcon, getEqIcon, getPetIcon } from '../utils/iconUtils';
+import TrendBadge from './TrendBadge.astro';
 
 interface Props {
   name: string;
   usage: number;
-  equipments: { name: string; usage: number }[];
-  combos?: { name: string; usage: number }[];
-  pets?: { name: string; usage: number }[];
+  usageDelta?: number;
+  equipments: { name: string; usage: number; usageDelta?: number }[];
+  combos?: { name: string; usage: number; usageDelta?: number; threeStarRate?: number; threeStarCount?: number }[];
+  pets?: { name: string; usage: number; usageDelta?: number; threeStarRate?: number; threeStarCount?: number }[];
 }
 
-const { name, usage, equipments, combos = [], pets = [] } = Astro.props;
+const { name, usage, usageDelta, equipments, combos = [], pets = [] } = Astro.props;
 
 const topCombos = combos.slice(0, 5);
 const emptyComboSlots = Math.max(0, 5 - topCombos.length);
@@ -40,7 +42,10 @@ const heroIcon = getHeroIcon(name);
     <img src={heroIcon} alt={name} title={name} width="48" height="48" loading="lazy" decoding="async" class="w-12 h-12 drop-shadow-lg object-contain shrink-0" />
     <div class="min-w-0">
       <h2 class="text-lg xl:text-xl font-black text-white drop-shadow-md leading-tight whitespace-nowrap tracking-tighter uppercase">{name}</h2>
-      <div class="text-white/95 font-bold text-xs mt-0.5 tabular-nums">Usage: {usage.toFixed(1)}%</div>
+      <div class="flex items-center gap-1.5 text-white/95 font-bold text-xs mt-0.5 tabular-nums">
+        <span>Usage: {usage.toFixed(1)}%</span>
+        <TrendBadge delta={usageDelta} light={true} />
+      </div>
     </div>
   </div>
   
@@ -72,7 +77,17 @@ const heroIcon = getHeroIcon(name);
                     style={`width: ${clampPct(combo.usage)}%`}
                   ></div>
                 </div>
-                <div class="text-xs sm:text-sm font-black text-[#9a4a06] w-11 text-right flex-shrink-0 tabular-nums">{combo.usage.toFixed(1)}%</div>
+                <div class="flex flex-col items-end w-12 shrink-0 leading-tight">
+                  <span class="text-xs sm:text-sm font-black text-[#9a4a06] tabular-nums">{combo.usage.toFixed(1)}%</span>
+                  <div class="flex items-center gap-1">
+                    {combo.threeStarRate !== undefined && (
+                      <span class="text-[9px] font-black text-amber-800 tabular-nums cursor-help" data-tooltip={`${combo.threeStarRate.toFixed(1)}% 3-Star Rate`}>
+                        ★{combo.threeStarRate.toFixed(0)}%
+                      </span>
+                    )}
+                    <TrendBadge delta={combo.usageDelta} />
+                  </div>
+                </div>
               </div>
             </div>
           );
@@ -111,7 +126,17 @@ const heroIcon = getHeroIcon(name);
                   style={`width: ${clampPct(pet.usage)}%`}
                 ></div>
               </div>
-              <div class="text-xs sm:text-sm font-black text-emerald-800 w-11 text-right flex-shrink-0 tabular-nums">{pet.usage.toFixed(1)}%</div>
+              <div class="flex flex-col items-end w-12 shrink-0 leading-tight">
+                <span class="text-xs sm:text-sm font-black text-emerald-800 tabular-nums">{pet.usage.toFixed(1)}%</span>
+                <div class="flex items-center gap-1">
+                  {pet.threeStarRate !== undefined && (
+                    <span class="text-[9px] font-black text-amber-800 tabular-nums cursor-help" data-tooltip={`${pet.threeStarRate.toFixed(1)}% 3-Star Rate`}>
+                      ★{pet.threeStarRate.toFixed(0)}%
+                    </span>
+                  )}
+                  <TrendBadge delta={pet.usageDelta} />
+                </div>
+              </div>
             </div>
           </div>
         ))}

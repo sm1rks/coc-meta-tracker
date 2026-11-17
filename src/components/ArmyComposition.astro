@@ -1,5 +1,6 @@
 ---
 import { getHeroIcon, getEqIcon, getPetIcon, getSiegeMachineIcon, getTroopIcon, getSpellIcon } from '../utils/iconUtils';
+import { formatSquadTooltip } from '../utils/squadUtils';
 
 export interface NormalizedHero {
   name: string;
@@ -106,7 +107,7 @@ const hasCc = ccTroops.length > 0 || ccSpells.length > 0;
     <div class="flex-1 min-w-0 w-full flex flex-wrap items-center justify-center @[600px]:justify-start content-center gap-x-1.5 gap-y-1.5 self-center">
       {troops.map(t => (
         <div class="flex flex-col items-center shrink-0">
-          <div class="unit-tile" data-tooltip={t.name}>
+          <div class="unit-tile" data-tooltip={formatSquadTooltip(t.name)}>
             <img src={getTroopIcon(t.name)} alt={t.name} width="30" height="30" loading="lazy" decoding="async" class="unit-img" />
           </div>
           <span class="unit-count">x{t.count}</span>

@@ -3,6 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import HeroCard from '../components/HeroCard.astro';
 import SuperTroopsCard from '../components/SuperTroopsCard.astro';
 import SiegeMachinesCard from '../components/SiegeMachinesCard.astro';
+import SquadsCard from '../components/SquadsCard.astro';
+import SpellsCard from '../components/SpellsCard.astro';
+import ClanCastleCard from '../components/ClanCastleCard.astro';
 import { getMetaData } from '../utils/dataUtils';
  
 const metaData = getMetaData();
@@ -18,6 +21,11 @@ const getHeroPets = (heroName: string) => pets.filter(p => p.hero === heroName).
 
 const superTroops = metaData?.superTroops || [];
 const siegeMachines = metaData?.siegeMachines || [];
+const squads = metaData?.squads || [];
+const spells = metaData?.spells || [];
+const ccTroopCombos = metaData?.ccTroopCombos || [];
+const ccSpells = metaData?.ccSpells || [];
+const unitGridCols = squads.length > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-2';
 const lastUpdated = metaData?.lastUpdated || '';
 ---
 
@@ -33,6 +41,7 @@ const lastUpdated = metaData?.lastUpdated || '';
       <HeroCard 
         name={hero.name} 
         usage={hero.usage} 
+        usageDelta={hero.usageDelta}
         equipments={getHeroEquipments(hero.name)} 
         combos={getHeroCombos(hero.name)}
         pets={getHeroPets(hero.name)}
@@ -40,10 +49,21 @@ const lastUpdated = metaData?.lastUpdated || '';
     ))}
   </div>
 
-  {(superTroops.length > 0 || siegeMachines.length > 0) && (
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+  {(superTroops.length > 0 || siegeMachines.length > 0 || squads.length > 0) && (
+    <div class={`grid grid-cols-1 md:grid-cols-2 ${unitGridCols} gap-6 mt-6`}>
       {superTroops.length > 0 && <SuperTroopsCard troops={superTroops} />}
       {siegeMachines.length > 0 && <SiegeMachinesCard machines={siegeMachines} />}
+      {squads.length > 0 && (
+        <div class="md:col-span-2 lg:col-span-1 h-full">
+          <SquadsCard squads={squads} />
+        </div>
+      )}
+    </div>
+  )}
+  {(spells.length > 0 || ccTroopCombos.length > 0) && (
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      {spells.length > 0 && <SpellsCard spells={spells} />}
+      {ccTroopCombos.length > 0 && <ClanCastleCard combos={ccTroopCombos} ccSpells={ccSpells} />}
     </div>
   )}
 </Layout>

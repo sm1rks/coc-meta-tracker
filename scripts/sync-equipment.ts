@@ -183,6 +183,7 @@ export async function syncAll(): Promise<void> {
   console.log('📦 Fetching clashk.ing asset manifest...');
   const manifest = await fetchJson<{
     assets?: {
+      buildings?: ManifestEntry[];
       equipment?: ManifestEntry[];
       heroes?: ManifestEntry[];
       pets?: ManifestEntry[];
@@ -191,6 +192,7 @@ export async function syncAll(): Promise<void> {
     };
   }>(MANIFEST_URL);
 
+  const manifestBuildings = manifest.assets?.buildings || [];
   const manifestEquipment = manifest.assets?.equipment || [];
   const manifestHeroes = manifest.assets?.heroes || [];
   const manifestPets = manifest.assets?.pets || [];
@@ -367,14 +369,16 @@ ${formattedHeroEntries}
     }
   }
 
-  // 6. Sync Troops (Regular, Dark, Super Troops, and Siege Machines)
-  console.log('🛡️ Checking Troops, Super Troops & Siege Machines...');
+  // 6. Sync Troops (Regular, Dark, Super Troops, Siege Machines, and Squads)
+  console.log('🛡️ Checking Troops, Super Troops, Siege Machines & Squads...');
   const currentTroopMapEntries: Record<number, string> = {};
   const siegeMachinesList: string[] = [];
   const superTroopsList: string[] = [];
+  const squadsList: string[] = [];
   const newTroops: string[] = [];
   const newSieges: string[] = [];
   const newSupers: string[] = [];
+  const newSquads: string[] = [];
 
   for (const t of remoteTroops) {
     if (t.village && t.village !== 'home') continue;
@@ -384,12 +388,16 @@ ${formattedHeroEntries}
 
     const isSiege = t.production_building === 'Workshop';
     const isSuper = t.super_troop != null;
+    const isSquad = t.production_building === 'Squad Barracks';
 
     if (isSiege && !siegeMachinesList.includes(t.name)) {
       siegeMachinesList.push(t.name);
     }
     if (isSuper && !superTroopsList.includes(t.name)) {
       superTroopsList.push(t.name);
+    }
+    if (isSquad && !squadsList.includes(t.name)) {
+      squadsList.push(t.name);
     }
 
     // Determine standard icon filename
@@ -404,11 +412,13 @@ ${formattedHeroEntries}
     const matchPath = troopMapAsset.get(normalizeName(t.name));
     if (matchPath) {
       if (!fs.existsSync(iconPath) || isPlaceholder(iconPath)) {
-        console.log(`⬇️ Downloading icon for Troop (${isSiege ? 'Siege' : isSuper ? 'Super' : 'Regular'}): ${t.name}`);
+        const categoryLabel = isSiege ? 'Siege' : isSuper ? 'Super' : isSquad ? 'Squad' : 'Regular';
+        console.log(`⬇️ Downloading icon for Troop (${categoryLabel}): ${t.name}`);
         const buf = await fetchBuffer(`https://assets.clashk.ing/${matchPath}`);
         await saveSmartIcon(buf, iconPath);
         if (isSiege) newSieges.push(t.name);
         else if (isSuper) newSupers.push(t.name);
+        else if (isSquad) newSquads.push(t.name);
         else newTroops.push(t.name);
       }
     } else if (!fs.existsSync(iconPath)) {
@@ -416,7 +426,32 @@ ${formattedHeroEntries}
       applyPlaceholder(iconPath);
       if (isSiege) newSieges.push(t.name);
       else if (isSuper) newSupers.push(t.name);
+      else if (isSquad) newSquads.push(t.name);
       else newTroops.push(t.name);
+    }
+  }
+
+  // Sync building icons used in dashboard card headers (Squad Barracks, Spell Factory, Clan Castle)
+  const headerBuildings = [
+    { folder: 'squad_barracks/', dest: 'Icon_HV_Squad_Barracks.webp', label: 'Squad Barracks' },
+    { folder: 'spell_factory/', dest: 'Icon_HV_Spell_Factory.webp', label: 'Spell Factory' },
+    { folder: 'clan_castle/', dest: 'Icon_HV_Clan_Castle.webp', label: 'Clan Castle' },
+  ];
+  for (const hb of headerBuildings) {
+    const entries = manifestBuildings
+      .filter(b => b.path.includes(hb.folder))
+      .sort((a, b) => {
+        const lvlA = parseInt(a.path.match(/level_(\d+)/)?.[1] || '0');
+        const lvlB = parseInt(b.path.match(/level_(\d+)/)?.[1] || '0');
+        return lvlB - lvlA;
+      });
+    if (entries.length > 0) {
+      const destPath = path.join(iconsDir, hb.dest);
+      if (!fs.existsSync(destPath) || isPlaceholder(destPath)) {
+        console.log(`⬇️ Downloading ${hb.label} building icon...`);
+        const buf = await fetchBuffer(`https://assets.clashk.ing/${entries[0].path}`);
+        await saveSmartIcon(buf, destPath);
+      }
     }
   }
 
@@ -477,6 +512,10 @@ ${formattedHeroEntries}
     .map(st => JSON.stringify(st))
     .join(', ');
 
+  const formattedSquads = squadsList
+    .map(sq => JSON.stringify(sq))
+    .join(', ');
+
   const unitMapContent = `// Auto-generated mappings from static_data.json
 export const TroopMap: Record<number, string> = {
 ${formattedTroopEntries}
@@ -497,10 +536,14 @@ export const ALL_SIEGE_MACHINES = new Set([
 export const ALL_SUPER_TROOPS = new Set([
   ${formattedSupers}
 ]);
+
+export const ALL_SQUADS = new Set([
+  ${formattedSquads}
+]);
 `;
 
   fs.writeFileSync(unitMapPath, unitMapContent, 'utf-8');
-  console.log('📝 Updated src/data/UnitMap.ts (TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS)');
+  console.log('📝 Updated src/data/UnitMap.ts (TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS, ALL_SQUADS)');
 
   // 9. Update data/static_data.json while preserving any auto-discovered equipment
   if (fs.existsSync(staticDataPath)) {
@@ -526,6 +569,7 @@ export const ALL_SUPER_TROOPS = new Set([
   console.log(`   - Spells: ${newSpells.length > 0 ? newSpells.join(', ') : 'Up to date'}`);
   console.log(`   - Siege Machines: ${newSieges.length > 0 ? newSieges.join(', ') : 'Up to date'}`);
   console.log(`   - Super Troops: ${newSupers.length > 0 ? newSupers.join(', ') : 'Up to date'}`);
+  console.log(`   - Squads: ${newSquads.length > 0 ? newSquads.join(', ') : 'Up to date'}`);
 }
 
 if (process.argv[1]?.includes('sync-equipment') || process.argv[1]?.includes('sync-units')) {

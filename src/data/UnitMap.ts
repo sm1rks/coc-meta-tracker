@@ -87,7 +87,19 @@ export const TroopMap: Record<number, string> = {
   "185": "Elephant Rider",
   "188": "Sky Wagon",
   "190": "Yeti Undertaker",
-  "194": "Totem Thrower"
+  "194": "Totem Thrower",
+  "195": "Barch Squad",
+  "196": "Giant Wizard Squad",
+  "197": "Wall Breaker Squad",
+  "198": "Minion Squad",
+  "199": "Balloon Squad",
+  "200": "Golem Witch Squad",
+  "201": "Hog Rider Squad",
+  "202": "Miner Squad",
+  "203": "Healer Squad",
+  "204": "P.E.K.K.A Titan Squad",
+  "205": "Dragons Squad",
+  "206": "Baby Dragon Squad"
 };
 
 export const SpellMap: Record<number, string> = {
@@ -110,7 +122,8 @@ export const SpellMap: Record<number, string> = {
   "98": "Revive Spell",
   "109": "Ice Block Spell",
   "120": "Totem Spell",
-  "123": "Angry Spell"
+  "123": "Angry Spell",
+  "153": "Heroic Spell"
 };
 
 export const PetMap: Record<number, string> = {
@@ -134,4 +147,8 @@ export const ALL_SIEGE_MACHINES = new Set([
 
 export const ALL_SUPER_TROOPS = new Set([
   "Super Barbarian", "Super Archer", "Super Wall Breaker", "Super Giant", "Sneaky Goblin", "Super Miner", "Rocket Balloon", "Inferno Dragon", "Super Valkyrie", "Super Witch", "Ice Hound", "Super Bowler", "Super Dragon", "Super Wizard", "Super Minion", "Super Hog Rider", "Super Yeti"
+]);
+
+export const ALL_SQUADS = new Set([
+  "Barch Squad", "Giant Wizard Squad", "Wall Breaker Squad", "Minion Squad", "Balloon Squad", "Golem Witch Squad", "Hog Rider Squad", "Miner Squad", "Healer Squad", "P.E.K.K.A Titan Squad", "Dragons Squad", "Baby Dragon Squad"
 ]);

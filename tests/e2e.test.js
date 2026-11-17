@@ -28,6 +28,20 @@ test('E2E: Homepage Feature Coverage', () => {
   assert.ok(html.includes('META TRACKER'), 'Header is present');
   assert.ok(html.includes('Super Troops'), 'Super Troops section is present');
   assert.ok(html.includes('Siege Machines'), 'Siege Machines section is present');
+  const metaPath = path.join(__dirname, '..', 'data', 'meta.json');
+  if (fs.existsSync(metaPath)) {
+    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+    if ((meta.squads || []).length > 0) {
+      assert.ok(html.includes('Squads'), 'Squads section is present when squad data exists');
+    }
+    if ((meta.spells || []).length > 0) {
+      assert.ok(html.includes('Spells'), 'Spells section is present when spell data exists');
+    }
+    if ((meta.ccTroopCombos || []).length > 0) {
+      assert.ok(html.includes('Clan Castle'), 'Clan Castle section is present when CC data exists');
+    }
+  }
+  assert.ok(fs.existsSync(path.join(distDir, 'meta-summary.json')), 'dist/meta-summary.json must exist');
   assert.ok(!html.includes('.png'), 'No PNG images should be rendered on the homepage');
   assert.ok(html.includes('.webp'), 'WebP images should be rendered instead');
 });
@@ -51,12 +65,17 @@ test('E2E: Leaderboard Validation', () => {
   assert.ok(html.includes('data-core-army='), 'Player rows must have data-core-army attribute');
   assert.ok(html.includes('data-search='), 'Player rows must have data-search attribute');
   assert.ok(html.includes('data-copy-army='), 'Army links must use delegated data-copy-army attribute');
+  assert.ok(html.includes('data-battlelog-toggle='), 'Player rows must include expandable Battle Log toggle');
+  assert.ok(html.includes('data-battlelog-panel='), 'Player rows must include Battle Log panel');
+  assert.ok(html.includes('id="player-sort"'), 'Player sort dropdown must be rendered');
+  assert.ok(fs.existsSync(path.join(distDir, 'battlelogs.json')), 'dist/battlelogs.json must exist');
   assert.ok(!html.includes('onerror="this.onerror'), 'Inline onerror handlers should be replaced with delegated listener');
 });
 
 test('E2E: Armies Routing', () => {
   const html = readDistHtml('armies', 'index.html');
   assert.ok(html.includes('Top Armies'), 'Army types header is present');
+  assert.ok(html.includes('3-Star Attacks'), 'Army 3-star rate tooltips are rendered');
   assert.ok(!html.includes('onerror="this.onerror'), 'Inline onerror handlers should be replaced with delegated listener');
 });
 

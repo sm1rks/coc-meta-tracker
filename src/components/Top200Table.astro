@@ -62,6 +62,16 @@ const armyOptions = Array.from(armyCounts.entries())
             </select>
           )}
 
+          <select
+            id="player-sort"
+            aria-label="Sort players"
+            class="px-2.5 py-1.5 rounded-lg bg-[#fbf6ea] border border-[#c4a481] text-[#4a2e0f] focus:border-[#603813] focus:bg-white focus-visible:outline-2 focus-visible:outline-[#603813] shadow-2xs text-xs sm:text-sm font-bold cursor-pointer transition-colors shrink-0"
+          >
+            <option value="rank">Sort: Rank</option>
+            <option value="atk-rate">Sort: 3★ Rate</option>
+            <option value="prev-rank">Sort: Prev Rank</option>
+          </select>
+
           <button
             type="button"
             id="clear-filters"
@@ -119,6 +129,7 @@ const armyOptions = Array.from(armyCounts.entries())
 
     const searchInput = document.getElementById('player-search') as HTMLInputElement | null;
     const armyFilter = document.getElementById('army-filter') as HTMLSelectElement | null;
+    const sortSelect = document.getElementById('player-sort') as HTMLSelectElement | null;
     const clearBtn = document.getElementById('clear-filters') as HTMLButtonElement | null;
     const clearBtnEmpty = document.getElementById('clear-filters-empty') as HTMLButtonElement | null;
     const resultsSummary = document.getElementById('results-summary');
@@ -136,6 +147,9 @@ const armyOptions = Array.from(armyCounts.entries())
       el,
       coreArmy: (el.getAttribute('data-core-army') || '').toLowerCase(),
       searchBlob: (el.getAttribute('data-search') || '').toLowerCase(),
+      rank: parseInt(el.getAttribute('data-rank') || '999999', 10),
+      atkRate: parseFloat(el.getAttribute('data-atk-rate') || '-1'),
+      prevRank: parseInt(el.getAttribute('data-prev-rank') || '999999', 10),
     }));
     
     let currentPage = 1;
@@ -153,12 +167,26 @@ const armyOptions = Array.from(armyCounts.entries())
     const applyFilters = () => {
       const q = (searchInput?.value || '').toLowerCase().trim();
       const selectedArmy = (armyFilter?.value || '').toLowerCase().trim();
+      const sortBy = sortSelect?.value || 'rank';
+
       filteredRows = (!q && !selectedArmy)
-        ? indexedRows
+        ? [...indexedRows]
         : indexedRows.filter(item => matchesFilters(item, q, selectedArmy));
 
+      filteredRows.sort((a, b) => {
+        if (sortBy === 'atk-rate') {
+          if (b.atkRate !== a.atkRate) return b.atkRate - a.atkRate;
+          return a.rank - b.rank;
+        }
+        if (sortBy === 'prev-rank') {
+          if (a.prevRank !== b.prevRank) return a.prevRank - b.prevRank;
+          return a.rank - b.rank;
+        }
+        return a.rank - b.rank;
+      });
+
       if (clearBtn) {
-        clearBtn.classList.toggle('hidden', !q && !selectedArmy);
+        clearBtn.classList.toggle('hidden', !q && !selectedArmy && sortBy === 'rank');
       }
     };
 
@@ -201,14 +229,19 @@ const armyOptions = Array.from(armyCounts.entries())
       }
 
       for (let i = startIdx; i < endIdx; i++) {
-        filteredRows[i].el.style.display = 'flex';
+        const rowEl = filteredRows[i].el;
+        playersList.appendChild(rowEl);
+        rowEl.style.display = 'flex';
       }
+      if (noResultsEl) playersList.appendChild(noResultsEl);
       
       const url = new URL(window.location.href);
       if (searchInput?.value) url.searchParams.set('search', searchInput.value);
       else url.searchParams.delete('search');
       if (armyFilter?.value) url.searchParams.set('army', armyFilter.value);
       else url.searchParams.delete('army');
+      if (sortSelect?.value && sortSelect.value !== 'rank') url.searchParams.set('sort', sortSelect.value);
+      else url.searchParams.delete('sort');
       if (currentPage > 1) url.searchParams.set('page', currentPage.toString());
       else url.searchParams.delete('page');
       window.history.replaceState({}, '', url);
@@ -222,6 +255,7 @@ const armyOptions = Array.from(armyCounts.entries())
     const resetFilters = () => {
       if (searchInput) searchInput.value = '';
       if (armyFilter) armyFilter.value = '';
+      if (sortSelect) sortSelect.value = 'rank';
       applyFilters();
       currentPage = 1;
       render();
@@ -243,6 +277,12 @@ const armyOptions = Array.from(armyCounts.entries())
         render();
       });
     }
+
+    sortSelect?.addEventListener('change', () => {
+      applyFilters();
+      currentPage = 1;
+      render();
+    });
 
     clearBtn?.addEventListener('click', resetFilters);
     clearBtnEmpty?.addEventListener('click', resetFilters);
@@ -280,6 +320,7 @@ const armyOptions = Array.from(armyCounts.entries())
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     const armyParam = urlParams.get('army');
+    const sortParam = urlParams.get('sort');
     const pageParam = urlParams.get('page');
     
     if (searchParam && searchInput) {
@@ -287,6 +328,9 @@ const armyOptions = Array.from(armyCounts.entries())
     }
     if (armyParam && armyFilter) {
       armyFilter.value = armyParam.toLowerCase();
+    }
+    if (sortParam && sortSelect) {
+      sortSelect.value = sortParam;
     }
     applyFilters();
     if (pageParam) {

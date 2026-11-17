@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
 import { EquipmentMap, HeroMap } from '../src/data/equipmentMap.js';
-import { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } from '../src/data/UnitMap.js';
-import type { MetaData } from '../src/types.js';
+import { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS, ALL_SQUADS } from '../src/data/UnitMap.js';
+import { resolveTroopHousingSpace, expandSquadTroops } from '../src/utils/squadUtils.js';
+import { applyTrends, buildMetaSummary, isValidTrendBaseline, type MetaSummary } from '../src/utils/trendUtils.js';
+import type { BattleEntry, ClanCastleComboStat, MetaData } from '../src/types.js';
 
 // Dynamically build housing space lookup from static_data.json
 const staticDataPath = path.join(process.cwd(), 'data', 'static_data.json');
@@ -19,12 +21,7 @@ if (fs.existsSync(staticDataPath)) {
 const TROOP_HOUSING_SPACES: Record<string, number> = {};
 for (const troop of staticData.troops || []) {
   if (troop.name) {
-    // Siege machines produced in Workshop occupy a vehicle slot, taking 0 regular troop CC space
-    if (troop.production_building === 'Workshop') {
-      TROOP_HOUSING_SPACES[troop.name] = 0;
-    } else {
-      TROOP_HOUSING_SPACES[troop.name] = troop.housing_space ?? 1;
-    }
+    TROOP_HOUSING_SPACES[troop.name] = resolveTroopHousingSpace(troop);
   }
 }
 
@@ -263,6 +260,189 @@ ${formattedHeroEntries}
   }
 }
 
+const SUPPORT_TROOPS = new Set([
+  "Barbarian", "Archer", "Goblin", "Giant", "Wall Breaker", "Balloon",
+  "Wizard", "Minion", "Hog Rider", "Valkyrie", "Sneaky Goblin",
+  "Super Wall Breaker", "Headhunter", "Ice Golem", "Baby Dragon",
+  "Raged Barbarian", "Sneaky Archer", "Beta Minion", "Boxer Giant",
+  "Bomber", "Power P.E.K.K.A", "Cannon Cart", "Drop Ship",
+  "Wall Wrecker", "Battle Blimp", "Stone Slammer", "Hog Glider",
+  "Siege Barracks", "Log Launcher", "Flame Flinger", "Battle Drill",
+  "Sky Wagon", "Troop Launcher",
+  "Super Barbarian", "Super Archer", "Super Giant", "Rocket Balloon", "Inferno Dragon", "Healer",
+  "Furnace", "Ruin Witch", "Druid", "Apprentice Warden",
+]);
+
+function parseUnitsFromShareCode(shareCode: string, regex: RegExp, map: Record<number, string>, counts: Record<string, number>) {
+  const match = shareCode.match(regex);
+  if (!match) return;
+  for (const p of match[1].split('-')) {
+    const [countStr, idStr] = p.split('x');
+    if (countStr && idStr) {
+      const count = parseInt(countStr);
+      const id = parseInt(idStr);
+      const name = map[id];
+      if (name) counts[name] = (counts[name] || 0) + count;
+    }
+  }
+}
+
+function parseArmyShareCode(shareCode: string) {
+  const equipNames = new Set<string>();
+  const attackHeroes: { hero: string; combo: string | null; pet: string | null; eqNames: string[] }[] = [];
+
+  const hMatch = shareCode.match(/h([^\-dsui]+(?:-[^\-dsui]+)*)/);
+  if (hMatch) {
+    for (const heroStr of hMatch[1].split('-')) {
+      const idMatch = heroStr.match(/^(\d+)/);
+      const pMatch = heroStr.match(/p(\d+)/);
+      const eMatch = heroStr.match(/e(\d+)(?:_(\d+))?/);
+      if (!idMatch || !eMatch) continue;
+
+      const heroId = parseInt(idMatch[1]);
+      const eq1 = parseInt(eMatch[1]);
+      const eq2 = eMatch[2] ? parseInt(eMatch[2]) : null;
+      const petId = pMatch ? parseInt(pMatch[1]) : null;
+
+      const heroName = HeroMap[heroId];
+      if (!heroName) continue;
+
+      const petName = petId !== null ? PetMap[petId] || null : null;
+      const eq1Name = EquipmentMap[eq1] || null;
+      const eq2Name = eq2 !== null && eq2 !== undefined ? EquipmentMap[eq2] || null : null;
+
+      const eqNames: string[] = [];
+      if (eq1Name) {
+        equipNames.add(eq1Name);
+        eqNames.push(eq1Name);
+      }
+      if (eq2Name) {
+        equipNames.add(eq2Name);
+        eqNames.push(eq2Name);
+      }
+
+      const comboName = eqNames.length >= 2 ? [...eqNames].sort().join(' + ') : null;
+      attackHeroes.push({ hero: heroName, combo: comboName, pet: petName, eqNames });
+    }
+  }
+
+  const mainTroopCounts: Record<string, number> = {};
+  const ccTroopCounts: Record<string, number> = {};
+  const mainSpellCounts: Record<string, number> = {};
+  const ccSpellCounts: Record<string, number> = {};
+
+  parseUnitsFromShareCode(shareCode, /u([0-9x\-]+)/, TroopMap, mainTroopCounts);
+  parseUnitsFromShareCode(shareCode, /i([0-9x\-]+)/, TroopMap, ccTroopCounts);
+  parseUnitsFromShareCode(shareCode, /s([0-9x\-]+)/, SpellMap, mainSpellCounts);
+  parseUnitsFromShareCode(shareCode, /d([0-9x\-]+)/, SpellMap, ccSpellCounts);
+
+  const allTroopCounts = { ...mainTroopCounts };
+  for (const [k, v] of Object.entries(ccTroopCounts)) allTroopCounts[k] = (allTroopCounts[k] || 0) + v;
+
+  const allSpellCounts = { ...mainSpellCounts };
+  for (const [k, v] of Object.entries(ccSpellCounts)) allSpellCounts[k] = (allSpellCounts[k] || 0) + v;
+
+  const expandedMainTroopCounts = expandSquadTroops(mainTroopCounts);
+  const expandedAllTroopCounts = expandSquadTroops(allTroopCounts);
+
+  const coreTroops = Object.entries(expandedMainTroopCounts)
+    .filter(([name, count]) => {
+      if (name === "Rocket Balloon") {
+        if (count >= 10) return true;
+        if (count >= 5 && (expandedMainTroopCounts["Super Minion"] || 0) >= 3) return true;
+        return false;
+      }
+      if (name === "Electro Titan") {
+        return count >= 3;
+      }
+      return !SUPPORT_TROOPS.has(name);
+    })
+    .map(([name, count]) => ({
+      name,
+      count,
+      space: count * (TROOP_HOUSING_SPACES[name] ?? 1)
+    }))
+    .sort((a, b) => b.space - a.space);
+
+  let armyType: string;
+  if (coreTroops.length === 0) {
+    const topSupport = Object.entries(expandedMainTroopCounts)
+      .map(([name, count]) => ({ name, space: count * (TROOP_HOUSING_SPACES[name] || 1) }))
+      .sort((a, b) => b.space - a.space)[0];
+    armyType = topSupport ? topSupport.name : "Unknown";
+  } else if (coreTroops.length === 1 || coreTroops[0].space >= (coreTroops[1]?.space || 0) * 1.5) {
+    armyType = coreTroops[0].name;
+    if (armyType === "Super Minion" && (expandedMainTroopCounts["Rocket Balloon"] || 0) >= 5) {
+      armyType = "Rocket Balloon & Super Minion";
+    } else if (armyType === "Rocket Balloon" && (expandedMainTroopCounts["Super Minion"] || 0) >= 3) {
+      armyType = "Rocket Balloon & Super Minion";
+    }
+  } else {
+    const top2 = [coreTroops[0].name, coreTroops[1].name].sort();
+    armyType = `${top2[0]} & ${top2[1]}`;
+  }
+
+  if (armyType === "Dragon & Dragon Rider") {
+    armyType = "Hydra";
+  } else if (armyType === "Dragon & Ice Hound" || armyType === "Dragon & Lava Hound") {
+    armyType = "Dragon";
+  } else if (armyType === "Ice Hound" || armyType === "Lava Hound") {
+    armyType = "LaLo";
+  } else if (armyType === "Miner" && (expandedAllTroopCounts["Hog Rider"] || 0) >= 8) {
+    armyType = "Hybrid";
+  }
+
+  const prefixes: string[] = [];
+  const eqSpells = allSpellCounts["Earthquake Spell"] || 0;
+  const invisSpells = allSpellCounts["Invisibility Spell"] || 0;
+  const hasFireballOrMonolith = equipNames.has("Fireball") || equipNames.has("Monolith Arrow");
+  if (invisSpells >= 4 && !hasFireballOrMonolith) {
+    const rcWithFox = attackHeroes.find(h => h.hero === "Royal Champion" && h.pet === "Spirit Fox");
+    const dukeWithFox = attackHeroes.find(h => h.hero === "Dragon Duke" && h.pet === "Spirit Fox");
+    if (rcWithFox) prefixes.push("Royal Champion Charge");
+    else if (dukeWithFox) prefixes.push("Dragon Duke Charge");
+  }
+
+  const aqHero = attackHeroes.find(h => h.hero === "Archer Queen");
+  if (aqHero && equipNames.has("Monolith Arrow")) {
+    prefixes.push("Queen Charge");
+  }
+
+  const hasFireball = equipNames.has("Fireball");
+  const dukeHero = attackHeroes.find(h => h.hero === "Dragon Duke");
+  const hasFlameBlower = dukeHero && equipNames.has("Flame Blower");
+
+  if (hasFlameBlower) {
+    const minEqRequired = hasFireball ? 3 : 1;
+    if (eqSpells >= minEqRequired) {
+      prefixes.push("Flame Blower");
+    }
+  }
+
+  if (hasFireball) {
+    prefixes.push("Fireball");
+  }
+
+  if (equipNames.has("Giant Arrow") && equipNames.has("Rocket Backpack") && eqSpells >= 3) {
+    prefixes.push("Rocket Backpack");
+  }
+
+  if (prefixes.length > 0) {
+    armyType = `${prefixes.join(" ")} ${armyType}`;
+  }
+
+  return {
+    attackHeroes,
+    mainTroopCounts,
+    ccTroopCounts,
+    allTroopCounts,
+    mainSpellCounts,
+    ccSpellCounts,
+    allSpellCounts,
+    armyType,
+  };
+}
+
 async function fetchMeta() {
   try {
     console.log("Fetching Global Rankings (Top Players)...");
@@ -367,16 +547,27 @@ async function fetchMeta() {
 
 
 
+    type StarCounter = { count: number; threeStars: number };
+    const recordStarStat = (map: Record<string, StarCounter>, key: string, isThreeStar: boolean) => {
+      if (!map[key]) map[key] = { count: 0, threeStars: 0 };
+      map[key].count++;
+      if (isThreeStar) map[key].threeStars++;
+    };
+
     const stats = {
       playersAnalyzed: 0,
       attacksAnalyzed: 0,
       armies: {} as Record<string, ArmyStat>,
       heroes: {} as Record<string, { count: number }>,
       equipments: {} as Record<string, Record<string, number>>, // hero -> equipment -> count
-      combos: {} as Record<string, Record<string, number>>, // hero -> combo -> count
-      pets: {} as Record<string, Record<string, number>>, // hero -> pet -> count
+      combos: {} as Record<string, Record<string, StarCounter>>, // hero -> combo -> { count, threeStars }
+      pets: {} as Record<string, Record<string, StarCounter>>, // hero -> pet -> { count, threeStars }
       superTroops: {} as Record<string, number>,
-      siegeMachines: {} as Record<string, number>,
+      siegeMachines: {} as Record<string, StarCounter>,
+      squads: {} as Record<string, StarCounter>,
+      spells: {} as Record<string, StarCounter>,
+      ccTroopCombos: {} as Record<string, { units: { name: string; count: number }[]; count: number; threeStars: number }>,
+      ccSpells: {} as Record<string, StarCounter>,
       topPlayersList: [] as any[]
     };
 
@@ -391,7 +582,7 @@ async function fetchMeta() {
       for (let i = 0; i < equips.length; i++) {
         for (let j = i + 1; j < equips.length; j++) {
           const combo = [equips[i], equips[j]].sort().join(' + ');
-          stats.combos[heroName][combo] = 0;
+          stats.combos[heroName][combo] = { count: 0, threeStars: 0 };
         }
       }
     }
@@ -417,8 +608,11 @@ async function fetchMeta() {
         
         try {
           const pTag = encodeURIComponent(tag);
-          const battlelog = await fetchWithRetry(`${BASE_URL}/players/${pTag}/battlelog`);
-          results.push({ tag, battlelog });
+          const [battlelog, profile] = await Promise.all([
+            fetchWithRetry(`${BASE_URL}/players/${pTag}/battlelog`),
+            fetchWithRetry(`${BASE_URL}/players/${pTag}`).catch(() => null),
+          ]);
+          results.push({ tag, battlelog, profile });
         } catch (err) {
           console.error(`\nFailed to fetch player ${tag}:`, err);
         } finally {
@@ -478,146 +672,104 @@ async function fetchMeta() {
     }
 
     const globalArmyBattlesCount: Record<string, number> = {};
+    const globalArmyThreeStarsCount: Record<string, number> = {};
+    const battlelogsByTag: Record<string, BattleEntry[]> = {};
 
-    for (const { tag, battlelog } of results) {
+    for (const { tag, battlelog, profile } of results) {
       stats.playersAnalyzed++;
       const rankingPlayer = rankingsPlayersMap.get(tag);
       if (!rankingPlayer) continue;
 
       const playerSuperTroops = new Set<string>();
+      const playerBattles: BattleEntry[] = [];
+      let playerAttackCount = 0;
+      let playerThreeStarCount = 0;
+      let playerDefenseCount = 0;
 
-      // Parse Battlelog for Equipment
+      // Parse Battlelog for Equipment & Battles
       if (battlelog && battlelog.items) {
-          const rankedAttacks = battlelog.items.filter((b: any) => b.attack === true && (b.battleType === 'legend' || b.battleType === 'ranked'));
+          const rankedEntries = battlelog.items.filter((b: any) => b.battleType === 'legend' || b.battleType === 'ranked');
+          const rankedAttacks = rankedEntries
+            .filter((b: any) => b.attack === true)
+            .sort((a: any, b: any) => (b.battleTimestamp || '').localeCompare(a.battleTimestamp || ''));
+
+          for (const entry of rankedEntries) {
+            const parsedEntry = entry.armyShareCode ? parseArmyShareCode(entry.armyShareCode) : null;
+            if (entry.attack === true) {
+              playerAttackCount++;
+              if (entry.stars === 3) playerThreeStarCount++;
+            } else {
+              playerDefenseCount++;
+            }
+            playerBattles.push({
+              attack: Boolean(entry.attack),
+              battleType: entry.battleType,
+              stars: entry.stars ?? 0,
+              destructionPercentage: entry.destructionPercentage ?? 0,
+              opponentName: entry.opponentName || 'Unknown',
+              battleTimestamp: entry.battleTimestamp || '',
+              battleTime: entry.battleTime,
+              armyType: parsedEntry?.armyType,
+              armyLink: entry.armyShareCode ? `https://link.clashofclans.com/en?action=CopyArmy&army=${entry.armyShareCode}` : undefined,
+            });
+          }
+          playerBattles.sort((a, b) => b.battleTimestamp.localeCompare(a.battleTimestamp));
+          battlelogsByTag[tag] = playerBattles;
           
           const playerArmies: Record<string, number> = {};
+          const playerArmyRecencyScores: Record<string, number> = {};
+          const playerArmyThreeStars: Record<string, number> = {};
           const playerHeroData: Record<string, any[]> = {};
 
+          let rankedAttackIdx = 0;
           for (const attack of rankedAttacks) {
             if (!attack.armyShareCode) continue;
 
+            const recencyWeight = Math.pow(0.9, rankedAttackIdx++);
             stats.attacksAnalyzed++;
 
-            const heroesDeployed = new Set<string>();
-            const equipNames = new Set<string>();
-            const attackHeroes: { hero: string, combo: string | null, pet: string | null }[] = [];
+            const parsed = parseArmyShareCode(attack.armyShareCode);
+            const {
+              attackHeroes: parsedHeroes,
+              mainTroopCounts,
+              ccTroopCounts,
+              allTroopCounts,
+              mainSpellCounts,
+              ccSpellCounts,
+              allSpellCounts,
+              armyType,
+            } = parsed;
 
-            // Extract heroes section: starts with 'h', ends with 'd' or 'u' or 's' or 'i' or end of string
-            const hMatch = attack.armyShareCode.match(/h([^\-dsui]+(?:-[^\-dsui]+)*)/);
-            if (hMatch) {
-              const heroesStr = hMatch[1];
-              // Each hero is separated by '-'
-              const heroesList = heroesStr.split('-');
-              for (const heroStr of heroesList) {
-                // heroStr looks like "0p11e10_51" or "0e10_51"
-                const idMatch = heroStr.match(/^(\d+)/);
-                const pMatch = heroStr.match(/p(\d+)/);
-                const eMatch = heroStr.match(/e(\d+)(?:_(\d+))?/);
-                
-                if (idMatch && eMatch) {
-                  const heroId = parseInt(idMatch[1]);
-                  const eq1 = parseInt(eMatch[1]);
-                  const eq2 = eMatch[2] ? parseInt(eMatch[2]) : null;
-                  const petId = pMatch ? parseInt(pMatch[1]) : null;
+            const attackHeroes = parsedHeroes.map(h => ({
+              hero: h.hero,
+              combo: h.combo,
+              pet: h.pet,
+            }));
 
-                  const heroName = HeroMap[heroId];
-                  if (!heroName) continue;
-                  
-                  const petName = petId !== null ? PetMap[petId] : null;
-                  if (petId !== null && !petName) {
-                    console.log(`Unmapped Pet ID found: ${petId}`);
-                  }
-
-                  heroesDeployed.add(heroName);
-
-                  const eq1Name = EquipmentMap[eq1];
-                  const eq2Name = eq2 !== null && eq2 !== undefined ? EquipmentMap[eq2] : null;
-
-                  if (eq1 !== null && eq1 !== undefined && !eq1Name) {
-                    console.log(`Unmapped Equipment ID found: ${eq1} on ${heroName}`);
-                  }
-                  if (eq2 !== null && eq2 !== undefined && !eq2Name) {
-                    console.log(`Unmapped Equipment ID found: ${eq2} on ${heroName}`);
-                  }
-
-                  if (eq1Name) equipNames.add(eq1Name);
-                  if (eq2Name) equipNames.add(eq2Name);
-
-                  if (!stats.heroes[heroName]) {
-                    stats.heroes[heroName] = { count: 0 };
-                    stats.equipments[heroName] = {};
-                    stats.combos[heroName] = {};
-                    stats.pets[heroName] = {};
-                  }
-
-                  stats.heroes[heroName].count++;
-
-                  const eqNames = [];
-                  if (eq1Name) {
-                    stats.equipments[heroName][eq1Name] = (stats.equipments[heroName][eq1Name] || 0) + 1;
-                    eqNames.push(eq1Name);
-                  }
-                  if (eq2Name) {
-                    stats.equipments[heroName][eq2Name] = (stats.equipments[heroName][eq2Name] || 0) + 1;
-                    eqNames.push(eq2Name);
-                  }
-
-                  let comboName = null;
-                  if (eqNames.length >= 2) {
-                    comboName = eqNames.sort().join(' + ');
-                    stats.combos[heroName][comboName] = (stats.combos[heroName][comboName] || 0) + 1;
-                  }
-
-                  if (petName) {
-                    if (!stats.pets[heroName]) stats.pets[heroName] = {};
-                    stats.pets[heroName][petName] = (stats.pets[heroName][petName] || 0) + 1;
-                  }
-
-                  attackHeroes.push({ hero: heroName, combo: comboName, pet: petName });
-                }
+            const isThreeStar = attack.stars === 3;
+            for (const h of parsedHeroes) {
+              if (!stats.heroes[h.hero]) {
+                stats.heroes[h.hero] = { count: 0 };
+                stats.equipments[h.hero] = {};
+                stats.combos[h.hero] = {};
+                stats.pets[h.hero] = {};
+              }
+              stats.heroes[h.hero].count++;
+              for (const eqName of h.eqNames) {
+                stats.equipments[h.hero][eqName] = (stats.equipments[h.hero][eqName] || 0) + 1;
+              }
+              if (h.combo) {
+                recordStarStat(stats.combos[h.hero], h.combo, isThreeStar);
+              }
+              if (h.pet) {
+                recordStarStat(stats.pets[h.hero], h.pet, isThreeStar);
               }
             }
-
-            // --- TROOPS & SPELLS ---
-            const mainTroopCounts: Record<string, number> = {};
-            const ccTroopCounts: Record<string, number> = {};
-            const mainSpellCounts: Record<string, number> = {};
-            const ccSpellCounts: Record<string, number> = {};
-            
-            const parseUnits = (regex: RegExp, map: Record<number, string>, counts: Record<string, number>) => {
-              const match = attack.armyShareCode.match(regex);
-              if (match) {
-                const parts = match[1].split('-');
-                for (const p of parts) {
-                  const [countStr, idStr] = p.split('x');
-                  if (countStr && idStr) {
-                    const count = parseInt(countStr);
-                    const id = parseInt(idStr);
-                    const name = map[id];
-                    if (name) counts[name] = (counts[name] || 0) + count;
-                  }
-                }
-              }
-            };
-
-            // u = troops, i = clan castle troops (includes siege machine)
-            parseUnits(/u([0-9x\-]+)/, TroopMap, mainTroopCounts);
-            parseUnits(/i([0-9x\-]+)/, TroopMap, ccTroopCounts);
-
-            // s = spells, d = clan castle spells
-            parseUnits(/s([0-9x\-]+)/, SpellMap, mainSpellCounts);
-            parseUnits(/d([0-9x\-]+)/, SpellMap, ccSpellCounts);
-
-            const allTroopCounts = { ...mainTroopCounts };
-            for (const [k, v] of Object.entries(ccTroopCounts)) allTroopCounts[k] = (allTroopCounts[k] || 0) + v;
-            
-            const allSpellCounts = { ...mainSpellCounts };
-            for (const [k, v] of Object.entries(ccSpellCounts)) allSpellCounts[k] = (allSpellCounts[k] || 0) + v;
 
             // Track global siege machine usage
             const deployedSiegeMachines = Object.entries(allTroopCounts).filter(([name]) => ALL_SIEGE_MACHINES.has(name));
             for (const [smName] of deployedSiegeMachines) {
-              stats.siegeMachines[smName] = (stats.siegeMachines[smName] || 0) + 1;
+              recordStarStat(stats.siegeMachines, smName, isThreeStar);
             }
 
             // Collect super troops from the parsed attack (only from the main army)
@@ -626,120 +778,42 @@ async function fetchMeta() {
               playerSuperTroops.add(st);
             }
 
-            // --- DYNAMIC CLASSIFICATION ---
-            // Filter out common support/funnel troops to find the core army identity
-            const SUPPORT_TROOPS = new Set([
-              "Barbarian", "Archer", "Goblin", "Giant", "Wall Breaker", "Balloon",
-              "Wizard", "Minion", "Hog Rider", "Valkyrie", "Sneaky Goblin",
-              "Super Wall Breaker", "Headhunter", "Ice Golem", "Baby Dragon",
-              "Raged Barbarian", "Sneaky Archer", "Beta Minion", "Boxer Giant",
-              "Bomber", "Power P.E.K.K.A", "Cannon Cart", "Drop Ship",
-              "Wall Wrecker", "Battle Blimp", "Stone Slammer", "Hog Glider",
-              "Siege Barracks", "Log Launcher", "Flame Flinger", "Battle Drill",
-              "Sky Wagon", "Troop Launcher",
-              "Super Barbarian", "Super Archer", "Super Giant", "Rocket Balloon", "Inferno Dragon", "Healer",
-              "Furnace", "Ruin Witch", "Druid", "Apprentice Warden",
-            ]);
+            // Track global squad usage per attack
+            const deployedSquads = Object.keys(mainTroopCounts).filter(name => ALL_SQUADS.has(name));
+            for (const sqName of deployedSquads) {
+              recordStarStat(stats.squads, sqName, isThreeStar);
+            }
 
-            const coreTroops = Object.entries(mainTroopCounts)
-              .filter(([name, count]) => {
-                if (name === "Rocket Balloon") {
-                  if (count >= 10) return true;
-                  if (count >= 5 && (mainTroopCounts["Super Minion"] || 0) >= 3) return true;
-                  return false;
-                }
-                // Electro Titan is support when 1-2 are brought for aura, but a core Smash troop at 3+
-                if (name === "Electro Titan") {
-                  return count >= 3;
-                }
-                return !SUPPORT_TROOPS.has(name);
-              })
-              .map(([name, count]) => ({
-                name,
-                count,
-                space: count * (TROOP_HOUSING_SPACES[name] ?? 1)
-              }))
-              .sort((a, b) => b.space - a.space);
+            // Track global main spell usage per attack
+            for (const spName of Object.keys(mainSpellCounts)) {
+              recordStarStat(stats.spells, spName, isThreeStar);
+            }
 
-            let armyType: string;
-            if (coreTroops.length === 0) {
-              // Pure support/funnel army — use top deployed troop by space
-              const topSupport = Object.entries(mainTroopCounts)
-                .map(([name, count]) => ({ name, space: count * (TROOP_HOUSING_SPACES[name] || 1) }))
-                .sort((a, b) => b.space - a.space)[0];
-              armyType = topSupport ? topSupport.name : "Unknown";
-            } else if (coreTroops.length === 1 || coreTroops[0].space >= (coreTroops[1]?.space || 0) * 1.5) {
-              // One dominant core troop in terms of housing space
-              armyType = coreTroops[0].name;
-              if (armyType === "Super Minion" && (mainTroopCounts["Rocket Balloon"] || 0) >= 5) {
-                armyType = "Rocket Balloon & Super Minion";
-              } else if (armyType === "Rocket Balloon" && (mainTroopCounts["Super Minion"] || 0) >= 3) {
-                armyType = "Rocket Balloon & Super Minion";
+            // Track Clan Castle troop combos (excluding siege machines) & CC spells
+            const ccUnits = Object.entries(ccTroopCounts)
+              .filter(([name]) => !ALL_SIEGE_MACHINES.has(name))
+              .map(([name, count]) => ({ name, count }))
+              .sort((a, b) => {
+                const spaceDiff = b.count * (TROOP_HOUSING_SPACES[b.name] ?? 1) - a.count * (TROOP_HOUSING_SPACES[a.name] ?? 1);
+                return spaceDiff !== 0 ? spaceDiff : a.name.localeCompare(b.name);
+              });
+            if (ccUnits.length > 0) {
+              const ccKey = ccUnits.map(u => `${u.count}x${u.name}`).join(' + ');
+              if (!stats.ccTroopCombos[ccKey]) {
+                stats.ccTroopCombos[ccKey] = { units: ccUnits, count: 0, threeStars: 0 };
               }
-            } else {
-              // Two roughly equal core troops — combine them alphabetically for consistency
-              const top2 = [coreTroops[0].name, coreTroops[1].name].sort();
-              armyType = `${top2[0]} & ${top2[1]}`;
+              stats.ccTroopCombos[ccKey].count++;
+              if (isThreeStar) stats.ccTroopCombos[ccKey].threeStars++;
             }
-
-            if (armyType === "Dragon & Dragon Rider") {
-              armyType = "Hydra";
-            } else if (armyType === "Dragon & Ice Hound" || armyType === "Dragon & Lava Hound") {
-              armyType = "Dragon";
-            } else if (armyType === "Ice Hound" || armyType === "Lava Hound") {
-              armyType = "LaLo";
-            } else if (armyType === "Miner" && (allTroopCounts["Hog Rider"] || 0) >= 8) {
-              armyType = "Hybrid";
-            }
-
-            // Build prefixes (go at the front of the army name)
-            const prefixes: string[] = [];
-            const eqSpells = allSpellCounts["Earthquake Spell"] || 0;
-
-            // Charge detection: 4+ invis spells + Spirit Fox on RC or Duke
-            const invisSpells = allSpellCounts["Invisibility Spell"] || 0;
-            const hasFireballOrMonolith = equipNames.has("Fireball") || equipNames.has("Monolith Arrow");
-            if (invisSpells >= 4 && !hasFireballOrMonolith) {
-              const rcWithFox = attackHeroes.find(h => h.hero === "Royal Champion" && h.pet === "Spirit Fox");
-              const dukeWithFox = attackHeroes.find(h => h.hero === "Dragon Duke" && h.pet === "Spirit Fox");
-              if (rcWithFox) prefixes.push("Royal Champion Charge");
-              else if (dukeWithFox) prefixes.push("Dragon Duke Charge");
-            }
-
-            // Queen Charge detection: Monolith Arrow on Archer Queen
-            const aqHero = attackHeroes.find(h => h.hero === "Archer Queen");
-            if (aqHero && equipNames.has("Monolith Arrow")) {
-              prefixes.push("Queen Charge");
-            }
-
-            // Fireball prefix
-            const hasFireball = equipNames.has("Fireball");
-
-            // Flame Blower prefix (Dragon Duke equipment)
-            const dukeHero = attackHeroes.find(h => h.hero === "Dragon Duke");
-            const hasFlameBlower = dukeHero && equipNames.has("Flame Blower");
-
-            if (hasFlameBlower) {
-              const minEqRequired = hasFireball ? 3 : 1;
-              if (eqSpells >= minEqRequired) {
-                prefixes.push("Flame Blower");
-              }
-            }
-
-            if (hasFireball) {
-              prefixes.push("Fireball");
-            }
-
-            // Rocket Backpack prefix
-            if (equipNames.has("Giant Arrow") && equipNames.has("Rocket Backpack") && eqSpells >= 3) {
-              prefixes.push("Rocket Backpack");
-            }
-
-            if (prefixes.length > 0) {
-              armyType = `${prefixes.join(" ")} ${armyType}`;
+            for (const ccSpName of Object.keys(ccSpellCounts)) {
+              recordStarStat(stats.ccSpells, ccSpName, isThreeStar);
             }
 
             playerArmies[armyType] = (playerArmies[armyType] || 0) + 1;
+            playerArmyRecencyScores[armyType] = (playerArmyRecencyScores[armyType] || 0) + recencyWeight;
+            if (attack.stars === 3) {
+              playerArmyThreeStars[armyType] = (playerArmyThreeStars[armyType] || 0) + 1;
+            }
             if (!playerHeroData[armyType]) playerHeroData[armyType] = [];
             playerHeroData[armyType].push({
               heroes: attackHeroes,
@@ -758,11 +832,13 @@ async function fetchMeta() {
           }
 
           let mainArmyType = null;
-          let maxCount = 0;
+          let maxScore = -1;
           for (const [aType, count] of Object.entries(playerArmies)) {
             globalArmyBattlesCount[aType] = (globalArmyBattlesCount[aType] || 0) + count;
-            if (count > maxCount) {
-              maxCount = count;
+            globalArmyThreeStarsCount[aType] = (globalArmyThreeStarsCount[aType] || 0) + (playerArmyThreeStars[aType] || 0);
+            const score = playerArmyRecencyScores[aType] || count;
+            if (score > maxScore) {
+              maxScore = score;
               mainArmyType = aType;
             }
           }
@@ -771,7 +847,7 @@ async function fetchMeta() {
           if (mainArmyType && playerHeroData[mainArmyType].length > 0) {
             const attacks = playerHeroData[mainArmyType];
             
-            // 1. Calculate average count for each troop and spell across all attacks of this army type
+            // 1. Calculate recency-weighted average count for each troop and spell across attacks of this army type
             const unitAverages: Record<string, number> = {};
             const unitNames = new Set<string>();
             for (const attack of attacks) {
@@ -782,42 +858,52 @@ async function fetchMeta() {
                 unitNames.add(name);
               }
             }
+            let totalWeight = 0;
+            for (let i = 0; i < attacks.length; i++) {
+              totalWeight += Math.pow(0.85, i);
+            }
             for (const name of unitNames) {
-              let total = 0;
-              for (const attack of attacks) {
-                total += (attack.troopCounts[name] || attack.spellCounts[name] || 0);
+              let weightedTotal = 0;
+              for (let i = 0; i < attacks.length; i++) {
+                const attack = attacks[i];
+                weightedTotal += Math.pow(0.85, i) * (attack.troopCounts[name] || attack.spellCounts[name] || 0);
               }
-              unitAverages[name] = total / attacks.length;
+              unitAverages[name] = weightedTotal / totalWeight;
             }
 
-            // 2. Score each attack based on similarity to the average (lower distance is better)
+            // 2. Score each attack based on similarity to the recency-weighted average (lower distance is better)
+            // Tie-break by deployed housing space (avoids penalizing Squads) and recency (attacks are newest-first)
             let bestSourceAttack = attacks[0];
             let minDistance = Infinity;
-            let maxTotalUnits = -1;
+            let maxDeployedSpace = -1;
 
             for (const attack of attacks) {
               let distance = 0;
-              let totalUnits = 0;
+              let deployedSpace = 0;
               for (const name of unitNames) {
                 const count = (attack.troopCounts[name] || attack.spellCounts[name] || 0);
                 distance += Math.abs(count - unitAverages[name]);
-                totalUnits += count;
+                const unitSpace = TROOP_HOUSING_SPACES[name] ?? SPELL_HOUSING_SPACES[name] ?? 1;
+                deployedSpace += count * unitSpace;
               }
 
-              // We want to minimize distance. If distance is equal, we maximize totalUnits as a tie-breaker.
-              if (distance < minDistance || (Math.abs(distance - minDistance) < 1e-9 && totalUnits > maxTotalUnits)) {
+              if (distance < minDistance - 1e-9 || (Math.abs(distance - minDistance) < 1e-9 && deployedSpace > maxDeployedSpace)) {
                 minDistance = distance;
-                maxTotalUnits = totalUnits;
+                maxDeployedSpace = deployedSpace;
                 bestSourceAttack = attack;
               }
             }
 
+            const hasSquads = (a: any) => Object.keys(a.mainTroopCounts || {}).some(name => ALL_SQUADS.has(name));
+            const bestHasSquads = hasSquads(bestSourceAttack);
+            const mergeTroopAttacks = attacks.filter(a => hasSquads(a) === bestHasSquads);
+
             // 3. Reconstruct the full trained army using capacity-constrained greedy merge
             bestAttack = {
               ...bestSourceAttack,
-              troopCounts: mergeCounts(attacks, 'troopCounts', TROOP_HOUSING_SPACES, bestSourceAttack, 407),
-              mainTroopCounts: mergeCounts(attacks, 'mainTroopCounts', TROOP_HOUSING_SPACES, bestSourceAttack, 352),
-              ccTroopCounts: mergeCounts(attacks, 'ccTroopCounts', TROOP_HOUSING_SPACES, bestSourceAttack, 55),
+              troopCounts: mergeCounts(mergeTroopAttacks, 'troopCounts', TROOP_HOUSING_SPACES, bestSourceAttack, 412),
+              mainTroopCounts: mergeCounts(mergeTroopAttacks, 'mainTroopCounts', TROOP_HOUSING_SPACES, bestSourceAttack, 352),
+              ccTroopCounts: mergeCounts(attacks, 'ccTroopCounts', TROOP_HOUSING_SPACES, bestSourceAttack, 60),
               mainSpellCounts: mergeCounts(attacks, 'mainSpellCounts', SPELL_HOUSING_SPACES, bestSourceAttack, 11),
               ccSpellCounts: mergeCounts(attacks, 'ccSpellCounts', SPELL_HOUSING_SPACES, bestSourceAttack, 4),
               shareCode: bestSourceAttack.shareCode
@@ -847,11 +933,18 @@ async function fetchMeta() {
             name: rankingPlayer.name,
             tag: tag,
             trophies: rankingPlayer.trophies || 0,
+            attackWins: profile?.attackWins,
+            defenseWins: profile?.defenseWins,
+            prevSeasonRank: profile?.legendStatistics?.previousSeason?.rank,
+            prevSeasonTrophies: profile?.legendStatistics?.previousSeason?.trophies,
             clanName: rankingPlayer.clan ? rankingPlayer.clan.name : '',
             clanBadge: rankingPlayer.clan && rankingPlayer.clan.tag && clanBadgesCache[rankingPlayer.clan.tag]
               ? 'https://images.weserv.nl/?url=' + encodeURIComponent(clanBadgesCache[rankingPlayer.clan.tag]) + '&w=32&h=32' 
               : '',
             armyType: mainArmyType || "Unknown",
+            attackCount: playerAttackCount,
+            threeStarCount: playerThreeStarCount,
+            defenseCount: playerDefenseCount,
             heroes: bestAttack ? bestAttack.heroes : [],
             siegeMachine: bestSiegeMachine,
             superTroops: bestSuperTroops,
@@ -950,11 +1043,16 @@ async function fetchMeta() {
         .filter(([name]) => ALL_SIEGE_MACHINES.has(name))
         .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
       const representativePlayer = stats.topPlayersList.find(p => p.armyType === armyName);
+      const battlesCount = globalArmyBattlesCount[armyName] || 0;
+      const threeStarCount = globalArmyThreeStarsCount[armyName] || 0;
+      const threeStarRate = battlesCount > 0 ? parseFloat(((threeStarCount / battlesCount) * 100).toFixed(1)) : 0;
       formattedArmies.push({
         name: armyName,
         usage: stats.playersAnalyzed ? (armyStat.count / stats.playersAnalyzed) * 100 : 0,
         count: armyStat.count,
-        battlesCount: globalArmyBattlesCount[armyName] || 0,
+        battlesCount,
+        threeStarCount,
+        threeStarRate,
         playerCount: armyStat.playerTags.size,
         topHeroes,
         topSecondaryTroops,
@@ -978,10 +1076,30 @@ async function fetchMeta() {
       pets: [] as any[],
       superTroops: [] as any[],
       siegeMachines: [] as any[],
+      squads: [] as any[],
+      spells: [] as any[],
+      ccTroopCombos: [] as ClanCastleComboStat[],
+      ccSpells: [] as any[],
       topPlayers: stats.topPlayersList
     };
 
-    // Process Super Troops (still based on playersAnalyzed since it's profile data)
+    const formatStarStats = (counterMap: Record<string, StarCounter>, denominator: number) => {
+      const list = [];
+      for (const [name, stat] of Object.entries(counterMap)) {
+        const usagePct = denominator ? (stat.count / denominator) * 100 : 0;
+        if (usagePct > 0) {
+          list.push({
+            name,
+            usage: parseFloat(usagePct.toFixed(1)),
+            threeStarCount: stat.threeStars,
+            threeStarRate: stat.count > 0 ? parseFloat(((stat.threeStars / stat.count) * 100).toFixed(1)) : 0,
+          });
+        }
+      }
+      return list.sort((a, b) => b.usage - a.usage);
+    };
+
+    // Process Super Troops (still based on playersAnalyzed)
     for (const [stName, count] of Object.entries(stats.superTroops)) {
       const usagePct = stats.playersAnalyzed ? (count / stats.playersAnalyzed) * 100 : 0;
       if (usagePct > 0) {
@@ -991,33 +1109,34 @@ async function fetchMeta() {
         });
       }
     }
-    // Sort super troops highest to lowest
     outputData.superTroops.sort((a, b) => b.usage - a.usage);
 
-    // Process Siege Machines globally
-    outputData.siegeMachines = [];
-    for (const [smName, count] of Object.entries(stats.siegeMachines)) {
-      const usagePct = stats.attacksAnalyzed ? (count / stats.attacksAnalyzed) * 100 : 0;
-      if (usagePct > 0) {
-        outputData.siegeMachines.push({
-          name: smName,
-          usage: parseFloat(usagePct.toFixed(1))
-        });
-      }
-    }
-    outputData.siegeMachines.sort((a: any, b: any) => b.usage - a.usage);
+    outputData.siegeMachines = formatStarStats(stats.siegeMachines, stats.attacksAnalyzed);
+    outputData.squads = formatStarStats(stats.squads, stats.attacksAnalyzed);
+    outputData.spells = formatStarStats(stats.spells, stats.attacksAnalyzed);
+    outputData.ccSpells = formatStarStats(stats.ccSpells, stats.attacksAnalyzed);
+
+    outputData.ccTroopCombos = Object.entries(stats.ccTroopCombos)
+      .map(([key, stat]) => ({
+        key,
+        units: stat.units,
+        count: stat.count,
+        usage: parseFloat((stats.attacksAnalyzed ? (stat.count / stats.attacksAnalyzed) * 100 : 0).toFixed(1)),
+        threeStarCount: stat.threeStars,
+        threeStarRate: stat.count > 0 ? parseFloat(((stat.threeStars / stat.count) * 100).toFixed(1)) : 0,
+      }))
+      .filter(c => c.usage > 0)
+      .sort((a, b) => b.usage - a.usage)
+      .slice(0, 10);
 
     // Only include main heroes
     for (const [heroName, heroStat] of Object.entries(stats.heroes)) {
-      // For heroes, denominator is stats.attacksAnalyzed. 
-      // If a hero is not in an attack, they weren't used.
       const usagePct = stats.attacksAnalyzed ? (heroStat.count / stats.attacksAnalyzed) * 100 : 0;
       outputData.heroes.push({ name: heroName, usage: parseFloat(usagePct.toFixed(1)) });
 
       // Equipments
       const heroEquips = stats.equipments[heroName] || {};
       for (const [eqName, count] of Object.entries(heroEquips)) {
-        // Equipment usage is out of the number of attacks the hero was used in!
         const eqUsage = heroStat.count ? (count / heroStat.count) * 100 : 0;
         outputData.equipments.push({
           hero: heroName,
@@ -1026,38 +1145,101 @@ async function fetchMeta() {
         });
       }
 
-      // Combos
+      // Combos (with 3-star rate)
       const heroCombos = stats.combos[heroName] || {};
-      for (const [comboName, count] of Object.entries(heroCombos)) {
-        if (count > 0) {
-          const comboUsage = heroStat.count ? (count / heroStat.count) * 100 : 0;
+      for (const [comboName, stat] of Object.entries(heroCombos)) {
+        if (stat.count > 0) {
+          const comboUsage = heroStat.count ? (stat.count / heroStat.count) * 100 : 0;
           outputData.combos.push({
             hero: heroName,
             name: comboName,
-            usage: parseFloat(comboUsage.toFixed(1))
+            usage: parseFloat(comboUsage.toFixed(1)),
+            threeStarCount: stat.threeStars,
+            threeStarRate: parseFloat(((stat.threeStars / stat.count) * 100).toFixed(1)),
           });
         }
       }
 
-      // Pets
+      // Pets (with 3-star rate)
       const heroPets = stats.pets[heroName] || {};
-      for (const [petName, count] of Object.entries(heroPets)) {
-        const petUsage = heroStat.count ? (count / heroStat.count) * 100 : 0;
-        outputData.pets.push({
-          hero: heroName,
-          name: petName,
-          usage: parseFloat(petUsage.toFixed(1))
-        });
+      for (const [petName, stat] of Object.entries(heroPets)) {
+        if (stat.count > 0) {
+          const petUsage = heroStat.count ? (stat.count / heroStat.count) * 100 : 0;
+          outputData.pets.push({
+            hero: heroName,
+            name: petName,
+            usage: parseFloat(petUsage.toFixed(1)),
+            threeStarCount: stat.threeStars,
+            threeStarRate: parseFloat(((stat.threeStars / stat.count) * 100).toFixed(1)),
+          });
+        }
       }
     }
 
-    fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(outputData));
+    // Apply 24h meta trends from previous snapshot (>= 12h old)
+    const metaPath = path.join(dir, 'meta.json');
+    const prevMetaPath = path.join(dir, 'meta-prev.json');
+    let prevSummary: MetaSummary | null = null;
+
+    if (fs.existsSync(metaPath)) {
+      try {
+        const existingMeta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) as MetaData;
+        if (isValidTrendBaseline(existingMeta.lastUpdated, outputData.lastUpdated)) {
+          prevSummary = buildMetaSummary(existingMeta);
+          fs.writeFileSync(prevMetaPath, JSON.stringify(prevSummary));
+        }
+      } catch {}
+    }
+
+    if (!prevSummary && fs.existsSync(prevMetaPath)) {
+      try {
+        const cachedPrev = JSON.parse(fs.readFileSync(prevMetaPath, 'utf8')) as MetaSummary;
+        if (isValidTrendBaseline(cachedPrev.lastUpdated, outputData.lastUpdated)) {
+          prevSummary = cachedPrev;
+        }
+      } catch {}
+    }
+
+    if (!prevSummary) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch('https://sm1rks.github.io/coc-meta-tracker/meta-summary.json', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const remoteSummary = (await res.json()) as MetaSummary;
+          if (isValidTrendBaseline(remoteSummary.lastUpdated, outputData.lastUpdated)) {
+            prevSummary = remoteSummary;
+            fs.writeFileSync(prevMetaPath, JSON.stringify(prevSummary));
+          }
+        }
+      } catch {}
+    }
+
+    if (prevSummary) {
+      applyTrends(outputData, prevSummary);
+      console.log(`📈 Applied 24h meta trends against baseline from ${prevSummary.lastUpdated}`);
+    }
+
+    fs.writeFileSync(metaPath, JSON.stringify(outputData));
     console.log("Successfully wrote data/meta.json with REAL data!");
+
+    // Write compact meta-summary.json to public/ for future 24h trend comparisons
+    const summaryPath = path.join(process.cwd(), 'public', 'meta-summary.json');
+    fs.writeFileSync(summaryPath, JSON.stringify(buildMetaSummary(outputData)));
+    console.log("Successfully wrote public/meta-summary.json!");
 
     // Write tiny last-updated.json to public/ for the client-side auto-refresh check
     const lastUpdatedPath = path.join(process.cwd(), 'public', 'last-updated.json');
     fs.writeFileSync(lastUpdatedPath, JSON.stringify({ lastUpdated: outputData.lastUpdated }));
     console.log("Successfully wrote public/last-updated.json!");
+
+    // Write per-player battlelogs to public/ for lazy expansion on the leaderboard
+    const battlelogsPath = path.join(process.cwd(), 'public', 'battlelogs.json');
+    fs.writeFileSync(battlelogsPath, JSON.stringify(battlelogsByTag));
+    console.log(`Successfully wrote public/battlelogs.json for ${Object.keys(battlelogsByTag).length} players!`);
 
   } catch (err) {
     console.error("Failed to fetch data:", err);

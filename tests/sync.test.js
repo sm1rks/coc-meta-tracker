@@ -119,7 +119,7 @@ test('Sync Logic: Dynamic housing spaces from static_data.json', () => {
 });
 
 test('Sync Logic: UnitMap completeness', async () => {
-  const { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS } = await import('../src/data/UnitMap.ts');
+  const { TroopMap, SpellMap, PetMap, ALL_SIEGE_MACHINES, ALL_SUPER_TROOPS, ALL_SQUADS } = await import('../src/data/UnitMap.ts');
   const { EquipmentMap, HeroMap } = await import('../src/data/equipmentMap.ts');
 
   // Verify Revenge Deck in EquipmentMap
@@ -128,11 +128,14 @@ test('Sync Logic: UnitMap completeness', async () => {
   // Verify Dragon Duke in HeroMap
   assert.strictEqual(HeroMap[7], 'Dragon Duke');
 
-  // Verify Elephant Rider in TroopMap
+  // Verify Elephant Rider & Squads in TroopMap
   assert.strictEqual(TroopMap[185], 'Elephant Rider');
+  assert.strictEqual(TroopMap[195], 'Barch Squad');
+  assert.strictEqual(TroopMap[205], 'Dragons Squad');
 
-  // Verify Angry Spell in SpellMap
+  // Verify Angry Spell & Heroic Spell in SpellMap
   assert.strictEqual(SpellMap[123], 'Angry Spell');
+  assert.strictEqual(SpellMap[153], 'Heroic Spell');
 
   // Verify Sky Wagon and Stone Slammer in ALL_SIEGE_MACHINES
   assert.ok(ALL_SIEGE_MACHINES.has('Sky Wagon'));
@@ -141,6 +144,11 @@ test('Sync Logic: UnitMap completeness', async () => {
   // Verify Super Wizard and all super troops in ALL_SUPER_TROOPS
   assert.ok(ALL_SUPER_TROOPS.has('Super Wizard'));
   assert.ok(ALL_SUPER_TROOPS.has('Super Yeti'));
+
+  // Verify Squads in ALL_SQUADS
+  assert.strictEqual(ALL_SQUADS.size, 12);
+  assert.ok(ALL_SQUADS.has('Healer Squad'));
+  assert.ok(ALL_SQUADS.has('P.E.K.K.A Titan Squad'));
 
   // Verify Pets
   assert.strictEqual(PetMap[16], 'Sneezy');
@@ -265,6 +273,90 @@ test('Data Logic: Equipment ID 0 (Barbarian Puppet) is not dropped as falsy', as
   const eq2 = 0;
   const resolved = eq2 !== null && eq2 !== undefined ? EquipmentMap[eq2] : null;
   assert.strictEqual(resolved, 'Barbarian Puppet');
+});
+
+test('Squad Logic: Housing space fallback handles null Squad entries', async () => {
+  const { resolveTroopHousingSpace } = await import('../src/utils/squadUtils.ts');
+
+  assert.strictEqual(resolveTroopHousingSpace({ name: 'P.E.K.K.A Titan Squad', housing_space: null }), 46);
+  assert.strictEqual(resolveTroopHousingSpace({ name: 'Baby Dragon Squad', housing_space: null }), 26);
+  assert.strictEqual(resolveTroopHousingSpace({ name: 'Dragons Squad', housing_space: 85 }), 85);
+  assert.strictEqual(resolveTroopHousingSpace({ name: 'Wall Wrecker', production_building: 'Workshop', housing_space: 1 }), 0);
+});
+
+test('Squad Logic: expandSquadTroops unwraps Squads into constituent troops', async () => {
+  const { expandSquadTroops } = await import('../src/utils/squadUtils.ts');
+
+  const hydraExpanded = expandSquadTroops({ 'Dragons Squad': 2, 'Balloon': 4 });
+  assert.deepStrictEqual(hydraExpanded, { Dragon: 4, 'Dragon Rider': 4, Balloon: 4 });
+
+  const hybridExpanded = expandSquadTroops({ 'Healer Squad': 1, 'Miner Squad': 2, 'Hog Rider Squad': 2 });
+  assert.deepStrictEqual(hybridExpanded, { Balloon: 1, Healer: 5, Miner: 20, 'Hog Rider': 24 });
+
+  const titanExpanded = expandSquadTroops({ 'P.E.K.K.A Titan Squad': 2, 'Wall Breaker Squad': 1 });
+  assert.deepStrictEqual(titanExpanded, { 'P.E.K.K.A': 2, 'Electro Titan': 2, 'Wall Breaker': 5 });
+});
+
+test('Squad Logic: formatSquadTooltip includes constituent troop breakdown', async () => {
+  const { formatSquadTooltip } = await import('../src/utils/squadUtils.ts');
+
+  assert.strictEqual(formatSquadTooltip('Healer Squad'), 'Healer Squad (1× Balloon, 5× Healer)');
+  assert.strictEqual(formatSquadTooltip('Dragons Squad'), 'Dragons Squad (2× Dragon, 2× Dragon Rider)');
+  assert.strictEqual(formatSquadTooltip('Root Rider'), 'Root Rider');
+});
+
+test('Trend Logic: applyTrends computes 24h usage and 3-star deltas', async () => {
+  const { buildMetaSummary, applyTrends, isValidTrendBaseline } = await import('../src/utils/trendUtils.ts');
+
+  const oldMeta = {
+    lastUpdated: '2026-11-15T05:00:00.000Z',
+    playersAnalyzed: 200,
+    attacksAnalyzed: 3000,
+    topPlayers: [],
+    heroes: [{ name: 'Archer Queen', usage: 95.0 }],
+    equipments: [],
+    combos: [{ hero: 'Archer Queen', name: 'Giant Arrow + Healer Puppet', usage: 50.0, threeStarRate: 70.0 }],
+    pets: [{ hero: 'Archer Queen', name: 'Frosty', usage: 40.0, threeStarRate: 68.0 }],
+    superTroops: [{ name: 'Super Wall Breaker', usage: 55.0 }],
+    siegeMachines: [{ name: 'Troop Launcher', usage: 40.0, threeStarRate: 75.0 }],
+    squads: [{ name: 'Healer Squad', usage: 0.5, threeStarRate: 60.0 }],
+    spells: [{ name: 'Rage Spell', usage: 65.0, threeStarRate: 76.0 }],
+    ccTroopCombos: [{ key: '1xIce Golem + 2xBalloon', units: [], count: 100, usage: 10.0, threeStarRate: 72.0 }],
+    ccSpells: [{ name: 'Freeze Spell', usage: 45.0, threeStarRate: 74.0 }],
+    armies: [{ name: 'Hydra', usage: 10.0, threeStarRate: 80.0 }],
+  };
+
+  const currMeta = {
+    lastUpdated: '2026-11-16T05:00:00.000Z',
+    playersAnalyzed: 200,
+    attacksAnalyzed: 3100,
+    topPlayers: [],
+    heroes: [{ name: 'Archer Queen', usage: 97.5 }],
+    equipments: [],
+    combos: [{ hero: 'Archer Queen', name: 'Giant Arrow + Healer Puppet', usage: 54.2, threeStarRate: 73.5 }],
+    pets: [{ hero: 'Archer Queen', name: 'Frosty', usage: 38.0, threeStarRate: 69.0 }],
+    superTroops: [{ name: 'Super Wall Breaker', usage: 57.0 }],
+    siegeMachines: [{ name: 'Troop Launcher', usage: 41.8, threeStarRate: 77.2 }],
+    squads: [{ name: 'Healer Squad', usage: 4.5, threeStarRate: 68.0 }],
+    spells: [{ name: 'Rage Spell', usage: 62.5, threeStarRate: 78.0 }],
+    ccTroopCombos: [{ key: '1xIce Golem + 2xBalloon', units: [], count: 150, usage: 12.5, threeStarRate: 75.0 }],
+    ccSpells: [{ name: 'Freeze Spell', usage: 46.0, threeStarRate: 74.0 }],
+    armies: [{ name: 'Hydra', usage: 12.5, threeStarRate: 85.0 }],
+  };
+
+  assert.strictEqual(isValidTrendBaseline(oldMeta.lastUpdated, currMeta.lastUpdated), true);
+  assert.strictEqual(isValidTrendBaseline('2026-11-16T02:00:00.000Z', currMeta.lastUpdated), false);
+
+  const summary = buildMetaSummary(oldMeta);
+  applyTrends(currMeta, summary);
+
+  assert.strictEqual(currMeta.armies[0].usageDelta, 2.5);
+  assert.strictEqual(currMeta.armies[0].threeStarDelta, 5.0);
+  assert.strictEqual(currMeta.combos[0].usageDelta, 4.2);
+  assert.strictEqual(currMeta.pets[0].usageDelta, -2.0);
+  assert.strictEqual(currMeta.squads[0].usageDelta, 4.0);
+  assert.strictEqual(currMeta.spells[0].usageDelta, -2.5);
+  assert.strictEqual(currMeta.ccTroopCombos[0].usageDelta, 2.5);
 });
 
 
